@@ -515,8 +515,8 @@ typedef struct
 
 //from 16_mm
 //==========================================================================
-
-#define MAXBLOCKS		1024		//kd=1300 wolf3d=700 cata=600
+#if 0
+//#define MAXBLOCKS		1024		//kd=1300 wolf3d=700 cata=600
 
 typedef struct mmblockstruct
 {
@@ -556,7 +556,7 @@ typedef struct
 	mmblocktype	far mmblocks[MAXBLOCKS],far *mmhead,far *mmfree,far *mmrover,far *mmnew;
 	memptr	bufferseg;	//Allocates bufferseg misc buffer
 } mminfo_t;
-
+#endif
 //==========================================================================
 
 
@@ -859,7 +859,7 @@ typedef struct glob_game_vars
 	pm_t		pm;	// pm stuff
 	loghandle_t	handle;	//handles for file logging
 	kurokku_t	kurokku;	//clock struct
-	mminfo_t	mm; mminfotype	mmi;	// mm stuff
+//	mminfo_t	mm; mminfotype	mmi;	// mm stuff
 	in_info_t	in;		// 16_in info
 	player_t	player[MaxPlayers];	// player vars
 	map_view_t	mv[4];

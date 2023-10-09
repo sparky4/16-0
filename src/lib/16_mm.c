@@ -32,7 +32,7 @@ Primary coder: John Carmack
 
 RELIES ON
 ---------
-Quit (global_game_variables_t *gvar, char *error) function
+Quit (char *error) function
 
 
 WORK TO DO
@@ -51,7 +51,7 @@ Open Watcom port by sparky4
 
 */
 #include "src/lib/16_mm.h"
-#include "src/lib/16_ca.h"
+//#include "src/lib/16_ca.h"
 #include <malloc.h>
 #pragma hdrstop
 
@@ -71,23 +71,23 @@ Open Watcom port by sparky4
 #define PURGEMASK	0xfffc
 #define BASEATTRIBUTES	0	// unlocked, non purgable
 
-//#define MAXUMBS		10
+#define MAXUMBS		10
 
-/*typedef struct mmblockstruct
+typedef struct mmblockstruct
 {
 	unsigned	start,length;
 	unsigned	attributes;
 	memptr		*useptr;	// pointer to the segment start
 	struct mmblockstruct far *next;
-} mmblocktype;*/
+} mmblocktype;
 
 
 //#define GETNEWBLOCK {if(!(mmnew=mmfree))Quit("MM_GETNEWBLOCK: No free blocks!") ;mmfree=mmfree->next;}
 //
 
-#define GETNEWBLOCK {if(!gvar->mm.mmfree)MML_ClearBlock(gvar);gvar->mm.mmnew=gvar->mm.mmfree;gvar->mm.mmfree=gvar->mm.mmfree->next;}
+#define GETNEWBLOCK {if(!mmfree)MML_ClearBlock();mmnew=mmfree;mmfree=mmfree->next;}
 
-#define FREEBLOCK(x) {*x->useptr=NULL;x->next=gvar->mm.mmfree;gvar->mm.mmfree=x;}
+#define FREEBLOCK(x) {*x->useptr=NULL;x->next=mmfree;mmfree=x;}
 
 /*
 =============================================================================
@@ -97,9 +97,9 @@ Open Watcom port by sparky4
 =============================================================================
 */
 
-/*mminfotype	mminfo;
+mminfotype	mminfo;
 memptr		bufferseg;
-boolean		mmerror;*/
+boolean		mmerror;
 
 void		(* beforesort) (void);
 void		(* aftersort) (void);
@@ -112,7 +112,7 @@ void		(* aftersort) (void);
 =============================================================================
 */
 
-/*boolean		mmstarted;
+boolean		mmstarted;
 
 void far	*farheap;
 void		*nearheap;
@@ -120,13 +120,13 @@ void		*nearheap;
 mmblocktype	far mmblocks[MAXBLOCKS]
 			,far *mmhead,far *mmfree,far *mmrover,far *mmnew;
 
-boolean		bombonerror;*/
+boolean		bombonerror;
 
 //unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
 
 void		(* XMSaddr) (void);		// far pointer to XMS driver
 
-/*unsigned	numUMBs,UMBbase[MAXUMBS];*/
+unsigned	numUMBs,UMBbase[MAXUMBS];
 
 //==========================================================================
 
@@ -139,8 +139,8 @@ void 		MML_ShutdownEMS (void);
 void 		MM_MapEMS (void);
 boolean 	MML_CheckForXMS (void);
 void 		MML_ShutdownXMS (void);
-//void		MML_UseSpace (unsigned segstart, unsigned seglength);
-//void 		MML_ClearBlock (void);
+void		MML_UseSpace (unsigned segstart, unsigned seglength);
+void 		MML_ClearBlock (void);
 
 //==========================================================================
 #ifndef __16_PM__
@@ -253,7 +253,7 @@ boolean MML_CheckForEMS(void)
 =======================
 */
 
-byte MML_SetupEMS(global_game_variables_t *gvar)
+byte MML_SetupEMS(void)
 {
 	byte	str[160];
 	byte	err;
@@ -349,12 +349,12 @@ End:
 		printf("%s\n",str);
 		return err;
 	}
-	gvar->mm.totalEMSpages=totalEMSpages;
-	gvar->mm.freeEMSpages=freeEMSpages;
-	gvar->mm.EMSPageFrame=EMSPageFrame;
-	gvar->mm.EMSpagesmapped=EMSpagesmapped;
-	gvar->mm.EMSHandle=EMSHandle;
-	gvar->mm.EMSVer=EMSVer;
+	totalEMSpages=totalEMSpages;
+	freeEMSpages=freeEMSpages;
+	EMSPageFrame=EMSPageFrame;
+	EMSpagesmapped=EMSpagesmapped;
+	EMSHandle=EMSHandle;
+	EMSVer=EMSVer;
 	return 0;
 }
 
@@ -367,10 +367,10 @@ End:
 =======================
 */
 
-void MML_ShutdownEMS(global_game_variables_t *gvar)
+void MML_ShutdownEMS(void)
 {
 	boolean errorflag=false;
-	unsigned EMSHandle=gvar->mm.EMSHandle;
+	unsigned EMSHandle=EMSHandle;
 
 	if(!EMSHandle)
 		return;
@@ -389,7 +389,7 @@ void MML_ShutdownEMS(global_game_variables_t *gvar)
 	}
 #endif
 	if(errorflag==true)
-		Quit (gvar, "MML_ShutdownEMS: Error freeing EMS!\n");	//++++ add something
+		Quit ("MML_ShutdownEMS: Error freeing EMS!\n");	//++++ add something
 }
 
 /*
@@ -404,14 +404,14 @@ void MML_ShutdownEMS(global_game_variables_t *gvar)
 ====================
 */
 
-byte MM_MapEMS(global_game_variables_t *gvar)
+byte MM_MapEMS(void)
 {
 	byte	str[160];
 	unsigned	EMSHandle;
 	byte err;
 	boolean	errorflag=false;
 	int	i;
-	EMSHandle=gvar->mm.EMSHandle;
+	EMSHandle=EMSHandle;
 
 	for (i=0;i<4/*MAPPAGES*/;i++)
 	{
@@ -448,11 +448,11 @@ byte MM_MapEMS(global_game_variables_t *gvar)
 			return err;
 		}
 	}
-	gvar->mmi.EMSmem = (i)*0x4000lu;
+	mminfo.EMSmem = (i)*0x4000lu;
 	return 0;
 }
 
-byte MM_MapXEMS(global_game_variables_t *gvar)
+byte MM_MapXEMS(void)
 {
 //SUB EMS.MapXPages (PhysicalStart, LogicalStart, NumPages, Handle)
 
@@ -481,9 +481,9 @@ byte MM_MapXEMS(global_game_variables_t *gvar)
 	word	EMSHandle;
 	boolean	errorflag=false;
 	int	i;
-	EMSHandle=gvar->mm.EMSHandle;
+	EMSHandle=EMSHandle;
 
-	if(gvar->mm.EMSVer<0x40)
+	if(EMSVer<0x40)
 		return 5;
 
 	for (i=0;i<MAPPAGES;i++)
@@ -525,7 +525,7 @@ byte MM_MapXEMS(global_game_variables_t *gvar)
 			return err;
 		}
 	}
-	gvar->mmi.EMSmem = (i)*0x4000lu;
+	mminfo.EMSmem = (i)*0x4000lu;
 	return 0;
 }
 #endif
@@ -576,7 +576,7 @@ boolean MML_CheckForXMS(void)
 =======================
 */
 
-void MML_SetupXMS(global_game_variables_t *gvar)
+void MML_SetupXMS(void)
 {
 	word	base,size;
 
@@ -621,10 +621,10 @@ getmemory:
 #endif
 //	printf("base=%u	", base); printf("size=%u\n", size);
 	MML_UseSpace(base,size, gvar);
-	gvar->mmi.XMSmem += size*16;
-	gvar->mm.UMBbase[gvar->mm.numUMBs] = base;
-	gvar->mm.numUMBs++;
-	if(gvar->mm.numUMBs < MAXUMBS)
+	mminfo.XMSmem += size*16;
+	UMBbase[numUMBs] = base;
+	numUMBs++;
+	if(numUMBs < MAXUMBS)
 		goto getmemory;
 }
 
@@ -637,14 +637,14 @@ getmemory:
 ======================
 */
 
-void MML_ShutdownXMS(global_game_variables_t *gvar)
+void MML_ShutdownXMS(void)
 {
 	int	i;
 	unsigned	base;
 
-	for (i=0;i<gvar->mm.numUMBs;i++)
+	for (i=0;i<numUMBs;i++)
 	{
-		base = gvar->mm.UMBbase[i];
+		base = UMBbase[i];
 		__asm {
 			mov	ah,XMS_FREEUMB
 			mov	dx,[base]
@@ -694,15 +694,15 @@ void MML_ShutdownXMS(global_game_variables_t *gvar)
 	}
 //++++todo: linked list of segment!
 */
-void MML_UseSpace (unsigned segstart, unsigned seglength, global_game_variables_t *gvar)
+void MML_UseSpace (unsigned segstart, unsigned seglength)
 {
 	mmblocktype far *scan,far *last;
 	unsigned	oldend;
 	sdword		extra;
 	//word segm=1;
 
-	scan = last = gvar->mm.mmhead;
-	gvar->mm.mmrover = gvar->mm.mmhead;		// reset rover to start of memory
+	scan = last = mmhead;
+	mmrover = mmhead;		// reset rover to start of memory
 
 //
 // search for the block that contains the range of segments
@@ -743,7 +743,7 @@ void MML_UseSpace (unsigned segstart, unsigned seglength, global_game_variables_
 		//return;
 	}
 #else
-		Quit (gvar, "MML_UseSpace: Segment spans two blocks!");
+		Quit ("MML_UseSpace: Segment spans two blocks!");
 #endif
 
 	if (segstart == scan->start)
@@ -758,13 +758,13 @@ void MML_UseSpace (unsigned segstart, unsigned seglength, global_game_variables_
 	if (extra > 0)
 	{
 		GETNEWBLOCK;
-		gvar->mm.mmnew->useptr = NULL;
+		mmnew->useptr = NULL;
 
-		gvar->mm.mmnew->next = scan->next;
-		scan->next = gvar->mm.mmnew;
-		gvar->mm.mmnew->start = segstart+seglength;
-		gvar->mm.mmnew->length = extra;
-		gvar->mm.mmnew->attributes = LOCKBIT;
+		mmnew->next = scan->next;
+		scan->next = mmnew;
+		mmnew->start = segstart+seglength;
+		mmnew->length = extra;
+		mmnew->attributes = LOCKBIT;
 	}//else if(segm>0) goto segu;
 
 }
@@ -781,23 +781,23 @@ void MML_UseSpace (unsigned segstart, unsigned seglength, global_game_variables_
 ====================
 */
 
-void MML_ClearBlock (global_game_variables_t *gvar)
+void MML_ClearBlock (void)
 {
-	mmblocktype far *scan;//,far *last;
+	mmblocktype far *scan,far *last;
 
-	scan = gvar->mm.mmhead->next;
+	scan = mmhead->next;
 
 	while(scan)
 	{
 		if(!(scan->attributes&LOCKBIT) && (scan->attributes&PURGEBITS) )
 		{
-			MM_FreePtr (scan->useptr, gvar);
+			MM_FreePtr (scan->useptr);
 			return;
 		}
 		scan = scan->next;
 	}
 
-	Quit (gvar, "MM_ClearBlock: No purgable blocks!\n");
+	Quit ("MM_ClearBlock: No purgable blocks!\n");
 }
 
 
@@ -811,7 +811,7 @@ void MML_ClearBlock (global_game_variables_t *gvar)
 ===================
 */
 
-void MM_Reset (global_game_variables_t *gvar)
+/*void MM_Reset (void)
 {
 //	//has to be 16
 //	if(sizeof(mmblocktype)!=16)
@@ -830,7 +830,7 @@ void MM_Reset (global_game_variables_t *gvar)
 #ifdef __WATCOMC__
 	strcpy(gvar->handle.heapdumpfilename, "heap.16w");
 #endif
-}
+}*/
 
 
 //==========================================================================
@@ -846,65 +846,67 @@ void MM_Reset (global_game_variables_t *gvar)
 ===================
 */
 
-void MM_Startup (global_game_variables_t *gvar)
+static	char *ParmStrings[] = {"noems","noxms",""};
+
+void MM_Startup (void)
 {
 	int i;
 	unsigned 	long length;
 	void far	*start;
-	unsigned	segstart,seglength;//,endfree;
+	unsigned	segstart,seglength,endfree;
 
-	if(gvar->mm.mmstarted)
-		MM_Shutdown (gvar);
+	if(mmstarted)
+		MM_Shutdown ();
 
-	MM_Reset (gvar);
-	gvar->mm.mmstarted = true;
-	gvar->mm.bombonerror = true;
+	//MM_Reset ();
+	mmstarted = true;
+	bombonerror = true;
 //
 // set up the linked list (everything in the free list;
 //
-	gvar->mm.mmhead = NULL;
-	gvar->mm.mmfree = &(gvar->mm.mmblocks[0]);
+	mmhead = NULL;
+	mmfree = &(mmblocks[0]);
 	for (i=0;i<MAXBLOCKS-1;i++)
-		gvar->mm.mmblocks[i].next = &(gvar->mm.mmblocks[i+1]);
-	gvar->mm.mmblocks[i].next = NULL;
+		mmblocks[i].next = &(mmblocks[i+1]);
+	mmblocks[i].next = NULL;
 
 //
 // locked block of all memory until we punch out free space
 //
 	GETNEWBLOCK;
-	gvar->mm.mmhead = gvar->mm.mmnew;				// this will allways be the first node
-	gvar->mm.mmnew->start = 0;
-	gvar->mm.mmnew->length = 0xffff;
-	gvar->mm.mmnew->attributes = LOCKBIT;
-	gvar->mm.mmnew->next = NULL;
-	gvar->mm.mmrover = gvar->mm.mmhead;
+	mmhead = mmnew;				// this will allways be the first node
+	mmnew->start = 0;
+	mmnew->length = 0xffff;
+	mmnew->attributes = LOCKBIT;
+	mmnew->next = NULL;
+	mmrover = mmhead;
 
 
 //
 // get all available near conventional memory segments
 //
 	length=(word)coreleft();
-	start = (void far *)(gvar->mm.nearheap = _nmalloc(length));
+	start = (void far *)(nearheap = _nmalloc(length));
 
 	length -= 16-(FP_OFF(start)&15);
 	length -= SAVENEARHEAP;
 	seglength = length / 16;			// now in paragraphs
 	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
-	MML_UseSpace (segstart,seglength, gvar);
-	gvar->mmi.nearheap = length;
+	MML_UseSpace (segstart,seglength);
+	mminfo.nearheap = length;
 	//0000printf("near:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 //
 // get all available far conventional memory segments
 //
 	length=farcoreleft();
-	start = gvar->mm.farheap = farmalloc(length);
+	start = farheap = farmalloc(length);
 	length -= 16-(FP_OFF(start)&15);
 	length -= SAVEFARHEAP;
 	seglength = length / 16;			// now in paragraphs
 	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
-	MML_UseSpace (segstart,seglength, gvar);
-	gvar->mmi.farheap = length;
-	gvar->mmi.mainmem = gvar->mmi.nearheap + gvar->mmi.farheap;
+	MML_UseSpace (segstart,seglength);
+	mminfo.farheap = length;
+	mminfo.mainmem = mminfo.nearheap + mminfo.farheap;
 	//0000printf("far:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 #if !defined(__16_PM__)// && defined(__WATCOMC__)
 #if 0
@@ -912,7 +914,7 @@ void MM_Startup (global_game_variables_t *gvar)
 //
 // detect EMS and allocate up to 64K at page frame
 //
-	gvar->mmi.EMSmem = 0;
+	mminfo.EMSmem = 0;
 //goto emsskip;	//0000
 	for(i = 1;i < _argc;i++)
 	{
@@ -923,7 +925,7 @@ void MM_Startup (global_game_variables_t *gvar)
 	{
 		MML_SetupEMS(gvar);					// allocate space
 		//16_PM: EMS4! AND EMS 3.2 MASSIVE DATA HANDLMENT!
-		MML_UseSpace(gvar->mm.EMSPageFrame,(MAPPAGES)*0x4000lu, gvar);
+		MML_UseSpace(EMSPageFrame,(MAPPAGES)*0x4000lu, gvar);
 		//if(gvar->pm.emm.EMSVer<0x40)
 			MM_MapEMS(gvar);					// map in used pages
 		//else
@@ -934,7 +936,7 @@ void MM_Startup (global_game_variables_t *gvar)
 // detect XMS and get upper memory blocks
 //
 emsskip:
-	gvar->mmi.XMSmem = 0;
+	mminfo.XMSmem = 0;
 goto xmsskip;//0000
 	for(i = 1;i < _argc;i++)
 	{
@@ -953,9 +955,9 @@ xmsskip:
 //
 // allocate the misc buffer
 //
-	gvar->mm.mmrover = gvar->mm.mmhead;		// start looking for space after low block
+	mmrover = mmhead;		// start looking for space after low block
 
-	MM_GetPtr (&(gvar->mm.bufferseg),BUFFERSIZE, gvar);
+	MM_GetPtr (&(bufferseg),BUFFERSIZE);
 }
 
 //==========================================================================
@@ -970,13 +972,13 @@ xmsskip:
 ====================
 */
 
-void MM_Shutdown (global_game_variables_t *gvar)
+void MM_Shutdown (void)
 {
-	if(!(gvar->mm.mmstarted))
+	if(!mmstarted)
 		return;
 
-	_ffree(gvar->mm.farheap);//	printf("		far freed\n");
-	_nfree(gvar->mm.nearheap);//	printf("		near freed\n");
+	_ffree(farheap);//	printf("		far freed\n");
+	_nfree(nearheap);//	printf("		near freed\n");
 #ifndef __16_PM__
 #if 0
 #ifdef __DEBUG__
@@ -1003,7 +1005,7 @@ void MM_Shutdown (global_game_variables_t *gvar)
 ====================
 */
 
-void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
+void MM_GetPtr (memptr *baseptr,dword size)
 {
 	mmblocktype far *scan,far *lastscan,far *endscan
 				,far *purge,far *next;
@@ -1013,28 +1015,28 @@ void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
 	needed = (size+15)/16;		// convert size from bytes to paragraphs
 
 	GETNEWBLOCK;				// fill in start and next after a spot is found
-	gvar->mm.mmnew->length = needed;
-	gvar->mm.mmnew->useptr = baseptr;
-	gvar->mm.mmnew->attributes = BASEATTRIBUTES;
-	//if(gvar->mm.mmnew->useptr==NULL){
+	mmnew->length = needed;
+	mmnew->useptr = baseptr;
+	mmnew->attributes = BASEATTRIBUTES;
+	//if(mmnew->useptr==NULL){
 #ifdef __DEBUG_MM__
 	if(dbg_debugmm>0){
 	printf("===============================================================================\n");
 	printf("		MM_GetPtr\n");
 	printf("===============================================================================\n");
 		//%04x
-//		printf("	baseptr=%Fp	", baseptr); printf("useptr=%Fp\n", gvar->mm.mmnew->useptr);
-//		//printf("	*baseptr=%Fp	", *baseptr); printf("*useptr=%Fp\n", *(gvar->mm.mmnew->useptr));
-//		printf("	&baseptr=%Fp	", &baseptr); printf("&useptr=%Fp\n", &(gvar->mm.mmnew->useptr));
+//		printf("	baseptr=%Fp	", baseptr); printf("useptr=%Fp\n", mmnew->useptr);
+//		//printf("	*baseptr=%Fp	", *baseptr); printf("*useptr=%Fp\n", *(mmnew->useptr));
+//		printf("	&baseptr=%Fp	", &baseptr); printf("&useptr=%Fp\n", &(mmnew->useptr));
 
-		printf("	baseptr=%04x	", baseptr); printf("useptr=%04x\n", gvar->mm.mmnew->useptr);
-		//printf("	*baseptr=%04x	", *baseptr); printf("*useptr=%04x\n", *(gvar->mm.mmnew->useptr));
-		printf("	&baseptr=%04u	", &baseptr); printf("&useptr=%04u\n", &(gvar->mm.mmnew->useptr));
+		printf("	baseptr=%04x	", baseptr); printf("useptr=%04x\n", mmnew->useptr);
+		//printf("	*baseptr=%04x	", *baseptr); printf("*useptr=%04x\n", *(mmnew->useptr));
+		printf("	&baseptr=%04u	", &baseptr); printf("&useptr=%04u\n", &(mmnew->useptr));
 
 		printf("	size is %lu\n", size);
 	}
 #endif
-	//Quit (gvar, "gvar->mm.mmnew->useptr==NULL"); }
+	//Quit (gvar, "mmnew->useptr==NULL"); }
 
 //tryagain:
 	for (search = 0; search<3; search++)
@@ -1043,25 +1045,25 @@ void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
 	// first search:	try to allocate right after the rover, then on up
 	// second search: 	search from the head pointer up to the rover
 	// third search:	compress memory, then scan from start
-		if (search == 1 && gvar->mm.mmrover == gvar->mm.mmhead)
+		if (search == 1 && mmrover == mmhead)
 			search++;
 
 		switch (search)
 		{
 		case 0:
-			lastscan = gvar->mm.mmrover;
-			scan = gvar->mm.mmrover->next;
+			lastscan = mmrover;
+			scan = mmrover->next;
 			endscan = NULL;
 			break;
 		case 1:
-			lastscan = gvar->mm.mmhead;
-			scan = gvar->mm.mmhead->next;
-			endscan = gvar->mm.mmrover;
+			lastscan = mmhead;
+			scan = mmhead->next;
+			endscan = mmrover;
 			break;
 		case 2:
-			MM_SortMem (gvar);
-			lastscan = gvar->mm.mmhead;
-			scan = gvar->mm.mmhead->next;
+			MM_SortMem ();
+			lastscan = mmhead;
+			scan = mmhead->next;
 			endscan = NULL;
 			break;
 		}
@@ -1078,16 +1080,16 @@ void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
 			// and allocate the new block
 			//
 				purge = lastscan->next;
-				lastscan->next = gvar->mm.mmnew;
-				gvar->mm.mmnew->start = *(unsigned *)baseptr = startseg;
-				gvar->mm.mmnew->next = scan;
+				lastscan->next = mmnew;
+				mmnew->start = *(unsigned *)baseptr = startseg;
+				mmnew->next = scan;
 				while ( purge != scan)
 				{	// free the purgable block
 					next = purge->next;
 					FREEBLOCK(purge);
 					purge = next;		// purge another if not at scan
 				}
-				gvar->mm.mmrover = gvar->mm.mmnew;
+				mmrover = mmnew;
 				return;	// good allocation!
 			}
 
@@ -1106,16 +1108,17 @@ void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
 		}
 	}
 
-	if (gvar->mm.bombonerror)
+	if (bombonerror)
 	{
 #ifdef __WATCOMC__
 		//heapdump();
 #endif
-		printf(OUT_OF_MEM_MSG,(size-gvar->mmi.nearheap));
-		Quit (gvar, "for stability reasons the program will shut down! wwww\n");
+		printf(OUT_OF_MEM_MSG,(size-mminfo.nearheap));
+		Quit ("for stability reasons the program will shut down! wwww\n");
+//		Quit ("MM_GetPtr: Out of memory!");
 	}
 	else
-		gvar->mm.mmerror = true;
+		mmerror = true;
 }
 
 //==========================================================================
@@ -1130,15 +1133,15 @@ void MM_GetPtr (memptr *baseptr,dword size, global_game_variables_t *gvar)
 ====================
 */
 
-void MM_FreePtr (memptr *baseptr, global_game_variables_t *gvar)
+void MM_FreePtr (memptr *baseptr)
 {
 	mmblocktype far *scan,far *last;
 
-	last = gvar->mm.mmhead;
+	last = mmhead;
 	scan = last->next;
 
-	if (baseptr == gvar->mm.mmrover->useptr)	// removed the last allocated block
-		gvar->mm.mmrover = gvar->mm.mmhead;
+	if (baseptr == mmrover->useptr)	// removed the last allocated block
+		mmrover = mmhead;
 
 	while (scan->useptr != baseptr && scan)
 	{
@@ -1147,7 +1150,7 @@ void MM_FreePtr (memptr *baseptr, global_game_variables_t *gvar)
 	}
 
 	if (!scan)
-		Quit (gvar, "MM_FreePtr: Block not found!");
+		Quit ("MM_FreePtr: Block not found!");
 
 	last->next = scan->next;
 
@@ -1165,28 +1168,28 @@ void MM_FreePtr (memptr *baseptr, global_game_variables_t *gvar)
 =====================
 */
 
-void MM_SetPurge (memptr *baseptr, int purge, global_game_variables_t *gvar)
+void MM_SetPurge (memptr *baseptr, int purge)
 {
 	mmblocktype far *start;
 
-	start = gvar->mm.mmrover;
+	start = mmrover;
 
 	do
 	{
-		if (gvar->mm.mmrover->useptr == baseptr)
+		if (mmrover->useptr == baseptr)
 			break;
 
-		gvar->mm.mmrover = gvar->mm.mmrover->next;
+		mmrover = mmrover->next;
 
-		if (!gvar->mm.mmrover)
-			gvar->mm.mmrover = gvar->mm.mmhead;
-		else if (gvar->mm.mmrover == start)
-			Quit (gvar, "MM_SetPurge: Block not found!");
+		if (!mmrover)
+			mmrover = mmhead;
+		else if (mmrover == start)
+			Quit ("MM_SetPurge: Block not found!");
 
 	} while (1);
 
-	gvar->mm.mmrover->attributes &= ~PURGEBITS;
-	gvar->mm.mmrover->attributes |= purge;
+	mmrover->attributes &= ~PURGEBITS;
+	mmrover->attributes |= purge;
 }
 
 //==========================================================================
@@ -1201,28 +1204,28 @@ void MM_SetPurge (memptr *baseptr, int purge, global_game_variables_t *gvar)
 =====================
 */
 
-void MM_SetLock (memptr *baseptr, boolean locked, global_game_variables_t *gvar)
+void MM_SetLock (memptr *baseptr, boolean locked)
 {
 	mmblocktype far *start;
 
-	start = gvar->mm.mmrover;
+	start = mmrover;
 
 	do
 	{
-		if (gvar->mm.mmrover->useptr == baseptr)
+		if (mmrover->useptr == baseptr)
 			break;
 
-		gvar->mm.mmrover = gvar->mm.mmrover->next;
+		mmrover = mmrover->next;
 
-		if (!gvar->mm.mmrover)
-			gvar->mm.mmrover = gvar->mm.mmhead;
-		else if (gvar->mm.mmrover == start)
-			Quit (gvar, "MM_SetLock: Block not found!");
+		if (!mmrover)
+			mmrover = mmhead;
+		else if (mmrover == start)
+			Quit ("MM_SetLock: Block not found!");
 
 	} while(1);
 
-	gvar->mm.mmrover->attributes &= ~LOCKBIT;
-	gvar->mm.mmrover->attributes |= locked*LOCKBIT;
+	mmrover->attributes &= ~LOCKBIT;
+	mmrover->attributes |= locked*LOCKBIT;
 }
 
 //==========================================================================
@@ -1237,11 +1240,11 @@ void MM_SetLock (memptr *baseptr, boolean locked, global_game_variables_t *gvar)
 =====================
 */
 
-void MM_SortMem (global_game_variables_t *gvar)
+void MM_SortMem (void)
 {
 	mmblocktype far *scan,far *last,far *next;
 	unsigned	start,length,source,dest,oldborder;
-	//++++int			playing;
+	int			playing;
 
 	//
 	// lock down a currently playing sound
@@ -1264,13 +1267,11 @@ void MM_SortMem (global_game_variables_t *gvar)
 
 	SD_StopSound();*/
 
-	oldborder = gvar->video.bordercolor;
-	gvar->video.bordercolor = VL_modexPalOverscan(gvar->video.palette, 4);
 
 	if (beforesort)
 		beforesort();
 
-	scan = gvar->mm.mmhead;
+	scan = mmhead;
 
 	last = NULL;		// shut up compiler warning
 
@@ -1326,7 +1327,7 @@ void MM_SortMem (global_game_variables_t *gvar)
 		scan = scan->next;		// go to next block
 	}
 
-	gvar->mm.mmrover = gvar->mm.mmhead;
+	mmrover = mmhead;
 
 	if (aftersort)
 		aftersort();
@@ -1356,6 +1357,7 @@ extern char global_temp_status_text2[512];
 =====================
 */
 
+#if 0
 void MM_ShowMemory (global_game_variables_t *gvar)
 {
 	mmblocktype far *scan;
@@ -1703,9 +1705,48 @@ reset:
 
 	gvar->video.BOFS = (byte __far *)temp;
 }
+#endif
+void MM_ShowMemory (void)
+{
+	mmblocktype far *scan;
+	unsigned color,temp,x,y;
+	long	end,owner;
+	char    scratch[80],str[10];
+
+	temp = bufferofs;
+	bufferofs = displayofs;
+	scan = mmhead;
+
+	end = -1;
+
+	while (scan)
+	{
+		if (scan->attributes & PURGEBITS)
+			color = 5;		// dark purple = purgable
+		else
+			color = 9;		// medium blue = non purgable
+		if (scan->attributes & LOCKBIT)
+			color = 12;		// red = locked
+		if (scan->start<=end)
+			Quit ("MM_ShowMemory: Memory block order currupted!");
+		end = scan->length-1;
+		y = scan->start/320;
+		x = scan->start%320;
+		VW_Hlin(x,x+end,y,color);
+		VW_Plot(x,y,15);
+		if (scan->next && scan->next->start > end+1)
+			VW_Hlin(x+end+1,x+(scan->next->start-scan->start),y,0);	// black = free
+
+		scan = scan->next;
+	}
+
+	VW_FadeIn ();
+	IN_Ack();
+
+	bufferofs = temp;
+}
 
 //==========================================================================
-
 
 /*
 =====================
@@ -1715,7 +1756,7 @@ reset:
 =====================
 */
 
-void MM_DumpData (global_game_variables_t *gvar)
+void MM_DumpData (void)
 {
 	mmblocktype far *scan,far *best;
 	long	lowest,oldlowest;
@@ -1723,10 +1764,11 @@ void MM_DumpData (global_game_variables_t *gvar)
 	char	lock,purge;
 	FILE	*dumpfile;
 
-	_nfree(gvar->mm.nearheap);
-	dumpfile = fopen (gvar->handle.datadumpfilename, "w");
+
+	_nfree(nearheap);
+	dumpfile = fopen ("MMDUMP.TXT","w");
 	if (!dumpfile)
-		Quit (gvar, "MM_DumpData: Couldn't open MMDUMP.16!\n");
+		Quit ("MM_DumpData: Couldn't open MMDUMP.TXT!\n");
 
 	lowest = -1;
 	do
@@ -1734,7 +1776,7 @@ void MM_DumpData (global_game_variables_t *gvar)
 		oldlowest = lowest;
 		lowest = 0xffff;
 
-		scan = gvar->mm.mmhead;
+		scan = mmhead;
 		while (scan)
 		{
 			owner = (unsigned)scan->useptr;
@@ -1765,15 +1807,7 @@ void MM_DumpData (global_game_variables_t *gvar)
 	} while (lowest != 0xffff);
 
 	fclose (dumpfile);
-
-	//reset filename
-#ifdef __BORLANDC__
-	strcpy(gvar->handle.datadumpfilename, "mmdump.16b");
-#endif
-#ifdef __WATCOMC__
-	strcpy(gvar->handle.datadumpfilename, "mmdump.16w");
-#endif
-//00	printf ("MMDUMP.16 created.\n");
+	Quit ("MMDUMP.TXT created.");
 }
 
 //==========================================================================
@@ -1789,13 +1823,13 @@ void MM_DumpData (global_game_variables_t *gvar)
 ======================
 */
 
-dword MM_UnusedMemory (global_game_variables_t *gvar)
+dword MM_UnusedMemory (void)
 {
 	unsigned free;
 	mmblocktype far *scan;
 
 	free = 0;
-	scan = gvar->mm.mmhead;
+	scan = mmhead;
 
 	while(scan->next)
 	{
@@ -1819,13 +1853,13 @@ dword MM_UnusedMemory (global_game_variables_t *gvar)
 ======================
 */
 
-dword MM_TotalFree (global_game_variables_t *gvar)
+dword MM_TotalFree (void)
 {
 	unsigned free;
 	mmblocktype far *scan;
 
 	free = 0;
-	scan = gvar->mm.mmhead;
+	scan = mmhead;
 
 	while(scan->next)
 	{
@@ -1848,7 +1882,7 @@ dword MM_TotalFree (global_game_variables_t *gvar)
 =====================
 */
 
-void MM_Report_ (global_game_variables_t *gvar)
+void MM_Report_ (void)
 {
 	printf("========================================\n");
 	printf("		MM_Report_\n");
@@ -1859,7 +1893,7 @@ void MM_Report_ (global_game_variables_t *gvar)
 		printf("	%c%cEMM v%x.%x available\n", 0xC7, 0xC4, gvar->pm.emm.EMSVer>>4,gvar->pm.emm.EMSVer&0x0F);
 		printf("	%c%ctotalEMSpages:	%u	", 0xC7, 0xC4, gvar->pm.emm.totalEMSpages); printf("freeEMSpages:	%u\n", gvar->pm.emm.freeEMSpages);
 		printf("	%c%cEMSPageFrame:	%04x\n", 0xC7, 0xC4, gvar->pm.emm.EMSPageFrame);
-		printf("	%c%cEMSmem:	%lu\n", 0xD3, 0xC4, gvar->mmi.EMSmem);
+		printf("	%c%cEMSmem:	%lu\n", 0xD3, 0xC4, mminfo.EMSmem);
 	}
 	if(MML_CheckForXMS())
 	{
@@ -1867,13 +1901,13 @@ void MM_Report_ (global_game_variables_t *gvar)
 		printf("	%c%cXMS v%x.%x available\n", 0xC7, 0xC4, XMSVer>>8,XMSVer&0x0F);
 		printf("	%c%cXMSDriver:	%Fp\n", 0xC7, 0xC4, XMSDriver);
 		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, gvar->pm.xmm.XMSHandle);
-		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, gvar->mmi.XMSmem);
+		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, mminfo.XMSmem);
 	}
 	printf("	%cConv.	%u\n", 0xC9, gvar->pm.mm.MainPresent); DebugMemory_(gvar, 0);
-	//printf("mainmem:	%lu\n", gvar->mmi.mainmem);
-	//printf("Total convmem:	%lu	", gvar->mmi.mainmem); printf("TotalFree:	%lu	", MM_TotalFree(gvar)+gvar->mmi.EMSmem+gvar->mmi.XMSmem+gvar->mmi.XMSmem); printf("TotalUsed:	%lu\n", gvar->mmi.mainmem);
+	//printf("mainmem:	%lu\n", mminfo.mainmem);
+	//printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree(gvar)+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
 	//printf("			UnusedMemory:	%lu\n", MM_UnusedMemory(gvar));
-	printf("nearheap:	%lu		", gvar->mmi.nearheap); printf("farheap:	%lu\n", gvar->mmi.farheap);
+	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
 }
 
 //==========================================================================
@@ -2017,35 +2051,35 @@ void MM_EMSerr(byte *stri, byte err)
 =====================
 */
 
-void MM_BombOnError (boolean bomb, global_game_variables_t *gvar)
+void MM_BombOnError (boolean bomb)
 {
-	gvar->mm.bombonerror = bomb;
+	bombonerror = bomb;
 }
 
 #if 0
-void MM_GetNewBlock(global_game_variables_t *gvar)
+void MM_GetNewBlock(void)
 {
-	if(!gvar->mm.mmfree)
+	if(!mmfree)
 		MML_ClearBlock(gvar);
-	gvar->mm.mmnew=gvar->mm.mmfree;
-	gvar->mm.mmfree=gvar->mm.mmfree->next;
-	if(!(gvar->mm.mmnew=gvar->mm.mmfree))
+	mmnew=mmfree;
+	mmfree=mmfree->next;
+	if(!(mmnew=mmfree))
 	{
 		printf("MM_GETNEWBLOCK: No free blocks!\n");
 		return;
 	}
-	gvar->mm.mmfree=gvar->mm.mmfree->next;
+	mmfree=mmfree->next;
 }
 
-void MM_FreeBlock(mmblocktype *x, global_game_variables_t *gvar)
+void MM_FreeBlock(mmblocktype *x)
 {
 	x->useptr=NULL;
-	x->next=gvar->mm.mmfree;
-	gvar->mm.mmfree=x;
+	x->next=mmfree;
+	mmfree=x;
 }
 #endif
 
-void xms_call(byte v, global_game_variables_t *gvar)
+void xms_call(byte v)
 {
 	dword XMSDriver = gvar->pm.xmm.XMSDriver;
 	__asm {

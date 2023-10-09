@@ -1,0 +1,13 @@
+fix up 16_pm and 16_ca
+fix up the header files 16_head 16_tail 16_t 16_tdef (remove tdef eventally)
+fix up 16_in
+fix up 16_us
+
+last fix up 16_v* (fix it up mate)
+implement VRL stuff from doslib
+
+fix up as in remove GVAR and reimplement the old variables
+why? i fucked up. it's fine. i can redo the render code later.
+alot of the xcroll code is spagetti and the 16_map and 16_scroll and various files are not organized. i will redo this. 
+
+next build the normal game engine ontop of the id_* managers like how it is supposed to be done (here will be the stuff for everything thats not low level including xcroll code)
