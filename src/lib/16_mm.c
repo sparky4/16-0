@@ -923,13 +923,13 @@ void MM_Startup (void)
 	}
 	if(MML_CheckForEMS())
 	{
-		MML_SetupEMS(gvar);					// allocate space
+		MML_SetupEMS();					// allocate space
 		//16_PM: EMS4! AND EMS 3.2 MASSIVE DATA HANDLMENT!
-		MML_UseSpace(EMSPageFrame,(MAPPAGES)*0x4000lu, gvar);
-		//if(gvar->pm.emm.EMSVer<0x40)
-			MM_MapEMS(gvar);					// map in used pages
+		MML_UseSpace(EMSPageFrame,(MAPPAGES)*0x4000lu);
+		//if(EMSVer<0x40)
+			MM_MapEMS();					// map in used pages
 		//else
-			//MM_MapXEMS(gvar);					// map in used pages
+			//MM_MapXEMS();					// map in used pages
 	}
 
 //
@@ -945,7 +945,7 @@ goto xmsskip;//0000
 	}
 	if(MML_CheckForXMS())
 	{
-		MML_SetupXMS(gvar);					// allocate as many UMBs as possible
+		MML_SetupXMS();					// allocate as many UMBs as possible
 	}
 
 	}
@@ -984,8 +984,8 @@ void MM_Shutdown (void)
 #ifdef __DEBUG__
 	if(!dbg_debugpm) {
 #endif
-	if(MML_CheckForEMS()){ MML_ShutdownEMS(gvar); }//printf("		EMS freed\n"); }
-	if(MML_CheckForXMS()){ MML_ShutdownXMS(gvar); }//printf("		XMS freed\n"); }
+	if(MML_CheckForEMS()){ MML_ShutdownEMS(); }//printf("		EMS freed\n"); }
+	if(MML_CheckForXMS()){ MML_ShutdownXMS(); }//printf("		XMS freed\n"); }
 #ifdef __DEBUG__
 	}
 #endif
@@ -1036,7 +1036,7 @@ void MM_GetPtr (memptr *baseptr,dword size)
 		printf("	size is %lu\n", size);
 	}
 #endif
-	//Quit (gvar, "mmnew->useptr==NULL"); }
+	//Quit ("mmnew->useptr==NULL"); }
 
 //tryagain:
 	for (search = 0; search<3; search++)
@@ -1292,7 +1292,7 @@ void MM_SortMem (void)
 			// throw out the purgable block
 			//
 				next = scan->next;
-				FREEBLOCK(scan); //MM_FreeBlock(scan, gvar);
+				FREEBLOCK(scan); //MM_FreeBlock(scan);
 				last->next = next;
 				scan = next;
 				continue;
@@ -1332,7 +1332,7 @@ void MM_SortMem (void)
 	if (aftersort)
 		aftersort();
 
-	VL_ColorBorder (oldborder, &gvar->video);
+//????	VL_ColorBorder (oldborder, &gvar->video);
 
 /*++++	if(playing)
 		MM_SetLock((memptr *)&audiosegs[playing],false);*/
@@ -1889,21 +1889,21 @@ void MM_Report_ (void)
 	printf("========================================\n");
 	if(MML_CheckForEMS())
 	{
-		printf("	%cLIMEMS	%u\n", 0xC9, gvar->pm.emm.EMSPresent);
-		printf("	%c%cEMM v%x.%x available\n", 0xC7, 0xC4, gvar->pm.emm.EMSVer>>4,gvar->pm.emm.EMSVer&0x0F);
-		printf("	%c%ctotalEMSpages:	%u	", 0xC7, 0xC4, gvar->pm.emm.totalEMSpages); printf("freeEMSpages:	%u\n", gvar->pm.emm.freeEMSpages);
-		printf("	%c%cEMSPageFrame:	%04x\n", 0xC7, 0xC4, gvar->pm.emm.EMSPageFrame);
+		printf("	%cLIMEMS	%u\n", 0xC9, EMSPresent);
+		printf("	%c%cEMM v%x.%x available\n", 0xC7, 0xC4, EMSVer>>4,EMSVer&0x0F);
+		printf("	%c%ctotalEMSpages:	%u	", 0xC7, 0xC4, totalEMSpages); printf("freeEMSpages:	%u\n", freeEMSpages);
+		printf("	%c%cEMSPageFrame:	%04x\n", 0xC7, 0xC4, EMSPageFrame);
 		printf("	%c%cEMSmem:	%lu\n", 0xD3, 0xC4, mminfo.EMSmem);
 	}
 	if(MML_CheckForXMS())
 	{
-		printf("	%cXMS	%u\n", 0xC9, gvar->pm.xmm.XMSPresent);
+		printf("	%cXMS	%u\n", 0xC9, XMSPresent);
 		printf("	%c%cXMS v%x.%x available\n", 0xC7, 0xC4, XMSVer>>8,XMSVer&0x0F);
 		printf("	%c%cXMSDriver:	%Fp\n", 0xC7, 0xC4, XMSDriver);
-		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, gvar->pm.xmm.XMSHandle);
+		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, XMSHandle);
 		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, mminfo.XMSmem);
 	}
-	printf("	%cConv.	%u\n", 0xC9, gvar->pm.mm.MainPresent); DebugMemory_(gvar, 0);
+	printf("	%cConv.	%u\n", 0xC9, MainPresent); DebugMemory_(0);
 	//printf("mainmem:	%lu\n", mminfo.mainmem);
 	//printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree(gvar)+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
 	//printf("			UnusedMemory:	%lu\n", MM_UnusedMemory(gvar));
@@ -2081,7 +2081,7 @@ void MM_FreeBlock(mmblocktype *x)
 
 void xms_call(byte v)
 {
-	dword XMSDriver = gvar->pm.xmm.XMSDriver;
+	dword XMSDriver = XMSDriver;
 	__asm {
 		mov	ah,[v]
 		call [DWORD PTR XMSDriver]
