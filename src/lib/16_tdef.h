@@ -562,7 +562,7 @@ typedef struct
 
 //from 16_pm
 //==========================================================================
-
+/*
 //	NOTE! PMPageSize must be an even divisor of EMSPageSize, and >= 1024
 #define	EMSPageSize		16384
 #define	EMSPageSizeSeg	(EMSPageSize >> 4)
@@ -667,7 +667,7 @@ typedef struct
 	pm_emmi_t	emm;
 	pm_xmmi_t	xmm;
 	pm_fi_t	fi;
-} pm_t;
+} pm_t;*/
 
 //==========================================================================
 
@@ -739,7 +739,7 @@ typedef struct
 
 //from 16_ca
 //==========================================================================
-
+#if 0
 #define NOMAPS
 #define NOGRAPHICS
 #define NOAUDIO
@@ -835,7 +835,7 @@ typedef struct	//TODO: USE THIS!!!!
 	//TODO: extend! and learn from keen/wolf/catacomb's code wwww
 	memptr	spribuff[64];	//temp
 } ca_t;
-
+#endif
 //==========================================================================
 
 //actual global game varables!
@@ -855,11 +855,11 @@ extern char global_temp_status_text2[512];
 typedef struct glob_game_vars
 {
 	video_t	video;	// video settings variable
-	ca_t		ca;	// ca stuff
-	pm_t		pm;	// pm stuff
+//	ca_t		ca;	// ca stuff
+//	pm_t		pm;	// pm stuff
 	loghandle_t	handle;	//handles for file logging
 	kurokku_t	kurokku;	//clock struct
-//	mminfo_t	mm; mminfotype	mmi;	// mm stuff
+//		mminfo_t	mm; mminfotype	mmi;	// mm stuff
 	in_info_t	in;		// 16_in info
 	player_t	player[MaxPlayers];	// player vars
 	map_view_t	mv[4];

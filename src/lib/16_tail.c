@@ -520,7 +520,7 @@ noxor:
 ==================
 */
 
-void DebugMemory_(global_game_variables_t *gvar, boolean q)
+void DebugMemory_(boolean q)
 {
 	/*VW_FixRefreshBuffer ();
 	US_CenterWindow (16,7);
@@ -541,16 +541,16 @@ void DebugMemory_(global_game_variables_t *gvar, boolean q)
 	printf("========================================\n");}
 	if(q) { printf("Memory Usage\n");
 	printf("------------\n"); }else printf("	%c%c", 0xD3, 0xC4);
-	printf("Total:	"); if(q) printf("	"); printf("%uk", gvar->mmi.mainmem/1024);
+	printf("Total:	"); if(q) printf("	"); printf("%uk", mainmem/1024);
 	if(q) printf("\n"); else printf("	");
-	printf("Free:	"); if(q) printf("	"); printf("%uk", MM_UnusedMemory(gvar)/1024);
+	printf("Free:	"); if(q) printf("	"); printf("%uk", MM_UnusedMemory()/1024);
 	if(q) printf("\n"); else printf("	");
-	printf("With purge:"); if(q) printf("	"); printf("%uk\n", MM_TotalFree(gvar)/1024);
+	printf("With purge:"); if(q) printf("	"); printf("%uk\n", MM_TotalFree()/1024);
 	if(q) printf("------------\n");
 #ifdef __WATCOMC__
 	//IN_Ack ();
 #endif
-//	if(q) MM_ShowMemory (gvar);
+//	if(q) MM_ShowMemory ();
 }
 
 /*
@@ -683,13 +683,13 @@ void TestSprites(void)
 ==========================
 */
 
-void ClearMemory (global_game_variables_t *gvar)
+void ClearMemory (void)
 {
 #ifdef __16_PM__
-	PM_UnlockMainMem(gvar);
+	PM_UnlockMainMem();
 #endif
 	//sd
-	MM_SortMem (gvar);
+	MM_SortMem ();
 }
 
 /*
@@ -700,12 +700,12 @@ void ClearMemory (global_game_variables_t *gvar)
 ==========================
 */
 
-void Quit (global_game_variables_t *gvar, char *error)
+void Quit (char *error)
 {
 	//unsigned		finscreen;
 	memptr	screen=0;
 
-	ClearMemory (gvar);
+	ClearMemory ();
 	if (!*error)
 	{
 // #ifndef JAPAN
@@ -719,7 +719,7 @@ void Quit (global_game_variables_t *gvar, char *error)
 // 		CA_CacheGrChunk (ERRORSCREEN);
 // 		screen = grsegs[ERRORSCREEN];
 	}
-	Shutdown16(gvar);
+	Shutdown16();
 
 	if (error && *error)
 	{

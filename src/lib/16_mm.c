@@ -115,14 +115,14 @@ void		(* aftersort) (void);
 boolean		mmstarted;
 
 void far	*farheap;
-void		*nearheap;
+void near	*nearheap;
 
 mmblocktype	far mmblocks[MAXBLOCKS]
 			,far *mmhead,far *mmfree,far *mmrover,far *mmnew;
 
 boolean		bombonerror;
 
-//unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
+unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
 
 void		(* XMSaddr) (void);		// far pointer to XMS driver
 
@@ -679,7 +679,7 @@ void MML_ShutdownXMS(void)
 	{
 		scan->blob=segm;
 
-		//MML_UseSpace(segstart, seglength, gvar);
+		//MML_UseSpace(segstart, seglength);
 
 		printf("MML_UseSpace: Segment spans two blocks!\n");
 	//}
@@ -1882,6 +1882,8 @@ dword MM_TotalFree (void)
 =====================
 */
 
+
+
 void MM_Report_ (void)
 {
 	printf("========================================\n");
@@ -1905,8 +1907,8 @@ void MM_Report_ (void)
 	}
 	printf("	%cConv.	%u\n", 0xC9, MainPresent); DebugMemory_(0);
 	//printf("mainmem:	%lu\n", mminfo.mainmem);
-	//printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree(gvar)+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
-	//printf("			UnusedMemory:	%lu\n", MM_UnusedMemory(gvar));
+	//printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
+	//printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
 	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
 }
 
@@ -2060,7 +2062,7 @@ void MM_BombOnError (boolean bomb)
 void MM_GetNewBlock(void)
 {
 	if(!mmfree)
-		MML_ClearBlock(gvar);
+		MML_ClearBlock();
 	mmnew=mmfree;
 	mmfree=mmfree->next;
 	if(!(mmnew=mmfree))

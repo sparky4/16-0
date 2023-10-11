@@ -51,18 +51,19 @@ loaded into the data segment
 =============================================================================
 */
 
-/*typedef struct
+typedef struct
 {
   word bit0,bit1;	// 0-255 is a character, > is a pointer to a node
-} huffnode;*/
+} huffnode;
 
 
-/*typedef struct
+typedef struct
 {
 	unsigned	RLEWtag;
 	long		headeroffsets[100];
+	byte		headersize[100];		// headers are very small
 	byte		tileinfo[];
-} mapfiletype;*/
+} mapfiletype;
 
 
 /*
@@ -73,19 +74,20 @@ loaded into the data segment
 =============================================================================
 */
 
-/*byte 		_seg	*tinf;
+byte 		_seg	*tinf;
 int			mapon;
 
-unsigned	_seg	*mapsegs[3];
+unsigned	_seg	*mapsegs[MAPPLANES];
 maptype		_seg	*mapheaderseg[NUMMAPS];
 byte		_seg	*audiosegs[NUMSNDCHUNKS];
 void		_seg	*grsegs[NUMCHUNKS];
 
-byte		far	grneeded[NUMCHUNKS];*/
+byte		far	grneeded[NUMCHUNKS];
+byte		ca_levelbit,ca_levelnum;
 
-void	(*drawcachebox)		(char *title, unsigned numcache);
-void	(*updatecachebox)	(void);
-void	(*finishcachebox)	(void);
+int			profilehandle,debughandle;
+
+char		audioname[13]="AUDIO.";
 
 /*
 =============================================================================
@@ -95,24 +97,30 @@ void	(*finishcachebox)	(void);
 =============================================================================
 */
 
-/*extern	long	far	CGAhead;
+extern	long	far	CGAhead;
 extern	long	far	EGAhead;
 extern	byte	CGAdict;
 extern	byte	EGAdict;
 extern	byte	far	maphead;
 extern	byte	mapdict;
 extern	byte	far	audiohead;
-extern	byte	audiodict;*/
+extern	byte	audiodict;
 
-void CA_CannotOpen(char *string, global_game_variables_t *gvar);
+void CA_CannotOpen(char *string);
 
-/*long		_seg *grstarts;	// array of offsets in egagraph, -1 for sparse
+long		_seg *grstarts;	// array of offsets in egagraph, -1 for sparse
 long		_seg *audiostarts;	// array of offsets in audio / audiot
 
 #ifdef GRHEADERLINKED
-huffnode	*gvar->ca.grhuffman;
+huffnode	*grhuffman;
 #else
-huffnode	gvar->ca.grhuffman[255];
+huffnode	grhuffman[255];
+#endif
+
+#ifdef MAPHEADERLINKED
+huffnode	*maphuffman;
+#else
+huffnode	maphuffman[255];
 #endif
 
 #ifdef AUDIOHEADERLINKED
@@ -125,16 +133,16 @@ huffnode	audiohuffman[255];
 int			grhandle;		// handle to EGAGRAPH
 int			maphandle;		// handle to MAPTEMP / GAMEMAPS
 int			audiohandle;	// handle to AUDIOT / AUDIO
-*/
+
 long		chunkcomplen,chunkexplen;
-/*
+
 SDMode		oldsoundmode;
 
 
 
 void	CAL_DialogDraw (char *title,unsigned numcache);
 void	CAL_DialogUpdate (void);
-void	CAL_DialogFinish (void);*/
+void	CAL_DialogFinish (void);
 void	CAL_CarmackExpand (unsigned far *source, unsigned far *dest,
 		unsigned length);
 
@@ -142,14 +150,14 @@ void	CAL_CarmackExpand (unsigned far *source, unsigned far *dest,
 #ifdef THREEBYTEGRSTARTS
 #define FILEPOSSIZE	3
 //#define	GRFILEPOS(c) (*(long far *)(((byte far *)grstarts)+(c)*3)&0xffffff)
-CASVT GRFILEPOS(int c, global_game_variables_t *gvar)
+long GRFILEPOS(int c)
 {
-	CASVT value;
+	long value;
 	int	offset;
 
 	offset = c*3;
 
-	value = *(CASVT far *)(((byte far *)gvar->ca.grstarts)+offset);
+	value = *(long far *)(((byte far *)grstarts)+offset);
 
 	value &= 0x00ffffffl;
 
@@ -160,14 +168,14 @@ CASVT GRFILEPOS(int c, global_game_variables_t *gvar)
 };
 #else
 #define FILEPOSSIZE	4
-//#define	GRFILEPOS(c) (gvar->ca.grstarts[c])
-CASVT GRFILEPOS(int c, global_game_variables_t *gvar)
+//#define	GRFILEPOS(c) (grstarts[c])
+long GRFILEPOS(int c)
 {
-	return gvar->ca.grstarts[c];
+	return grstarts[c];
 }
 #endif
 
-//#define EXTENSION	"hp1"
+#define EXTENSION	"hp1"
 
 /*
 =============================================================================
@@ -186,21 +194,21 @@ CASVT GRFILEPOS(int c, global_game_variables_t *gvar)
 =
 ============================
 */
-void CA_OpenDebug(global_game_variables_t *gvar)
+void CA_OpenDebug(void)
 {
 #ifdef __BORLANDC__
 	unlink("debug.16b");
-	gvar->handle.debughandle = open("debug.16b", O_CREAT | O_WRONLY | O_TEXT);
+	debughandle = open("debug.16b", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #ifdef __WATCOMC__
 	unlink("debug.16w");
-	gvar->handle.debughandle = open("debug.16w", O_CREAT | O_WRONLY | O_TEXT);
+	debughandle = open("debug.16w", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 }
 
-void CA_CloseDebug(global_game_variables_t *gvar)
+void CA_CloseDebug(void)
 {
-	close(gvar->handle.debughandle);
+	close(debughandle);
 }
 
 
@@ -216,11 +224,11 @@ void CA_CloseDebug(global_game_variables_t *gvar)
 ============================
 */
 
-void CAL_GetGrChunkLength (int chunk,global_game_variables_t *gvar)
+void CAL_GetGrChunkLength (int chunk)
 {
-	lseek(gvar->ca.file.grhandle,GRFILEPOS(chunk,gvar),SEEK_SET);
-	read(gvar->ca.file.grhandle,&gvar->ca.chunkexplen,sizeof(gvar->ca.chunkexplen));
-	gvar->ca.chunkcomplen = GRFILEPOS(chunk+1,gvar)-GRFILEPOS(chunk,gvar)-4;
+	lseek(grhandle,GRFILEPOS(chunk),SEEK_SET);
+	read(grhandle,&chunkexplen,sizeof(chunkexplen));
+	chunkcomplen = GRFILEPOS(chunk+1)-GRFILEPOS(chunk)-4;
 }
 
 
@@ -234,11 +242,11 @@ void CAL_GetGrChunkLength (int chunk,global_game_variables_t *gvar)
 ==========================
 */
 
-boolean CA_FarRead(int handle, byte far *dest, dword length, global_game_variables_t *gvar)
+boolean CA_FarRead (int handle, byte far *dest, dword length)
 {
 	boolean flag=0;
 //old	if (length>0xfffflu)
-//old		Quit (gvar, "CA_FarRead doesn't support 64K reads yet!");//TODO: EXPAND!!!
+//old		Quit ("CA_FarRead doesn't support 64K reads yet!");//TODO: EXPAND!!!
 
 	__asm {
 		push	ds
@@ -294,11 +302,11 @@ End:
 ==========================
 */
 
-boolean CA_FarWrite(int handle, byte far *source, dword length, global_game_variables_t *gvar)
+boolean CA_FarWrite (int handle, byte far *source, dword length)
 {
 	boolean flag=0;
 	if (length>0xfffflu)
-		Quit (gvar, "CA_FarWrite doesn't support 64K reads yet!");//TODO: EXPAND!!!
+		Quit ("CA_FarWrite doesn't support 64K reads yet!");//TODO: EXPAND!!!
 
 	__asm {
 		push	ds
@@ -354,7 +362,7 @@ End:
 ==========================
 */
 
-boolean CA_ReadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
+boolean CA_ReadFile(char *filename, memptr *ptr)
 {
 	int handle;
 	sdword size;
@@ -375,7 +383,7 @@ boolean CA_ReadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
 		printf("	&ptr=%Fp\n", &ptr);
 	}
 #endif
-	if(!CA_FarRead(handle,*ptr,size, gvar))
+	if(!CA_FarRead(handle,*ptr,size))
 	{
 		close(handle);
 		return false;
@@ -395,10 +403,10 @@ boolean CA_ReadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
 ==========================
 */
 
-boolean CA_WriteFile (char *filename, void far *ptr, long length, global_game_variables_t *gvar)
+boolean CA_WriteFile (char *filename, void far *ptr, long length)
 {
 	int handle;
-	//sdword size;
+	sdword size;
 	//long size;
 
 	handle = open(filename,O_CREAT | O_BINARY | O_WRONLY,
@@ -407,7 +415,7 @@ boolean CA_WriteFile (char *filename, void far *ptr, long length, global_game_va
 	if (handle == -1)
 		return false;
 
-	if (!CA_FarWrite (handle,ptr,length, gvar))
+	if (!CA_FarWrite (handle,ptr,length))
 	{
 		close(handle);
 		return false;
@@ -428,7 +436,7 @@ boolean CA_WriteFile (char *filename, void far *ptr, long length, global_game_va
 ==========================
 */
 
-boolean CA_LoadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
+boolean CA_LoadFile(char *filename, memptr *ptr)
 {
 	int handle;
 	sdword size;
@@ -449,7 +457,7 @@ boolean CA_LoadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
 		printf("	&ptr=%Fp\n", &ptr);
 	}
 #endif
-	MM_GetPtr(ptr,size, gvar);
+	MM_GetPtr(ptr,size);
 #ifdef __DEBUG_CA__
 	if(dbg_debugca>0){
 		//%04x
@@ -460,7 +468,7 @@ boolean CA_LoadFile(char *filename, memptr *ptr, global_game_variables_t *gvar)
 		printf("-------------------------------------------------------------------------------\n");
 	}
 #endif
-	if(!CA_FarRead(handle,*ptr,size, gvar))
+	if(!CA_FarRead(handle,*ptr,size))
 	{
 		close(handle);
 		return false;
@@ -519,7 +527,7 @@ void CAL_OptimizeNodes(huffnode *table)
 ======================
 */
 
-void CAL_HuffExpand (byte far *source, byte far *dest,
+void CAL_HuffExpand (byte huge *source, byte huge *dest,
   long length,huffnode *hufftable)
 {
 //  unsigned bit,byte,node,code;
@@ -768,13 +776,13 @@ void CAL_CarmackExpand (unsigned far *source, unsigned far *dest, unsigned lengt
 			count = ch&0xff;
 			if (!count)
 			{				// have to insert a word containing the tag byte
-				ch |= *(/*(unsigned char far *)*/inptr)++;
+				ch |= *((unsigned char far *)inptr)++;
 				*outptr++ = ch;
 				length--;
 			}
 			else
 			{
-				offset = *(/*(unsigned char far *)*/inptr)++;
+				offset = *((unsigned char far *)inptr)++;
 				copyptr = outptr - offset;
 				length -= count;
 				while (count--)
@@ -786,7 +794,7 @@ void CAL_CarmackExpand (unsigned far *source, unsigned far *dest, unsigned lengt
 			count = ch&0xff;
 			if (!count)
 			{				// have to insert a word containing the tag byte
-				ch |= *(/*(unsigned char far *)*/inptr)++;
+				ch |= *((unsigned char far *)inptr)++;
 				*outptr++ = ch;
 				length --;
 			}
@@ -816,12 +824,12 @@ void CAL_CarmackExpand (unsigned far *source, unsigned far *dest, unsigned lengt
 ======================
 */
 
-long CA_RLEWCompress (unsigned far *source, long length, unsigned far *dest,
+long CA_RLEWCompress (unsigned huge *source, long length, unsigned huge *dest,
   unsigned rlewtag)
 {
   long complength;
   unsigned value,count,i;
-  unsigned far *start,far *end;
+  unsigned huge *start,huge *end;
 
   start = dest;
 
@@ -873,11 +881,11 @@ long CA_RLEWCompress (unsigned far *source, long length, unsigned far *dest,
 ======================
 */
 
-void CA_RLEWexpand (unsigned far *source, unsigned far *dest,long length,
+void CA_RLEWexpand (unsigned huge *source, unsigned huge *dest,long length,
   unsigned rlewtag)
 {
 //  unsigned value,count,i;
-  unsigned far *end;
+  unsigned huge *end;
   unsigned sourceseg,sourceoff,destseg,destoff,endseg,endoff;
 
 
@@ -1023,7 +1031,7 @@ dinorm:
 ======================
 */
 
-void CAL_SetupGrFile (global_game_variables_t *gvar)
+void CAL_SetupGrFile (void)
 {
 	char fname[13];
 	int handle;
@@ -1033,10 +1041,10 @@ void CAL_SetupGrFile (global_game_variables_t *gvar)
 
 #ifdef GRHEADERLINKED
 
-	gvar->ca.grhuffman = (huffnode *)&VGAdict;
+	grhuffman = (huffnode *)&VGAdict;
 	grstarts = (long _seg *)FP_SEG(&VGAhead);
 
-	CAL_OptimizeNodes (gvar->ca.grhuffman);
+	CAL_OptimizeNodes (grhuffman);
 
 #else
 
@@ -1049,24 +1057,24 @@ void CAL_SetupGrFile (global_game_variables_t *gvar)
 
 	if ((handle = open(fname,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		CA_CannotOpen(fname,gvar);
+		CA_CannotOpen(fname);
 
-	read(handle, &gvar->ca.grhuffman, sizeof(gvar->ca.grhuffman));
+	read(handle, &grhuffman, sizeof(grhuffman));
 	close(handle);
-	CAL_OptimizeNodes (gvar->ca.grhuffman);
+	CAL_OptimizeNodes (grhuffman);
 //
 // load the data offsets from ???head.ext
 //
-	MM_GetPtr (MEMPTRCONV gvar->ca.grstarts,(NUMCHUNKS+1)*FILEPOSSIZE, gvar);
+	MM_GetPtr ((memptr)&grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
 
 	strcpy(fname,GHEADNAME);
 	strcat(fname,"hp1");
 
 	if ((handle = open(fname,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		CA_CannotOpen(fname,gvar);
+		CA_CannotOpen(fname);
 
-	CA_FarRead(handle, (memptr)gvar->ca.grstarts, (NUMCHUNKS+1)*FILEPOSSIZE, gvar);
+	CA_FarRead(handle, (memptr)grstarts, (NUMCHUNKS+1)*FILEPOSSIZE);
 
 	close(handle);
 
@@ -1079,41 +1087,41 @@ void CAL_SetupGrFile (global_game_variables_t *gvar)
 	strcpy(fname,GFILENAME);
 	strcat(fname,"hp1");
 
-	gvar->ca.file.grhandle = open(fname, O_RDONLY | O_BINARY);
-	if (gvar->ca.file.grhandle == -1)
-		CA_CannotOpen(fname,gvar);
+	grhandle = open(fname, O_RDONLY | O_BINARY);
+	if (grhandle == -1)
+		CA_CannotOpen(fname);
 
 
 //
 // load the pic and sprite headers into the arrays in the data segment
 //
 #if NUMPICS>0
-	MM_GetPtr(MEMPTRCONV gvar->video.pictable,NUMPICS*sizeof(pictabletype),gvar);
-	CAL_GetGrChunkLength(STRUCTPIC,gvar);		// position file pointer
+	MM_GetPtr((memptr)&pictable,NUMPICS*sizeof(pictabletype));
+	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
 	printf("CAL_SetupGrFile:\n");
-	printf("	gvar->ca.chunkcomplen size is %lu\n", gvar->ca.chunkcomplen);
-	MM_GetPtr(MEMPTRANDPERCONV compseg,gvar->ca.chunkcomplen,gvar);								IN_Ack(gvar);
-	CA_FarRead (gvar->ca.file.grhandle,compseg,gvar->ca.chunkcomplen,gvar);
-	CAL_HuffExpand (compseg, (byte far *)gvar->video.pictable,NUMPICS*sizeof(pictabletype),gvar->ca.grhuffman);
-	MM_FreePtr(MEMPTRANDPERCONV compseg,gvar);
+	printf("	chunkcomplen size is %lu\n"->ca.chunkcomplen);
+	MM_GetPtr(MEMPTRANDPERCONV compseg,chunkcomplen);								IN_Ack();
+	CA_FarRead (grhandle,compseg,chunkcomplen);
+	CAL_HuffExpand (compseg, (byte far *)pictable,NUMPICS*sizeof(pictabletype),grhuffman);
+	MM_FreePtr(MEMPTRANDPERCONV compseg);
 #endif
 
 #if 0
 	//NUMPICM>0
-	MM_GetPtr(MEMPTRCONV picmtable,NUMPICM*sizeof(pictabletype));
+	MM_GetPtr((memptr)&picmtable,NUMPICM*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPICM);		// position file pointer
-	MM_GetPtr(&compseg,gvar->ca.chunkcomplen);
-	CA_FarRead (gvar->ca.file.grhandle,compseg,gvar->ca.chunkcomplen);
-	CAL_HuffExpand (compseg, (byte far *)picmtable,NUMPICS*sizeof(pictabletype),gvar->ca.grhuffman);
+	MM_GetPtr(&compseg,chunkcomplen);
+	CA_FarRead (grhandle,compseg,chunkcomplen);
+	CAL_HuffExpand (compseg, (byte far *)picmtable,NUMPICS*sizeof(pictabletype),grhuffman);
 	MM_FreePtr(&compseg);
 //#endif
 
 //#if NUMSPRITES>0
-	MM_GetPtr(MEMPTRCONV spritetable,NUMSPRITES*sizeof(spritetabletype));
+	MM_GetPtr((memptr)&spritetable,NUMSPRITES*sizeof(spritetabletype));
 	CAL_GetGrChunkLength(STRUCTSPRITE);	// position file pointer
-	MM_GetPtr(&compseg,gvar->ca.chunkcomplen);
-	CA_FarRead (gvar->ca.file.grhandle,compseg,gvar->ca.chunkcomplen);
-	CAL_HuffExpand (compseg, (byte far *)spritetable,NUMSPRITES*sizeof(spritetabletype),gvar->ca.grhuffman);
+	MM_GetPtr(&compseg,chunkcomplen);
+	CA_FarRead (grhandle,compseg,chunkcomplen);
+	CAL_HuffExpand (compseg, (byte far *)spritetable,NUMSPRITES*sizeof(spritetabletype),grhuffman);
 	MM_FreePtr(&compseg);
 #endif
 
@@ -1130,7 +1138,7 @@ void CAL_SetupGrFile (global_game_variables_t *gvar)
 ======================
 */
 
-void CAL_SetupMapFile (global_game_variables_t *gvar)
+void CAL_SetupMapFile (void)
 {
 #ifndef MAPHEADERLINKED
 	int handle;
@@ -1143,14 +1151,14 @@ void CAL_SetupMapFile (global_game_variables_t *gvar)
 #ifndef MAPHEADERLINKED
 	if ((handle = open("maphead.mph",
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open maphead.mph");
+		Quit ("Can't open maphead.mph");
 	length = filelength(handle);
-	MM_GetPtr (MEMPTRCONV gvar->ca.tinf,length,gvar);
-	CA_FarRead(handle, gvar->ca.tinf, length,gvar);
+	MM_GetPtr ((memptr)&tinf,length);
+	CA_FarRead(handle->ca.tinf, length);
 	close(handle);
 #else
 
-	gvar->ca.tinf = (byte _seg *)FP_SEG(&maphead);
+	tinf = (byte _seg *)FP_SEG(&maphead);
 
 #endif
 
@@ -1158,17 +1166,17 @@ void CAL_SetupMapFile (global_game_variables_t *gvar)
 // open the data file
 //
 //TODO: multiple files
-	if ((gvar->ca.file.maphandle = open("data/test.map",
+	if ((maphandle = open("data/test.map",
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open data/test.map!");
+		Quit ("Can't open data/test.map!");
 /*#ifdef MAPHEADERLINKED
 	if ((maphandle = open("GAMEMAPS.16"ENSION,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open GAMEMAPS.16"ENSION"!");
+		Quit ("Can't open GAMEMAPS.16"ENSION"!");
 #else
 	if ((maphandle = open("MAPTEMP.16"ENSION,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open MAPTEMP.16"ENSION"!");
+		Quit ("Can't open MAPTEMP.16"ENSION"!");
 #endif*/
 }
 
@@ -1194,9 +1202,9 @@ void CAL_SetupMapFile (global_game_variables_t *gvar)
 #ifndef AUDIOHEADERLINKED
 	if ((handle = open("AUDIOHED.16",
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open AUDIOHED.16""!");
+		Quit ("Can't open AUDIOHED.16""!");
 	length = filelength(handle);
-	MM_GetPtr (MEMPTRCONV audiostarts,length);
+	MM_GetPtr ((memptr)&audiostarts,length);
 	CA_FarRead(handle, (byte far *)audiostarts, length);
 	close(handle);
 #else
@@ -1211,11 +1219,11 @@ void CAL_SetupMapFile (global_game_variables_t *gvar)
 #ifndef AUDIOHEADERLINKED
 	if ((audiohandle = open("AUDIOT.16",
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open AUDIOT.16""!");
+		Quit ("Can't open AUDIOT.16""!");
 #else
 	if ((audiohandle = open("AUDIO.16",
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
-		Quit (gvar, "Can't open AUDIO.16""!");
+		Quit ("Can't open AUDIO.16""!");
 #endif
 }*/
 
@@ -1232,44 +1240,44 @@ void CAL_SetupMapFile (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_Startup(global_game_variables_t *gvar)
+void CA_Startup(void)
 {
 #ifdef PROFILE
 #ifdef __BORLANDC__
 	unlink("profile.16b");
-	gvar->handle.profilehandle = open("profile.16b", O_CREAT | O_WRONLY | O_TEXT);
+	profilehandle = open("profile.16b", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #ifdef __WATCOMC__
 	unlink("profile.16w");
-	gvar->handle.profilehandle = open("profile.16w", O_CREAT | O_WRONLY | O_TEXT);
+	profilehandle = open("profile.16w", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #endif//profile
 
 #ifdef SHOWMEMINFO
 #ifdef __BORLANDC__
 	unlink("meminfo.16b");
-	gvar->handle.showmemhandle = open("meminfo.16b", O_CREAT | O_WRONLY | O_TEXT);
+	showmemhandle = open("meminfo.16b", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #ifdef __WATCOMC__
 	unlink("meminfo.16w");
-	gvar->handle.showmemhandle = open("meminfo.16w", O_CREAT | O_WRONLY | O_TEXT);
+	showmemhandle = open("meminfo.16w", O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #endif
 
 
 #ifndef NOMAPS
-	CAL_SetupMapFile (gvar);
+	CAL_SetupMapFile ();
 #endif
 #ifndef NOGRAPHICS
-	CAL_SetupGrFile (gvar);
+	CAL_SetupGrFile ();
 #endif
 #ifndef NOAUDIO
-	CAL_SetupMapFile (gvar);
+	CAL_SetupMapFile ();
 #endif
 
-	gvar->ca.mapon = -1;
-	gvar->ca.ca_levelbit = 1;
-	gvar->ca.ca_levelnum = 0;
+	mapon = -1;
+	ca_levelbit = 1;
+	ca_levelnum = 0;
 
 /*	drawcachebox	= CAL_DialogDraw;
 	updatecachebox  = CAL_DialogUpdate;
@@ -1289,18 +1297,18 @@ void CA_Startup(global_game_variables_t *gvar)
 ======================
 */
 
-void CA_Shutdown(global_game_variables_t *gvar)
+void CA_Shutdown(void)
 {
 #ifdef PROFILE
-	close(gvar->handle.profilehandle);
+	close(profilehandle);
 #endif
 #ifdef SHOWMEMINFO
- 	close(gvar->handle.showmemhandle);
+ 	close(showmemhandle);
 #endif
 
-	close(gvar->ca.file.maphandle);
-	close(gvar->ca.file.grhandle);
-	close(gvar->ca.file.audiohandle);
+	close(maphandle);
+	close(grhandle);
+	close(audiohandle);
 }
 
 //===========================================================================
@@ -1324,14 +1332,14 @@ void CA_CacheAudioChunk (int chunk)
 
 	if (audiosegs[chunk])
 	{
-		MM_SetPurge (MEMPTRCONV audiosegs[chunk],0);
+		MM_SetPurge ((memptr)&audiosegs[chunk],0);
 		return;							// allready in memory
 	}
 
 // MDM begin - (GAMERS EDGE)
 //
 	if (!FindFile("AUDIO.16",NULL,2))
-		Quit (gvar, "CA_CacheAudioChunk(): Can't find audio files.");
+		Quit ("CA_CacheAudioChunk(): Can't find audio files.");
 //
 // MDM end
 
@@ -1346,7 +1354,7 @@ void CA_CacheAudioChunk (int chunk)
 
 #ifndef AUDIOHEADERLINKED
 
-	MM_GetPtr (MEMPTRCONV audiosegs[chunk],compressed);
+	MM_GetPtr ((memptr)&audiosegs[chunk],compressed);
 	if (mmerror)
 		return;
 
@@ -1371,7 +1379,7 @@ void CA_CacheAudioChunk (int chunk)
 
 	expanded = *(long far *)source;
 	source += 4;			// skip over length
-	MM_GetPtr (MEMPTRCONV audiosegs[chunk],expanded);
+	MM_GetPtr ((memptr)&audiosegs[chunk],expanded);
 	if (mmerror)
 		goto done;
 	CAL_HuffExpand (source,audiosegs[chunk],expanded,audiohuffman);
@@ -1412,7 +1420,7 @@ void CA_LoadAllSounds (void)
 
 	for (i=0;i<NUMSOUNDS;i++,start++)
 		if (audiosegs[start])
-			MM_SetPurge (MEMPTRCONV audiosegs[start],3);		// make purgable
+			MM_SetPurge ((memptr)&audiosegs[start],3);		// make purgable
 
 cachein:
 
@@ -1452,7 +1460,7 @@ unsigned	static	sheight,swidth;
 boolean static dothemask;
 
 void CAL_ShiftSprite (unsigned segment,unsigned source,unsigned dest,
-	unsigned width, unsigned height, unsigned pixshift, boolean domask, global_game_variables_t *gvar)
+	unsigned width, unsigned height, unsigned pixshift, boolean domask)
 {
 
 	sheight = height;		// because we are going to reassign bp
@@ -1469,7 +1477,7 @@ void CAL_ShiftSprite (unsigned segment,unsigned source,unsigned dest,
 		mov	bp,[pixshift]
 		shl	bp,1
 		mov	bp,WORD PTR [shifttabletable+bp]	// bp holds pointer to shift table
-//		mov	bp,WORD PTR [gvar->video.shifttabletable+bp]	// bp holds pointer to shift table
+//		mov	bp,WORD PTR [shifttabletable+bp]	// bp holds pointer to shift table
 
 		cmp	[ss:dothemask],0
 		je		skipmask
@@ -1580,7 +1588,7 @@ dodatabyte:
 ======================
 */
 /*++++
-void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *gvar)
+void CAL_CacheSprite (int chunk, byte far *compressed)
 {
 	int i;
 	unsigned shiftstarts[5];
@@ -1593,7 +1601,7 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 //
 // CGA has no pel panning, so shifts are never needed
 //
-	spr = &gvar->video.spritetable[chunk-STARTSPRITES];
+	spr = &spritetable[chunk-STARTSPRITES];
 	smallplane = spr->width*spr->height;
 	MM_GetPtr (&grsegs[chunk],smallplane*2+MAXSHIFTS*6);
 	if (mmerror)
@@ -1606,7 +1614,7 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 //
 // expand the unshifted shape
 //
-	CAL_HuffExpand (compressed, &dest->data[0],smallplane*2,gvar->ca.grhuffman);
+	CAL_HuffExpand (compressed, &dest->data[0],smallplane*2,grhuffman);
 
 #endif
 
@@ -1616,7 +1624,7 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 //
 // calculate sizes
 //
-	spr = &gvar->video.spritetable[chunk-STARTSPRITES];
+	spr = &spritetable[chunk-STARTSPRITES];
 	smallplane = spr->width*spr->height;
 	bigplane = (spr->width+1)*spr->height;
 
@@ -1627,15 +1635,15 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 	shiftstarts[4] = shiftstarts[3] + bigplane*5;	// nothing ever put here
 
 	expanded = shiftstarts[spr->shifts];
-	MM_GetPtr (MEMPTRCONV gvar->ca.grsegs[chunk],expanded, gvar);
-	if (gvar->mm.mmerror)
+	MM_GetPtr (&grsegs[chunk],expanded);
+	if (mmerror)
 		return;
-	dest = (spritetype _seg *)gvar->ca.grsegs[chunk];
+	dest = (spritetype _seg *)grsegs[chunk];
 
 //
 // expand the unshifted shape
 //
-	CAL_HuffExpand (compressed, &dest->data[0],smallplane*5,gvar->ca.grhuffman);
+	CAL_HuffExpand (compressed, &dest->data[0],smallplane*5,grhuffman);
 
 //
 // make the shifts!
@@ -1664,8 +1672,8 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 			dest->planesize[i] = bigplane;
 			dest->width[i] = spr->width+1;
 		}
-		CAL_ShiftSprite ((unsigned)gvar->ca.grsegs[chunk],dest->sourceoffset[0],
-			dest->sourceoffset[2],spr->width,spr->height,4,true,gvar);
+		CAL_ShiftSprite ((unsigned)grsegs[chunk],dest->sourceoffset[0],
+			dest->sourceoffset[2],spr->width,spr->height,4,true);
 		break;
 
 	case	4:
@@ -1676,25 +1684,25 @@ void CAL_CacheSprite (int chunk, byte far *compressed, global_game_variables_t *
 		dest->sourceoffset[1] = shiftstarts[1];
 		dest->planesize[1] = bigplane;
 		dest->width[1] = spr->width+1;
-		CAL_ShiftSprite ((unsigned)gvar->ca.grsegs[chunk],dest->sourceoffset[0],
-			dest->sourceoffset[1],spr->width,spr->height,2,true,gvar);
+		CAL_ShiftSprite ((unsigned)grsegs[chunk],dest->sourceoffset[0],
+			dest->sourceoffset[1],spr->width,spr->height,2,true);
 
 		dest->sourceoffset[2] = shiftstarts[2];
 		dest->planesize[2] = bigplane;
 		dest->width[2] = spr->width+1;
-		CAL_ShiftSprite ((unsigned)gvar->ca.grsegs[chunk],dest->sourceoffset[0],
-			dest->sourceoffset[2],spr->width,spr->height,4,true,gvar);
+		CAL_ShiftSprite ((unsigned)grsegs[chunk],dest->sourceoffset[0],
+			dest->sourceoffset[2],spr->width,spr->height,4,true);
 
 		dest->sourceoffset[3] = shiftstarts[3];
 		dest->planesize[3] = bigplane;
 		dest->width[3] = spr->width+1;
-		CAL_ShiftSprite ((unsigned)gvar->ca.grsegs[chunk],dest->sourceoffset[0],
-			dest->sourceoffset[3],spr->width,spr->height,6,true,gvar);
+		CAL_ShiftSprite ((unsigned)grsegs[chunk],dest->sourceoffset[0],
+			dest->sourceoffset[3],spr->width,spr->height,6,true);
 
 		break;
 
 	default:
-		Quit (gvar, "CAL_CacheSprite: Bad shifts number!");
+		Quit ("CAL_CacheSprite: Bad shifts number!");
 	}
 
 //#endif
@@ -1767,7 +1775,7 @@ void CAL_ExpandGrChunk (int chunk, byte far *source)
 		MM_GetPtr (&grsegs[chunk],expanded);
 		if (mmerror)
 			return;
-		CAL_HuffExpand (source,grsegs[chunk],expanded,gvar->ca.grhuffman);
+		CAL_HuffExpand (source,grsegs[chunk],expanded,grhuffman);
 	}
 }
 */
@@ -1793,21 +1801,21 @@ void CAL_ReadGrChunk (int chunk)
 // load the chunk into a buffer, either the miscbuffer if it fits, or allocate
 // a larger buffer
 //
-	pos = GRFILEPOS(chunk,gvar);
+	pos = GRFILEPOS(chunk);
 	if (pos<0)							// $FFFFFFFF start is a sparse tile
 	  return;
 
 	next = chunk +1;
-	while (GRFILEPOS(next,gvar) == -1)		// skip past any sparse tiles
+	while (GRFILEPOS(next) == -1)		// skip past any sparse tiles
 		next++;
 
-	compressed = GRFILEPOS(next,gvar)-pos;
+	compressed = GRFILEPOS(next)-pos;
 
-	lseek(gvar->ca.file.grhandle,pos,SEEK_SET);
+	lseek(grhandle,pos,SEEK_SET);
 
 	if (compressed<=BUFFERSIZE)
 	{
-		CA_FarRead(gvar->ca.file.grhandle,bufferseg,compressed);
+		CA_FarRead(grhandle,bufferseg,compressed);
 		source = bufferseg;
 	}
 	else
@@ -1816,7 +1824,7 @@ void CAL_ReadGrChunk (int chunk)
 		if (mmerror)
 			return;
 		MM_SetLock (&bigbufferseg,true);
-		CA_FarRead(gvar->ca.file.grhandle,bigbufferseg,compressed);
+		CA_FarRead(grhandle,bigbufferseg,compressed);
 		source = bigbufferseg;
 	}
 
@@ -1843,7 +1851,7 @@ void CA_CacheGrChunk (int chunk)
 	byte	far *source;
 	int		next;
 
-	gvar->ca.grneeded[chunk] |= ca_levelbit;		// make sure it doesn't get removed
+	grneeded[chunk] |= ca_levelbit;		// make sure it doesn't get removed
 	if (grsegs[chunk])
 	{
 		MM_SetPurge (&grsegs[chunk],0);
@@ -1853,7 +1861,7 @@ void CA_CacheGrChunk (int chunk)
 // MDM begin - (GAMERS EDGE)
 //
 	if (!FindFile("EGAGRAPH.16",NULL,2))
-		Quit (gvar, "CA_CacheGrChunk(): Can't find graphics files.");
+		Quit ("CA_CacheGrChunk(): Can't find graphics files.");
 //
 // MDM end
 
@@ -1861,7 +1869,7 @@ void CA_CacheGrChunk (int chunk)
 // load the chunk into a buffer, either the miscbuffer if it fits, or allocate
 // a larger buffer
 //
-	pos = GRFILEPOS(chunk,gvar);
+	pos = GRFILEPOS(chunk);
 	if (pos<0)							// $FFFFFFFF start is a sparse tile
 	  return;
 
@@ -1869,27 +1877,27 @@ void CA_CacheGrChunk (int chunk)
 	while (GRFILEPOS(next) == -1)		// skip past any sparse tiles
 		next++;
 
-	compressed = GRFILEPOS(next,gvar)-pos;
+	compressed = GRFILEPOS(next)-pos;
 
-	lseek(gvar->ca.file.grhandle,pos,SEEK_SET);
+	lseek(grhandle,pos,SEEK_SET);
 
 	if (compressed<=BUFFERSIZE)
 	{
-		CA_FarRead(gvar->ca.file.grhandle,bufferseg,compressed);
+		CA_FarRead(grhandle,bufferseg,compressed);
 		source = bufferseg;
 	}
 	else
 	{
 		MM_GetPtr(&bigbufferseg,compressed);
 		MM_SetLock (&bigbufferseg,true);
-		CA_FarRead(gvar->ca.file.grhandle,bigbufferseg,compressed);
+		CA_FarRead(grhandle,bigbufferseg,compressed);
 		source = bigbufferseg;
 	}
 
 	CAL_ExpandGrChunk (chunk,source);
 
 	if (compressed>BUFFERSIZE)
-		MM_FreePtr (MEMPTRCONV bigbufferseg);
+		MM_FreePtr (&bigbufferseg);
 }
 */
 
@@ -1904,7 +1912,7 @@ void CA_CacheGrChunk (int chunk)
 ======================
 */
 
-void CA_CacheMap (global_game_variables_t *gvar)
+void CA_CacheMap (int mapnum)
 {
 	long	pos,compressed;
 	int		plane;
@@ -1920,27 +1928,27 @@ void CA_CacheMap (global_game_variables_t *gvar)
 //
 // free up memory from last map
 //
-	if (gvar->ca.mapon>-1 && gvar->ca.mapheaderseg[gvar->ca.mapon])
-		MM_SetPurge ((MEMPTRCONV gvar->ca.mapheaderseg[(gvar->ca.mapon)]), 3, gvar);
+	if (mapon>-1 && mapheaderseg[mapon])
+		MM_SetPurge ((memptr)&mapheaderseg[mapon],3);
 	for (plane=0;plane<MAPPLANES;plane++)
-		if (gvar->ca.mapsegs[plane])
-			MM_FreePtr (MEMPTRCONV gvar->ca.mapsegs[plane], gvar);
+		if (mapsegs[plane])
+			MM_FreePtr ((memptr)&mapsegs[plane]);
 
-	gvar->ca.mapon = gvar->ca.mapnum;
+	mapon = mapnum;
 
 
 //
 // load map header
 // The header will be cached if it is still around
 //
-	if (!gvar->ca.mapheaderseg[gvar->ca.mapnum])
+	if (!mapheaderseg[mapnum])
 	{
-		pos = ((mapfiletype	_seg *)gvar->ca.tinf)->headeroffsets[gvar->ca.mapnum];
+		pos = ((mapfiletype	_seg *)tinf)->headeroffsets[mapnum];
 		if (pos<0)						// $FFFFFFFF start is a sparse map
-			Quit (gvar, "CA_CacheMap: Tried to load a non existent map!");
+			Quit ("CA_CacheMap: Tried to load a non existent map!");
 
-		MM_GetPtr(MEMPTRCONV gvar->ca.mapheaderseg[gvar->ca.mapnum],sizeof(maptype), gvar);
-		lseek(gvar->ca.file.maphandle,pos,SEEK_SET);
+		MM_GetPtr((memptr)&mapheaderseg[mapnum],sizeof(maptype));
+		lseek(maphandle,pos,SEEK_SET);
 #ifdef MAPHEADERLINKED
 //#if BUFFERSIZE < sizeof(maptype)
 //The general buffer size is too small!
@@ -1948,15 +1956,15 @@ void CA_CacheMap (global_game_variables_t *gvar)
 		//
 		// load in, then unhuffman to the destination
 		//
-		CA_FarRead (gvar->ca.file.maphandle,gvar->mm.bufferseg,((mapfiletype	_seg *)gvar->ca.tinf)->headersize[gvar->ca.mapnum], gvar);
+		CA_FarRead (maphandle, bufferseg,((mapfiletype	_seg *)tinf)->headersize[mapnum]);
 		CAL_HuffExpand ((byte huge *)bufferseg,
-			(byte huge *)gvar->ca.mapheaderseg[gvar->ca.mapnum],sizeof(maptype),maphuffman, gvar);
+			(byte huge *)mapheaderseg[mapnum],sizeof(maptype),maphuffman);
 #else
-		CA_FarRead (gvar->ca.file.maphandle,(memptr)gvar->ca.mapheaderseg[gvar->ca.mapnum],sizeof(maptype), gvar);
+		CA_FarRead (maphandle,(memptr)mapheaderseg[mapnum],sizeof(maptype));
 #endif
 	}
 	else
-		MM_SetPurge (MEMPTRCONV gvar->ca.mapheaderseg[gvar->ca.mapnum], 0, gvar);
+		MM_SetPurge ((memptr)&mapheaderseg[mapnum], 0);
 
 //
 // load the planes in
@@ -1964,30 +1972,30 @@ void CA_CacheMap (global_game_variables_t *gvar)
 // allways reloaded, never cached)
 //
 
-	size = gvar->ca.mapheaderseg[gvar->ca.mapnum]->width * gvar->ca.mapheaderseg[gvar->ca.mapnum]->height * 2;
+	size = mapheaderseg[mapnum]->width * mapheaderseg[mapnum]->height * 2;
 
 	for (plane = 0; plane<MAPPLANES; plane++)
 	{
-		pos = gvar->ca.mapheaderseg[gvar->ca.mapnum]->planestart[plane];
-		compressed = gvar->ca.mapheaderseg[gvar->ca.mapnum]->planelength[plane];
+		pos = mapheaderseg[mapnum]->planestart[plane];
+		compressed = mapheaderseg[mapnum]->planelength[plane];
 
 		if (!compressed)
 			continue;		// the plane is not used in this game
 
-		dest = MEMPTRCONV gvar->ca.mapsegs[plane];
-		MM_GetPtr(dest,size, gvar);
+		dest = (memptr)&mapsegs[plane];
+		MM_GetPtr(dest,size);
 
-		lseek(gvar->ca.file.maphandle,pos,SEEK_SET);
+		lseek(maphandle,pos,SEEK_SET);
 		if (compressed<=BUFFERSIZE)
-			source = gvar->mm.bufferseg;
+			source = bufferseg;
 		else
 		{
-			MM_GetPtr(MEMPTRCONV bigbufferseg,compressed, gvar);
-			MM_SetLock (MEMPTRCONV bigbufferseg,true, gvar);
+			MM_GetPtr(&bigbufferseg,compressed);
+			MM_SetLock (&bigbufferseg,true);
 			source = bigbufferseg;
 		}
 
-		CA_FarRead(gvar->ca.file.maphandle,(byte far *)source,compressed, gvar);
+		CA_FarRead(maphandle,(byte far *)source,compressed);
 #ifdef MAPHEADERLINKED
 		//
 		// unhuffman, then unRLEW
@@ -1997,7 +2005,7 @@ void CA_CacheMap (global_game_variables_t *gvar)
 		//
 		expanded = *source;
 		source++;
-		MM_GetPtr (&buffer2seg,expanded, gvar);
+		MM_GetPtr (&buffer2seg,expanded);
 		CAL_CarmackExpand (source, (unsigned far *)buffer2seg,expanded);
 		CA_RLEWexpand (((unsigned far *)buffer2seg)+1,*dest,size,
 		((mapfiletype _seg *)tinf)->RLEWtag);
@@ -2008,11 +2016,11 @@ void CA_CacheMap (global_game_variables_t *gvar)
 		// unRLEW, skipping expanded length
 		//
 		CA_RLEWexpand (source+1, *dest,size,
-		((mapfiletype _seg *)gvar->ca.tinf)->RLEWtag);
+		((mapfiletype _seg *)tinf)->RLEWtag);
 #endif
 
 		if (compressed>BUFFERSIZE)
-			MM_FreePtr(MEMPTRCONV bigbufferseg, gvar);
+			MM_FreePtr(&bigbufferseg);
 	}
 }
 
@@ -2029,13 +2037,13 @@ void CA_CacheMap (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_UpLevel (global_game_variables_t *gvar)
+void CA_UpLevel (void)
 {
-	if (gvar->ca.ca_levelnum==7)
-		printf("CA_UpLevel: Up past level 7!");
+	if (ca_levelnum==7)
+		Quit("CA_UpLevel: Up past level 7!");
 
-	gvar->ca.ca_levelbit<<=1;
-	gvar->ca.ca_levelnum++;
+	ca_levelbit<<=1;
+	ca_levelnum++;
 }
 
 //===========================================================================
@@ -2051,12 +2059,12 @@ void CA_UpLevel (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_DownLevel (global_game_variables_t *gvar)
+void CA_DownLevel (void)
 {
-	if (!gvar->ca.ca_levelnum)
-		printf("CA_DownLevel: Down past level 0!");
-	gvar->ca.ca_levelbit>>=1;
-	gvar->ca.ca_levelnum--;
+	if (!ca_levelnum)
+		Quit("CA_DownLevel: Down past level 0!");
+	ca_levelbit>>=1;
+	ca_levelnum--;
 	////++++++++++++++++++++++++++++++++++++++++++CA_CacheMarks(NULL);
 }
 
@@ -2072,12 +2080,12 @@ void CA_DownLevel (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_ClearMarks (global_game_variables_t *gvar)
+void CA_ClearMarks (void)
 {
 	int i;
 
 	for (i=0;i<NUMCHUNKS;i++)
-		gvar->ca.grneeded[i]&=~gvar->ca.ca_levelbit;
+		grneeded[i]&=~ca_levelbit;
 }
 
 //===========================================================================
@@ -2092,11 +2100,11 @@ void CA_ClearMarks (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_ClearAllMarks (global_game_variables_t *gvar)
+void CA_ClearAllMarks (void)
 {
-	_fmemset (gvar->ca.grneeded,0,sizeof(gvar->ca.grneeded));
-	gvar->ca.ca_levelbit = 1;
-	gvar->ca.ca_levelnum = 0;
+	_fmemset (grneeded,0,sizeof(grneeded));
+	ca_levelbit = 1;
+	ca_levelnum = 0;
 }
 
 //===========================================================================
@@ -2109,18 +2117,18 @@ void CA_ClearAllMarks (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_SetGrPurge (global_game_variables_t *gvar)
+void CA_SetGrPurge (void)
 {
 	int i;
 
 //
 // free graphics
 //
-	CA_ClearMarks (gvar);
+	CA_ClearMarks ();
 
 	for (i=0;i<NUMCHUNKS;i++)
-		if (gvar->ca.grsegs[i])
-			MM_SetPurge (MEMPTRCONV gvar->ca.grsegs[i],3, gvar);
+		if (grsegs[i])
+			MM_SetPurge ((memptr)&grsegs[i],3);
 }
 
 
@@ -2134,11 +2142,11 @@ void CA_SetGrPurge (global_game_variables_t *gvar)
 ======================
 */
 
-void CA_SetAllPurge (global_game_variables_t *gvar)
+void CA_SetAllPurge (void)
 {
 	int i;
 
-	CA_ClearMarks (gvar);
+	CA_ClearMarks ();
 
 //
 // free cursor sprite and background save
@@ -2149,24 +2157,24 @@ void CA_SetAllPurge (global_game_variables_t *gvar)
 // free map headers and map planes
 //
 	for (i=0;i<NUMMAPS;i++)
-		if (gvar->ca.mapheaderseg[i])
-			MM_SetPurge (MEMPTRCONV gvar->ca.mapheaderseg[i],3, gvar);
+		if (mapheaderseg[i])
+			MM_SetPurge ((memptr)&mapheaderseg[i],3);
 
 	for (i=0;i<3;i++)
-		if (gvar->ca.mapsegs[i])
-			MM_FreePtr (MEMPTRCONV gvar->ca.mapsegs[i], gvar);
+		if (mapsegs[i])
+			MM_FreePtr ((memptr)&mapsegs[i]);
 
 //
 // free sounds
 //
 	for (i=0;i<NUMSNDCHUNKS;i++)
-		if (gvar->ca.audiosegs[i])
-			MM_SetPurge (MEMPTRCONV gvar->ca.audiosegs[i],3, gvar);
+		if (audiosegs[i])
+			MM_SetPurge ((memptr)&audiosegs[i],3);
 
 //
 // free graphics
 //
-	CA_SetGrPurge (gvar);
+	CA_SetGrPurge ();
 }
 
 
@@ -2295,7 +2303,7 @@ void	CAL_DialogFinish (void)
 */
 #define MAXEMPTYREAD	1024
 /*++++ segments
-void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
+void CA_CacheMarks (char *title)
 {
 	boolean dialog;
 	int 	i,next,numcache;
@@ -2311,17 +2319,17 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 // go through and make everything not needed purgable
 //
 	for (i=0;i<NUMCHUNKS;i++)
-		if (gvar->ca.grneeded[i]&(gvar->ca.ca_levelbit))//if (grneeded[i]&ca_levelbit)
+		if (grneeded[i]&ca_levelbit)
 		{
-			if (gvar->ca.grsegs[i])					// its allready in memory, make
-				MM_SetPurge(gvar->ca.grsegs[i],0,gvar);	// sure it stays there!
+			if (grsegs[i])					// its allready in memory, make
+				MM_SetPurge(&grsegs[i],0);	// sure it stays there!
 			else
 				numcache++;
 		}
 		else
 		{
-			if (gvar->ca.grsegs[i])					// not needed, so make it purgeable
-				MM_SetPurge(gvar->ca.grsegs[i],3,gvar);
+			if (grsegs[i])					// not needed, so make it purgeable
+				MM_SetPurge(&grsegs[i],3);
 		}
 
 	if (!numcache)			// nothing to cache!
@@ -2330,7 +2338,7 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 // MDM begin - (GAMERS EDGE)
 //
 //????	if (!FindFile("EGAGRAPH.16",NULL,2))
-//????		Quit (gvar, "CA_CacheMarks(): Can't find graphics files.");
+//????		Quit ("CA_CacheMarks(): Can't find graphics files.");
 //
 // MDM end
 
@@ -2350,7 +2358,7 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 	bufferstart = bufferend = 0;		// nothing good in buffer now
 
 	for (i=0;i<NUMCHUNKS;i++)
-		if ( (gvar->ca.grneeded[i]&(gvar->ca.ca_levelbit)) && !gvar->ca.grsegs[i])
+		if ( (grneeded[i]&ca_levelbit) && !grsegs[i])
 		{
 //
 // update thermometer
@@ -2358,7 +2366,7 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 			if (dialog && updatecachebox)
 				updatecachebox ();
 
-			pos = GRFILEPOS(i,gvar);
+			pos = GRFILEPOS(i);
 			if (pos<0)
 				continue;
 
@@ -2366,7 +2374,7 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 			while (GRFILEPOS(next) == -1)		// skip past any sparse tiles
 				next++;
 
-			compressed = GRFILEPOS(next,gvar)-pos;
+			compressed = GRFILEPOS(next)-pos;
 			endpos = pos+compressed;
 
 			if (compressed<=BUFFERSIZE)
@@ -2384,15 +2392,15 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 					while ( next < NUMCHUNKS )
 					{
 						while (next < NUMCHUNKS &&
-						!(gvar->video.grneeded[next]&ca_levelbit && !grsegs[next]))
+						!(grneeded[next]&ca_levelbit && !grsegs[next]))
 							next++;
 						if (next == NUMCHUNKS)
 							continue;
 
-						nextpos = GRFILEPOS(next,gvar);
-						while (GRFILEPOS(++next,gvar) == -1)	// skip past any sparse tiles
+						nextpos = GRFILEPOS(next);
+						while (GRFILEPOS(++next) == -1)	// skip past any sparse tiles
 							;
-						nextendpos = GRFILEPOS(next,gvar);
+						nextendpos = GRFILEPOS(next);
 						if (nextpos - endpos <= MAXEMPTYREAD
 						&& nextendpos-pos <= BUFFERSIZE)
 							endpos = nextendpos;
@@ -2400,8 +2408,8 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 							next = NUMCHUNKS;			// read pos to posend
 					}
 
-					lseek(gvar->ca.file.grhandle,pos,SEEK_SET);
-					CA_FarRead(gvar->ca.file.grhandle,(gvar->mm.bufferseg),endpos-pos,gvar);
+					lseek(grhandle,pos,SEEK_SET);
+					CA_FarRead(grhandle,bufferseg,endpos-pos);
 					bufferstart = pos;
 					bufferend = endpos;
 					source = bufferseg;
@@ -2410,12 +2418,12 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 			else
 			{
 			// big chunk, allocate temporary buffer
-				MM_GetPtr(&bigbufferseg,compressed,gvar);
+				MM_GetPtr(&bigbufferseg,compressed);
 				if (mmerror)
 					return;
 				MM_SetLock (&bigbufferseg,true);
-				lseek(gvar->ca.file.grhandle,pos,SEEK_SET);
-				CA_FarRead(gvar->ca.file.grhandle,bigbufferseg,compressed,gvar);
+				lseek(grhandle,pos,SEEK_SET);
+				CA_FarRead(grhandle,bigbufferseg,compressed);
 				source = bigbufferseg;
 			}
 
@@ -2435,12 +2443,12 @@ void CAL_CacheMarks (char *title, global_game_variables_t *gvar)
 			finishcachebox();
 }//*/
 
-void CA_CannotOpen(char *string, global_game_variables_t *gvar)
+void CA_CannotOpen(char *string)
 {
  char str[30];
 
  strcpy(str,"Can't open ");
  strcat(str,string);
  strcat(str,"!\n");
- Quit (gvar, str);
+ Quit (str);
 }

@@ -30,41 +30,41 @@
 #pragma hdrstop
 
 //	Main Mem specific variables
-	//boolean			MainPresent;
-/*	memptr			MainMemPages[PMMaxMainMem];
-	PMBlockAttr		gvar->pm.mm.MainMemUsed[PMMaxMainMem];
-	int				gvar->pm.mm.MainPagesAvail;*/
+	boolean			MainPresent;
+	memptr			MainMemPages[PMMaxMainMem];
+	PMBlockAttr		MainMemUsed[PMMaxMainMem];
+	int				MainPagesAvail;
 
 //	EMS specific variables
-	//boolean			EMSPresent;
-/*	word			gvar->pm.emm.EMSAvail,gvar->pm.emm.EMSPagesAvail,gvar->pm.emm.EMSHandle,
-					gvar->pm.emm.EMSPageFrame,gvar->pm.emm.EMSPhysicalPage;
-	gvar->pm.emm.EMSListStruct	gvar->pm.emm.EMSList[EMSFrameCount];*/
+	boolean			EMSPresent;
+	word			EMSAvail,EMSPagesAvail,EMSHandle,
+					EMSPageFrame,EMSPhysicalPage,EMSVer;
+	EMSListStruct	EMSList[EMSFrameCount];
 
 //	XMS specific variables
-	//boolean			XMSPresent;
-	//word			gvar->pm.xmm.XMSAvail,gvar->pm.xmm.XMSPagesAvail,gvar->pm.xmm.XMSHandle;
-	dword			XMSDriver;	//hard to put in gvar
-	word				XMSVer;	//hard to put in gvar
-/*	int				gvar->pm.xmm.XMSProtectPage = -1;
+	boolean			XMSPresent;
+	word			XMSAvail,XMSPagesAvail,XMSHandle;
+	dword			XMSDriver;
+	word				XMSVer;
+	int				XMSProtectPage = -1;
 
 //	File specific variables
-	char			gvar->pm.fi.PageFileName[13] = {"VSWAP."};
+	char			PageFileName[13] = {"VSWAP."};
 	int				PageFile = -1;
-	word			gvar->pm.fi.ChunksInFile;
-	word			PMSpriteStart,PMSoundStart;*/
+	word			ChunksInFile;
+	word			PMSpriteStart,PMSoundStart;
 
 //	General usage variables
-/*	boolean			PMStarted,
-					gvar->pm.PMPanicMode,
-					gvar->pm.PMThrashing;
-	word			gvar->pm.XMSPagesUsed,
-					gvar->pm.EMSPagesUsed,
+	boolean			PMStarted,
+					PMPanicMode,
+					PMThrashing;
+	word			XMSPagesUsed,
+					EMSPagesUsed,
 					MainPagesUsed,
-					gvar->pm.PMNumBlocks;
+					PMNumBlocks;
 	long			PMFrameCount;
-	PageListStruct	far *gvar->pm.PMPages,
-					_seg *gvar->pm.PMSegPages;*/
+	PageListStruct	far *PMPages,
+					_seg *PMSegPages;
 
 static	char		*ParmStrings[] = {"nomain","noems","noxms",nil};
 
@@ -78,14 +78,14 @@ static	char		*ParmStrings[] = {"nomain","noems","noxms",nil};
 //	PML_MapEMS() - Maps a logical page to a physical page
 //
 byte
-PML_MapEMS(word logical, byte physical, global_game_variables_t *gvar)
+PML_MapEMS(word logical, byte physical)
 {
 	byte	err=0, str[160];
 	unsigned	EMShandle;
 	//int	i;
 
 	boolean	errorflag=false;
-	EMShandle=gvar->pm.emm.EMSHandle;
+	EMShandle=EMSHandle;
 
 	__asm {
 		mov	ah,EMS_MAPPAGE
@@ -117,7 +117,7 @@ PML_MapEMS(word logical, byte physical, global_game_variables_t *gvar)
 		strcpy(str,"MM_MapEMS: EMS error ");
 		MM_EMSerr(str, err);
 		printf("%s\n",str);
-		Quit (gvar, "PML_MapEMS: Page mapping failed\n");
+		Quit ("PML_MapEMS: Page mapping failed\n");
 		return err;
 	}
 	return 0;
@@ -136,7 +136,7 @@ PML_MapEMS(word logical, byte physical, global_game_variables_t *gvar)
 //
 
 boolean
-PML_StartupEMS(global_game_variables_t *gvar)
+PML_StartupEMS(void)
 {
 	int		i;
 #ifdef __PM__NOHOGEMS__
@@ -148,8 +148,8 @@ PML_StartupEMS(global_game_variables_t *gvar)
 	unsigned	EMSVer;
 	unsigned	totalEMSpages,freeEMSpages,EMSPageFrame,EMSHandle,EMSAvail;
 	totalEMSpages = freeEMSpages = EMSPageFrame = EMSHandle = EMSAvail = EMSVer = 0;	// set all to 0~
-	gvar->pm.emm.EMSPresent = false;			// Assume that we'll fail
-	gvar->pm.emm.EMSAvail = gvar->mmi.EMSmem = 0;
+	EMSPresent = false;			// Assume that we'll fail
+	EMSAvail = EMSmem = 0;
 
 	__asm {
 		//MML_CheckForEMS() takes care of what the code did here
@@ -205,11 +205,11 @@ End1:
 	if(errorflag==false)
 	{
 		// Don't hog all available EMS
-		size = gvar->pm.emm.EMSAvail * (long)EMSPageSize;
-		if (size - (EMSPageSize * 2) > (gvar->pm.fi.ChunksInFile * (long)PMPageSize))
+		size = EMSAvail * (long)EMSPageSize;
+		if (size - (EMSPageSize * 2) > (ChunksInFile * (long)PMPageSize))
 		{
-			size = (gvar->pm.fi.ChunksInFile * (long)PMPageSize) + EMSPageSize;
-			gvar->pm.emm.EMSAvail = size / EMSPageSize;
+			size = (ChunksInFile * (long)PMPageSize) + EMSPageSize;
+			EMSAvail = size / EMSPageSize;
 		}
 	}
 #endif
@@ -243,38 +243,38 @@ End2:
 		strcpy(str,"PML_StartupEMS: EMS error ");
 		MM_EMSerr(str, err);
 		printf("%s\n",str);
-		return(gvar->pm.emm.EMSPresent);
+		return(EMSPresent);
 	}
-	gvar->mmi.EMSmem = EMSAvail * (dword)EMSPageSize;
+	bEMSmem = EMSAvail * (dword)EMSPageSize;
 
 	// Initialize EMS mapping cache
 	for (i = 0;i < EMSFrameCount;i++)
-		gvar->pm.emm.EMSList[i].baseEMSPage = -1;
+		EMSList[i].baseEMSPage = -1;
 
-	gvar->pm.emm.EMSPresent = true;			// We have EMS
-	gvar->pm.emm.EMSPageFrame = EMSPageFrame;
-	gvar->pm.emm.EMSAvail = EMSAvail;
-	gvar->pm.emm.EMSVer = EMSVer;
-	gvar->pm.emm.EMSHandle = EMSHandle;
-	gvar->pm.emm.freeEMSpages = freeEMSpages;
-	gvar->pm.emm.totalEMSpages = totalEMSpages;
+	EMSPresent = true;			// We have EMS
+	EMSPageFrame = EMSPageFrame;
+	EMSAvail = EMSAvail;
+	EMSVer = EMSVer;
+	EMSHandle = EMSHandle;
+	freeEMSpages = freeEMSpages;
+	totalEMSpages = totalEMSpages;
 
-	return(gvar->pm.emm.EMSPresent);
+	return(EMSPresent);
 }
 
 //
 //	PML_ShutdownEMS() - If EMS was used, deallocate it
 //
 void
-PML_ShutdownEMS(global_game_variables_t *gvar)
+PML_ShutdownEMS(void)
 {
 	word EMSHandle;
 	byte err=0, str[64];
 
 	boolean errorflag=false;
-	EMSHandle=gvar->pm.emm.EMSHandle;
+	EMSHandle=EMSHandle;
 
-	if (gvar->pm.emm.EMSPresent)
+	if (EMSPresent)
 	{
 		__asm {
 			mov	ah,EMS_FREEPAGES
@@ -304,7 +304,7 @@ PML_ShutdownEMS(global_game_variables_t *gvar)
 			strcpy(str,"PML_ShutdownEMS: Error freeing EMS ");
 			MM_EMSerr(str, err);
 			printf("%s\n",str);
-			Quit (gvar, "PML_ShutdownEMS: Error freeing EMS\n");
+			Quit ("PML_ShutdownEMS: Error freeing EMS\n");
 			//return;
 		}
 	}
@@ -323,7 +323,7 @@ PML_ShutdownEMS(global_game_variables_t *gvar)
 //		Allocates any remaining XMS (rounded down to the nearest page size)
 //
 boolean
-PML_StartupXMS(global_game_variables_t *gvar)
+PML_StartupXMS(void)
 {
 //TODO: translate the _REG into working assembly
 //#define STARTUPXMSASM
@@ -331,8 +331,8 @@ PML_StartupXMS(global_game_variables_t *gvar)
 	word XMSAvail, XMSHandle;//, XMSVer;
 	boolean errorflag=false;
 	word e=0;
-	gvar->pm.xmm.XMSPresent = false;					// Assume failure
-	XMSAvail = gvar->mmi.XMSmem = 0;
+	XMSPresent = false;					// Assume failure
+	XMSAvail = bXMSmem = 0;
 
 	__asm {
 		mov	ax,0x4300
@@ -443,13 +443,13 @@ End2:
 error:
 	if(errorflag==false)
 	{
-		gvar->mmi.XMSmem = (dword)(XMSAvail) * 1024;
-		gvar->pm.xmm.XMSAvail = XMSAvail;
-		gvar->pm.xmm.XMSHandle = XMSHandle;
-		//gvar->pm.xmm.XMSVer = XMSVer;
-		gvar->pm.xmm.XMSPresent = true;
+		bXMSmem = (dword)(XMSAvail) * 1024;
+		XMSAvail = XMSAvail;
+		XMSHandle = XMSHandle;
+		//XMSVer = XMSVer;
+		XMSPresent = true;
 #ifdef __DEBUG_PM__
-		printf("	XMSmem=%lu	XMSAvail=%u\n", gvar->mmi.XMSmem, XMSAvail);
+		printf("	XMSmem=%lu	XMSAvail=%u\n", bXMSmem, XMSAvail);
 #endif
 	}
 	else
@@ -458,11 +458,11 @@ error:
 		//printf("XMSHandle\n");
 		//printf("	1=%u	2=%u	3=%u	4=%u\n", XMSHandle1, XMSHandle2, XMSHandle3, XMSHandle4);
 		//printf("	2=%u	", XMSHandle);
-		//printf("	%u", gvar->pm.xmm.XMSHandle);
+		//printf("	%u", XMSHandle);
 		printf("	err=%02X	e=%u\n", err, e);
 #endif
 	}
-	return(gvar->pm.xmm.XMSPresent);
+	return(XMSPresent);
 }
 
 //
@@ -470,7 +470,7 @@ error:
 //		Will round an odd-length request up to the next even value
 //
 void
-PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length, global_game_variables_t *gvar)
+PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length)
 {
 	dword	xoffset;
 	struct
@@ -484,15 +484,15 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length, global_game_v
 
 	if (!addr)
 	{
-		Quit (gvar, "PML_XMSCopy: zero address\n");
+		Quit ("PML_XMSCopy: zero address\n");
 	}
 
 	xoffset = (dword)xmspage * PMPageSize;
 
 	copy.length = (length + 1) & ~1;
-	copy.source_handle = toxms? 0 : gvar->pm.xmm.XMSHandle;
+	copy.source_handle = toxms? 0 : XMSHandle;
 	copy.source_offset = toxms? (long)addr : xoffset;
-	copy.target_handle = toxms? gvar->pm.xmm.XMSHandle : 0;
+	copy.target_handle = toxms? XMSHandle : 0;
 	copy.target_offset = toxms? xoffset : (long)addr;
 
 	__asm {
@@ -505,7 +505,7 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length, global_game_v
 	}
 	if (!_AX)
 	{
-		Quit (gvar, "PML_XMSCopy: Error on copy");
+		Quit ("PML_XMSCopy: Error on copy");
 		//return;
 	}
 }
@@ -521,7 +521,7 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length, global_game_v
 void
 PML_CopyToXMS(byte far *source,int targetpage,word length,global_game_variables_t *gvar)
 {
-	PML_XMSCopy(true,source,targetpage,length, global_game_variables_t *gvar);
+	PML_XMSCopy(true,source,targetpage,length);
 }
 
 //
@@ -529,9 +529,9 @@ PML_CopyToXMS(byte far *source,int targetpage,word length,global_game_variables_
 //		page to the specified real mode address
 //
 void
-PML_CopyFromXMS(byte far *target,int sourcepage,word length, global_game_variables_t *gvar)
+PML_CopyFromXMS(byte far *target,int sourcepage,word length)
 {
-	PML_XMSCopy(false,target,sourcepage,length, global_game_variables_t *gvar);
+	PML_XMSCopy(false,target,sourcepage,length);
 }
 #endif
 
@@ -539,11 +539,11 @@ PML_CopyFromXMS(byte far *target,int sourcepage,word length, global_game_variabl
 //	PML_ShutdownXMS()
 //
 void
-PML_ShutdownXMS(global_game_variables_t *gvar)
+PML_ShutdownXMS(void)
 {
 	boolean errorflag=false;
-	word XMSHandle = gvar->pm.xmm.XMSHandle;
-	if (gvar->pm.xmm.XMSPresent)
+	word XMSHandle = XMSHandle;
+	if (XMSPresent)
 	{
 		__asm {
 			mov	dx,[XMSHandle]
@@ -572,7 +572,7 @@ PML_ShutdownXMS(global_game_variables_t *gvar)
 #endif
 		if(errorflag==true)
 		{
-			Quit (gvar, "PML_ShutdownXMS: Error freeing XMS");
+			Quit ("PML_ShutdownXMS: Error freeing XMS");
 			//return;
 		}
 	}
@@ -590,26 +590,26 @@ PML_ShutdownXMS(global_game_variables_t *gvar)
 //		PM_UnlockMainMem() macros should be used instead.
 //
 void
-PM_SetMainMemPurge(int level, global_game_variables_t *gvar)
+PM_SetMainMemPurge(int level)
 {
 	int	i;
 
-	if(gvar->pm.mm.MainPresent)
+	if(MainPresent)
 	for (i = 0;i < PMMaxMainMem;i++)
 	{
 #ifdef __DEBUG_PM__
 #ifdef __DEBUG_PM_MAIN__
-		printf("PM_SetMainMemPurge()	info of gvar->pm.mm.MainMemPages[i]\n");
-		printf("&	%Fp,	%Fp\n", &gvar->pm.mm.MainMemPages[i],	&(gvar->pm.mm.MainMemPages[i]));
+		printf("PM_SetMainMemPurge()	info of MainMemPages[i]\n");
+		printf("&	%Fp,	%Fp\n", &MainMemPages[i],	&(MainMemPages[i]));
 #endif
 #endif
-		if (gvar->pm.mm.MainMemPages[i])
-			MM_SetPurge(&(gvar->pm.mm.MainMemPages[i]),level, gvar);
+		if (MainMemPages[i])
+			MM_SetPurge(&(MainMemPages[i]),level);
 	}
 
 	else
 	{
-		Quit (gvar, "MainPresent IS NULL\n");
+		Quit ("MainPresent IS NULL\n");
 	}
 }
 
@@ -627,7 +627,7 @@ PM_SetMainMemPurge(int level, global_game_variables_t *gvar)
 //		program makes allocation requests of the Memory Mgr.
 //
 void
-PM_CheckMainMem(global_game_variables_t *gvar)
+PM_CheckMainMem(void)
 {
 	boolean			allocfailed;
 	int				i,n;
@@ -635,15 +635,15 @@ PM_CheckMainMem(global_game_variables_t *gvar)
 	PMBlockAttr		*used;
 	PageListStruct	far *page;
 
-	if (!gvar->pm.mm.MainPresent)
+	if (!MainPresent)
 		return;
 
-	for (i = 0,page = gvar->pm.PMPages;i < gvar->pm.fi.ChunksInFile;i++,page++)
+	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
 	{
 		n = page->mainPage;
 		if (n != -1)						// Is the page using main memory?
 		{
-			if (!gvar->pm.mm.MainMemPages[n])			// Yep, was the block purged?
+			if (!MainMemPages[n])			// Yep, was the block purged?
 			{
 				page->mainPage = -1;		// Yes, mark page as purged & unlocked
 				page->locked = pml_Unlocked;
@@ -654,39 +654,39 @@ PM_CheckMainMem(global_game_variables_t *gvar)
 	// Prevent allocation attempts from purging any of our other blocks
 	PM_LockMainMem(gvar);
 	allocfailed = false;
-	for (i = 0,p = gvar->pm.mm.MainMemPages,used = gvar->pm.mm.MainMemUsed; i < PMMaxMainMem;i++,p++,used++)
+	for (i = 0,p = MainMemPages,used = MainMemUsed; i < PMMaxMainMem;i++,p++,used++)
 	{
 		if (!*p)							// If the page got purged
 		{
 			if (*used & pmba_Allocated)		// If it was allocated
 			{
 				*used &= ~pmba_Allocated;	// Mark as unallocated
-				gvar->pm.mm.MainPagesAvail--;			// and decrease available count
+				MainPagesAvail--;			// and decrease available count
 			}
 
 			if (*used & pmba_Used)			// If it was used
 			{
 				*used &= ~pmba_Used;		// Mark as unused
-				gvar->pm.MainPagesUsed--;			// and decrease used count
+				MainPagesUsed--;			// and decrease used count
 			}
 
 			if (!allocfailed)
 			{
-				MM_BombOnError(false, gvar);
-				MM_GetPtr(p,PMPageSize, gvar);		// Try to reallocate
-				if (gvar->mm.mmerror)					// If it failed,
+				MM_BombOnError(false);
+				MM_GetPtr(p,PMPageSize);		// Try to reallocate
+				if (mmerror)					// If it failed,
 					allocfailed = true;			//  don't try any more allocations
 				else							// If it worked,
 				{
 					*used |= pmba_Allocated;	// Mark as allocated
-					gvar->pm.mm.MainPagesAvail++;			// and increase available count
+					MainPagesAvail++;			// and increase available count
 				}
-				MM_BombOnError(true, gvar);
+				MM_BombOnError(true);
 			}
 		}
 	}
-	if (gvar->mm.mmerror)
-		gvar->mm.mmerror = false;
+	if (mmerror)
+		mmerror = false;
 }
 
 //
@@ -696,32 +696,32 @@ PM_CheckMainMem(global_game_variables_t *gvar)
 //		needs to be called.
 //
 void
-PML_StartupMainMem(global_game_variables_t *gvar)
+PML_StartupMainMem(void)
 {
-	int		i;//,n;
+	int		i,n;
 	memptr	*p;
 
-	gvar->pm.mm.MainPagesAvail = 0;
-	gvar->pm.mm.MainPresent = false;
-	MM_BombOnError(false, gvar);
-	for (i = 0,p = gvar->pm.mm.MainMemPages;i < PMMaxMainMem;i++,p++)
+	MainPagesAvail = 0;
+	MainPresent = false;
+	MM_BombOnError(false);
+	for (i = 0,p = MainMemPages;i < PMMaxMainMem;i++,p++)
 	{
-		MM_GetPtr(p,PMPageSize, gvar);
-		if (gvar->mm.mmerror)
+		MM_GetPtr(p,PMPageSize);
+		if (mmerror)
 			break;
 
-		gvar->pm.mm.MainPagesAvail++;
-		gvar->pm.mm.MainMemUsed[i] = pmba_Allocated;
+		MainPagesAvail++;
+		MainMemUsed[i] = pmba_Allocated;
 	}
-	MM_BombOnError(true, gvar);
-	if (gvar->mm.mmerror)
-		gvar->mm.mmerror = false;
-	if (gvar->pm.mm.MainPagesAvail < PMMinMainMem)
+	MM_BombOnError(true);
+	if (mmerror)
+		mmerror = false;
+	if (MainPagesAvail < PMMinMainMem)
 	{
-		Quit (gvar, "PM_SetupMainMem: Not enough main memory");
+		Quit ("PM_SetupMainMem: Not enough main memory");
 		//return;
 	}
-	gvar->pm.mm.MainPresent = true;
+	MainPresent = true;
 }
 
 //
@@ -729,15 +729,15 @@ PML_StartupMainMem(global_game_variables_t *gvar)
 //		Page Mgr.
 //
 void
-PML_ShutdownMainMem(global_game_variables_t *gvar)
+PML_ShutdownMainMem(void)
 {
 	int		i;
 	memptr	*p;
 
 	// DEBUG - mark pages as unallocated & decrease page count as appropriate
-	for (i = 0,p = gvar->pm.mm.MainMemPages;i < PMMaxMainMem;i++,p++)
+	for (i = 0,p = MainMemPages;i < PMMaxMainMem;i++,p++)
 		if (*p)
-			MM_FreePtr(p, gvar);
+			MM_FreePtr(p);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -750,26 +750,26 @@ PML_ShutdownMainMem(global_game_variables_t *gvar)
 //	PML_ReadFromFile() - Reads some data in from the page file
 //
 void
-PML_ReadFromFile(byte far *buf,long offset,word length, global_game_variables_t *gvar)
+PML_ReadFromFile(byte far *buf,long offset,word length)
 {
 	if (!buf)
 	{
-		Quit (gvar, "PML_ReadFromFile: Null pointer");
+		Quit ("PML_ReadFromFile: Null pointer");
 		//return;
 	}
 	if (!offset)
 	{
-		Quit (gvar, "PML_ReadFromFile: Zero offset");
+		Quit ("PML_ReadFromFile: Zero offset");
 		//return;
 	}
-	if (lseek(gvar->pm.fi.PageFile,offset,SEEK_SET) != offset)
+	if (lseek(PageFile,offset,SEEK_SET) != offset)
 	{
-		Quit (gvar, "PML_ReadFromFile: Seek failed");
+		Quit ("PML_ReadFromFile: Seek failed");
 		//return;
 	}
-	if (!CA_FarRead(gvar->pm.fi.PageFile,buf,length, gvar))
+	if (!CA_FarRead(PageFile,buf,length))
 	{
-		Quit (gvar, "PML_ReadFromFile: Read failed");
+		Quit ("PML_ReadFromFile: Read failed");
 		//return;
 	}
 }
@@ -779,7 +779,7 @@ PML_ReadFromFile(byte far *buf,long offset,word length, global_game_variables_t 
 //
 #if 0
 void
-PML_OpenPageFile(global_game_variables_t *gvar)
+PML_OpenPageFile(void)
 {
 	int				i;
 	long			size;
@@ -788,64 +788,64 @@ PML_OpenPageFile(global_game_variables_t *gvar)
 	word			far *lengthptr;
 	PageListStruct	far *page;
 
-	gvar->pm.fi.PageFile = open(gvar->pm.fi.PageFileName,O_RDONLY + O_BINARY);
-	if (gvar->pm.fi.PageFile == -1)
+	PageFile = open(PageFileName,O_RDONLY + O_BINARY);
+	if (PageFile == -1)
 	{
-		Quit (gvar, "PML_OpenPageFile: Unable to open page file");
+		Quit ("PML_OpenPageFile: Unable to open page file");
 		//return;
 	}
 
 	// Read in header variables
-	read(gvar->pm.fi.PageFile,&gvar->pm.fi.ChunksInFile,sizeof(gvar->pm.fi.ChunksInFile));
-	read(gvar->pm.fi.PageFile,&gvar->pm.fi.PMSpriteStart,sizeof(gvar->pm.fi.PMSpriteStart));
-	read(gvar->pm.fi.PageFile,&gvar->pm.fi.PMSoundStart,sizeof(gvar->pm.fi.PMSoundStart));
+	read(PageFile,&ChunksInFile,sizeof(ChunksInFile));
+	read(PageFile,&PMSpriteStart,sizeof(PMSpriteStart));
+	read(PageFile,&PMSoundStart,sizeof(PMSoundStart));
 
 	// Allocate and clear the page list
-	gvar->pm.PMNumBlocks = gvar->pm.fi.ChunksInFile;
-	MM_GetPtr((memptr *)&gvar->pm.PMSegPages, sizeof(PageListStruct) * (gvar->pm.PMNumBlocks), gvar);
-	MM_SetLock((memptr *)&gvar->pm.PMSegPages,true, gvar);
-	gvar->pm.PMPages = (PageListStruct far *)gvar->pm.PMSegPages;
-	_fmemset(gvar->pm.PMPages,0,sizeof(PageListStruct) * gvar->pm.PMNumBlocks);
+	PMNumBlocks = ChunksInFile;
+	MM_GetPtr((memptr *)&PMSegPages, sizeof(PageListStruct) * (PMNumBlocks));
+	MM_SetLock((memptr *)&PMSegPages,true);
+	PMPages = (PageListStruct far *)PMSegPages;
+	_fmemset(PMPages,0,sizeof(PageListStruct) * PMNumBlocks);
 
 	// Read in the chunk offsets
-	size = sizeof(dword) * gvar->pm.fi.ChunksInFile;
-	MM_GetPtr((memptr *)&buf, size, gvar);
-	if (!CA_FarRead(gvar->pm.fi.PageFile,(byte far *)buf,size, gvar))
+	size = sizeof(dword) * ChunksInFile;
+	MM_GetPtr((memptr *)&buf, size);
+	if (!CA_FarRead(PageFile,(byte far *)buf,size))
 	{
-		Quit (gvar, "PML_OpenPageFile: Offset read failed");
+		Quit ("PML_OpenPageFile: Offset read failed");
 		//return;
 	}
 	offsetptr = (dword far *)buf;
-	for (i = 0,page = gvar->pm.PMPages;i < gvar->pm.fi.ChunksInFile;i++,page++)
+	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
 		page->offset = *offsetptr++;
-	MM_FreePtr((memptr *)&buf, gvar);
+	MM_FreePtr((memptr *)&buf);
 
 	// Read in the chunk lengths
-	size = sizeof(word) * gvar->pm.fi.ChunksInFile;
-	MM_GetPtr(&buf,size, gvar);
-	if (!CA_FarRead(gvar->pm.fi.PageFile,(byte far *)buf,size, gvar))
+	size = sizeof(word) * ChunksInFile;
+	MM_GetPtr(&buf,size);
+	if (!CA_FarRead(PageFile,(byte far *)buf,size))
 	{
-		Quit (gvar, "PML_OpenPageFile: Length read failed");
+		Quit ("PML_OpenPageFile: Length read failed");
 		//return;
 	}
 	lengthptr = (word far *)buf;
-	for (i = 0,page = gvar->pm.PMPages;i < gvar->pm.fi.ChunksInFile;i++,page++)
+	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
 		page->length = *lengthptr++;
-	MM_FreePtr((memptr *)&buf, gvar);
+	MM_FreePtr((memptr *)&buf);
 }
 
 //
 //  PML_ClosePageFile() - Closes the page file
 //
 void
-PML_ClosePageFile(global_game_variables_t *gvar)
+PML_ClosePageFile(void)
 {
-	if (gvar->pm.fi.PageFile != -1)
-		close(gvar->pm.fi.PageFile);
-	if (gvar->pm.PMSegPages)
+	if (PageFile != -1)
+		close(PageFile);
+	if (PMSegPages)
 	{
-		MM_SetLock((memptr *)&gvar->pm.PMSegPages,false, gvar);
-		MM_FreePtr((void _seg *)&gvar->pm.PMSegPages, gvar);
+		MM_SetLock((memptr *)&PMSegPages,false);
+		MM_FreePtr((void _seg *)&PMSegPages);
 	}
 }
 #endif
@@ -866,7 +866,7 @@ PML_ClosePageFile(global_game_variables_t *gvar)
 #ifndef __DEBUG_2__
 #pragma argsused	// DEBUG - remove lock parameter
 memptr
-PML_GetEMSAddress(int page,PMLockType lock, global_game_variables_t *gvar)
+PML_GetEMSAddress(int page,PMLockType lock)
 {
 	int		i,emspage;
 	word	emsoff,emsbase,offset;
@@ -878,7 +878,7 @@ PML_GetEMSAddress(int page,PMLockType lock, global_game_variables_t *gvar)
 	// See if this page is already mapped in
 	for (i = 0;i < EMSFrameCount;i++)
 	{
-		if (gvar->pm.emm.EMSList[i].baseEMSPage == emsbase)
+		if (EMSList[i].baseEMSPage == emsbase)
 		{
 			emspage = i;	// Yep - don't do a redundant remapping
 			break;
@@ -891,28 +891,28 @@ PML_GetEMSAddress(int page,PMLockType lock, global_game_variables_t *gvar)
 		dword last = LONG_MAX;
 		for (i = 0;i < EMSFrameCount;i++)
 		{
-			if (gvar->pm.emm.EMSList[i].lastHit < last)
+			if (EMSList[i].lastHit < last)
 			{
 				emspage = i;
-				last = gvar->pm.emm.EMSList[i].lastHit;
+				last = EMSList[i].lastHit;
 			}
 		}
 
-		gvar->pm.emm.EMSList[emspage].baseEMSPage = emsbase;
-		PML_MapEMS(page / PMEMSSubPage,emspage, gvar);
+		EMSList[emspage].baseEMSPage = emsbase;
+		PML_MapEMS(page / PMEMSSubPage,emspage);
 	}
 
 	if (emspage == -1)
-		Quit (gvar, "PML_GetEMSAddress: EMS find failed");
+		Quit ("PML_GetEMSAddress: EMS find failed");
 
-	gvar->pm.emm.EMSList[emspage].lastHit = gvar->pm.PMFrameCount;
+	EMSList[emspage].lastHit = PMFrameCount;
 	offset = emspage * EMSPageSizeSeg;
 	offset += emsoff * PMPageSizeSeg;
-	return((memptr)(gvar->pm.emm.EMSPageFrame + offset));
+	return((memptr)(EMSPageFrame + offset));
 }
 #else
 memptr
-PML_GetEMSAddress(int page,PMLockType lock, global_game_variables_t *gvar)
+PML_GetEMSAddress(int page,PMLockType lock)
 {
 	word	emspage;
 
@@ -932,15 +932,15 @@ PML_GetEMSAddress(int page,PMLockType lock, global_game_variables_t *gvar)
 //
 //
 memptr
-PM_GetPageAddress(int pagenum, global_game_variables_t *gvar)
+PM_GetPageAddress(int pagenum)
 {
 	PageListStruct	far *page;
 
-	page = &gvar->pm.PMPages[pagenum];
+	page = &PMPages[pagenum];
 	if (page->mainPage != -1)
-		return(gvar->pm.mm.MainMemPages[page->mainPage]);
+		return(MainMemPages[page->mainPage]);
 	else if (page->emsPage != -1)
-		return(PML_GetEMSAddress(page->emsPage,page->locked, gvar));
+		return(PML_GetEMSAddress(page->emsPage,page->locked));
 	else
 		return(nil);
 }
@@ -950,13 +950,13 @@ PM_GetPageAddress(int pagenum, global_game_variables_t *gvar)
 //		present & unlocked main/EMS page (or main page if mainonly is true)
 //
 int
-PML_GiveLRUPage(boolean mainonly, global_game_variables_t *gvar)
+PML_GiveLRUPage(boolean mainonly)
 {
 	int				i,lru;
 	long			last;
 	PageListStruct	far *page;
 
-	for (i = 0,page = gvar->pm.PMPages,lru = -1,last = LONG_MAX;i < gvar->pm.fi.ChunksInFile;i++,page++)
+	for (i = 0,page = PMPages,lru = -1,last = LONG_MAX;i < ChunksInFile;i++,page++)
 	{
 		if
 		(
@@ -972,7 +972,7 @@ PML_GiveLRUPage(boolean mainonly, global_game_variables_t *gvar)
 	}
 
 	if (lru == -1)
-		Quit (gvar, "PML_GiveLRUPage: LRU Search failed");
+		Quit ("PML_GiveLRUPage: LRU Search failed");
 	return(lru);
 }
 
@@ -982,19 +982,19 @@ PML_GiveLRUPage(boolean mainonly, global_game_variables_t *gvar)
 //	This routine won't return the XMS page protected (by XMSProtectPage)
 //
 int
-PML_GiveLRUXMSPage(global_game_variables_t *gvar)
+PML_GiveLRUXMSPage(void)
 {
 	int				i,lru;
 	long			last;
 	PageListStruct	far *page;
 
-	for (i = 0,page = gvar->pm.PMPages,lru = -1,last = LONG_MAX;i < gvar->pm.fi.ChunksInFile;i++,page++)
+	for (i = 0,page = PMPages,lru = -1,last = LONG_MAX;i < ChunksInFile;i++,page++)
 	{
 		if
 		(
 			(page->xmsPage != -1)
 		&&	(page->lastHit < last)
-		&&	(i != gvar->pm.xmm.XMSProtectPage)
+		&&	(i != XMSProtectPage)
 		)
 		{
 			last = page->lastHit;
@@ -1009,29 +1009,29 @@ PML_GiveLRUXMSPage(global_game_variables_t *gvar)
 //		it with the main/EMS page
 //
 void
-PML_PutPageInXMS(int pagenum, global_game_variables_t *gvar)
+PML_PutPageInXMS(int pagenum)
 {
 	int				usexms;
 	PageListStruct	far *page;
 
-	if (!gvar->pm.xmm.XMSPresent)
+	if (!XMSPresent)
 		return;
 
-	page = &gvar->pm.PMPages[pagenum];
+	page = &PMPages[pagenum];
 	if (page->xmsPage != -1)
 		return;					// Already in XMS
 
-	if (gvar->pm.XMSPagesUsed < gvar->pm.xmm.XMSPagesAvail)
-		page->xmsPage = gvar->pm.XMSPagesUsed++;
+	if (XMSPagesUsed < XMSPagesAvail)
+		page->xmsPage = XMSPagesUsed++;
 	else
 	{
 		usexms = PML_GiveLRUXMSPage(gvar);
 		if (usexms == -1)
-			Quit (gvar, "PML_PutPageInXMS: No XMS LRU");
-		page->xmsPage = gvar->pm.PMPages[usexms].xmsPage;
-		gvar->pm.PMPages[usexms].xmsPage = -1;
+			Quit ("PML_PutPageInXMS: No XMS LRU");
+		page->xmsPage = PMPages[usexms].xmsPage;
+		PMPages[usexms].xmsPage = -1;
 	}
-	PML_CopyToXMS(PM_GetPageAddress(pagenum, gvar),page->xmsPage,page->length, gvar);
+	PML_CopyToXMS(PM_GetPageAddress(pagenum),page->xmsPage,page->length);
 }
 
 //
@@ -1039,28 +1039,28 @@ PML_PutPageInXMS(int pagenum, global_game_variables_t *gvar)
 //		the old one's address space. Returns the address of the new page.
 //
 memptr
-PML_TransferPageSpace(int orig,int new, global_game_variables_t *gvar)
+PML_TransferPageSpace(int orig,int new)
 {
 	memptr			addr;
 	PageListStruct	far *origpage,far *newpage;
 
 	if (orig == new)
-		Quit (gvar, "PML_TransferPageSpace: Identity replacement");
+		Quit ("PML_TransferPageSpace: Identity replacement");
 
-	origpage = &gvar->pm.PMPages[orig];
-	newpage = &gvar->pm.PMPages[new];
+	origpage = &PMPages[orig];
+	newpage = &PMPages[new];
 
 	if (origpage->locked != pml_Unlocked)
-		Quit (gvar, "PML_TransferPageSpace: Killing locked page");
+		Quit ("PML_TransferPageSpace: Killing locked page");
 
 	if ((origpage->emsPage == -1) && (origpage->mainPage == -1))
-		Quit (gvar, "PML_TransferPageSpace: Reusing non-existent page");
+		Quit ("PML_TransferPageSpace: Reusing non-existent page");
 
 	// Copy page that's about to be purged into XMS
-	PML_PutPageInXMS(orig, gvar);
+	PML_PutPageInXMS(orig);
 
 	// Get the address, and force EMS into a physical page if necessary
-	addr = PM_GetPageAddress(orig, gvar);
+	addr = PM_GetPageAddress(orig);
 
 	// Steal the address
 	newpage->emsPage = origpage->emsPage;
@@ -1070,7 +1070,7 @@ PML_TransferPageSpace(int orig,int new, global_game_variables_t *gvar)
 	origpage->mainPage = origpage->emsPage = -1;
 
 	if (!addr)
-		Quit (gvar, "PML_TransferPageSpace: Zero replacement");
+		Quit ("PML_TransferPageSpace: Zero replacement");
 
 	return(addr);
 }
@@ -1084,24 +1084,24 @@ PML_TransferPageSpace(int orig,int new, global_game_variables_t *gvar)
 //		will be looked at by PML_GiveLRUPage().
 //
 byte far *
-PML_GetAPageBuffer(int pagenum,boolean mainonly, global_game_variables_t *gvar)
+PML_GetAPageBuffer(int pagenum,boolean mainonly)
 {
 	byte			far *addr = nil;
 	int				i,n;
 	PMBlockAttr		*used;
 	PageListStruct	far *page;
 
-	page = &gvar->pm.PMPages[pagenum];
-	if ((gvar->pm.EMSPagesUsed < gvar->pm.emm.EMSPagesAvail) && !mainonly)
+	page = &PMPages[pagenum];
+	if ((EMSPagesUsed < EMSPagesAvail) && !mainonly)
 	{
 		// There's remaining EMS - use it
-		page->emsPage = gvar->pm.EMSPagesUsed++;
-		addr = PML_GetEMSAddress(page->emsPage,page->locked, gvar);
+		page->emsPage = EMSPagesUsed++;
+		addr = PML_GetEMSAddress(page->emsPage,page->locked);
 	}
-	else if (gvar->pm.MainPagesUsed < gvar->pm.mm.MainPagesAvail)
+	else if (MainPagesUsed < MainPagesAvail)
 	{
 		// There's remaining main memory - use it
-		for (i = 0,n = -1,used = gvar->pm.mm.MainMemUsed;i < PMMaxMainMem;i++,used++)
+		for (i = 0,n = -1,used = MainMemUsed;i < PMMaxMainMem;i++,used++)
 		{
 			if ((*used & pmba_Allocated) && !(*used & pmba_Used))
 			{
@@ -1111,18 +1111,18 @@ PML_GetAPageBuffer(int pagenum,boolean mainonly, global_game_variables_t *gvar)
 			}
 		}
 		if (n == -1)
-			Quit (gvar, "PML_GetPageBuffer: MainPagesAvail lied");
-		addr = gvar->pm.mm.MainMemPages[n];
+			Quit ("PML_GetPageBuffer: MainPagesAvail lied");
+		addr = MainMemPages[n];
 		if (!addr)
-			Quit (gvar, "PML_GetPageBuffer: Purged main block");
+			Quit ("PML_GetPageBuffer: Purged main block");
 		page->mainPage = n;
-		gvar->pm.MainPagesUsed++;
+		MainPagesUsed++;
 	}
 	else
-		addr = PML_TransferPageSpace(PML_GiveLRUPage(mainonly, gvar),pagenum, gvar);
+		addr = PML_TransferPageSpace(PML_GiveLRUPage(mainonly),pagenum);
 
 	if (!addr)
-		Quit (gvar, "PML_GetPageBuffer: Search failed");
+		Quit ("PML_GetPageBuffer: Search failed");
 	return(addr);
 }
 
@@ -1136,22 +1136,22 @@ PML_GetAPageBuffer(int pagenum,boolean mainonly, global_game_variables_t *gvar)
 //		(pages that are being purged are copied into XMS, if possible)
 //
 memptr
-PML_GetPageFromXMS(int pagenum,boolean mainonly, global_game_variables_t *gvar)
+PML_GetPageFromXMS(int pagenum,boolean mainonly)
 {
 	byte			far *checkaddr;
 	memptr			addr = nil;
 	PageListStruct	far *page;
 
-	page = &gvar->pm.PMPages[pagenum];
-	if (gvar->pm.xmm.XMSPresent && (page->xmsPage != -1))
+	page = &PMPages[pagenum];
+	if (XMSPresent && (page->xmsPage != -1))
 	{
-		gvar->pm.xmm.XMSProtectPage = pagenum;
-		checkaddr = PML_GetAPageBuffer(pagenum,mainonly, gvar);
+		XMSProtectPage = pagenum;
+		checkaddr = PML_GetAPageBuffer(pagenum,mainonly);
 		if (FP_OFF(checkaddr))
-			Quit (gvar, "PML_GetPageFromXMS: Non segment pointer");
+			Quit ("PML_GetPageFromXMS: Non segment pointer");
 		addr = (memptr)FP_SEG(checkaddr);
-		PML_CopyFromXMS(addr,page->xmsPage,page->length, gvar);
-		gvar->pm.xmm.XMSProtectPage = -1;
+		PML_CopyFromXMS(addr,page->xmsPage,page->length);
+		XMSProtectPage = -1;
 	}
 
 	return(addr);
@@ -1163,14 +1163,14 @@ PML_GetPageFromXMS(int pagenum,boolean mainonly, global_game_variables_t *gvar)
 //		only be loaded into main.
 //
 void
-PML_LoadPage(int pagenum,boolean mainonly, global_game_variables_t *gvar)
+PML_LoadPage(int pagenum,boolean mainonly)
 {
 	byte			far *addr;
 	PageListStruct	far *page;
 
-	addr = PML_GetAPageBuffer(pagenum,mainonly, gvar);
-	page = &gvar->pm.PMPages[pagenum];
-	PML_ReadFromFile(addr,page->offset,page->length, gvar);
+	addr = PML_GetAPageBuffer(pagenum,mainonly);
+	page = &PMPages[pagenum];
+	PML_ReadFromFile(addr,page->offset,page->length);
 }
 
 //
@@ -1181,12 +1181,12 @@ PML_LoadPage(int pagenum,boolean mainonly, global_game_variables_t *gvar)
 //
 #pragma warn -pia
 memptr
-PM_GetPage(int pagenum, global_game_variables_t *gvar)
+PM_GetPage(int pagenum)
 {
 	memptr	result;
 
-	if (pagenum >= gvar->pm.fi.ChunksInFile)
-		Quit (gvar, "PM_GetPage: Invalid page request");
+	if (pagenum >= ChunksInFile)
+		Quit ("PM_GetPage: Invalid page request");
 
 #ifdef __DEBUG_2__	// for debugging
 	__asm {
@@ -1200,21 +1200,21 @@ PM_GetPage(int pagenum, global_game_variables_t *gvar)
 	}
 #endif
 
-	if (!(result = PM_GetPageAddress(pagenum, gvar)))
+	if (!(result = PM_GetPageAddress(pagenum)))
 	{
-		boolean mainonly = (pagenum >= gvar->pm.fi.PMSoundStart);
-if (!gvar->pm.PMPages[pagenum].offset)	// JDC: sparse page
-	Quit (gvar, "Tried to load a sparse page!");
-		if (!(result = PML_GetPageFromXMS(pagenum,mainonly, gvar)))
+		boolean mainonly = (pagenum >= PMSoundStart);
+if (!PMPages[pagenum].offset)	// JDC: sparse page
+	Quit ("Tried to load a sparse page!");
+		if (!(result = PML_GetPageFromXMS(pagenum,mainonly)))
 		{
-			if (gvar->pm.PMPages[pagenum].lastHit ==  gvar->pm.PMFrameCount)
-				gvar->pm.PMThrashing++;
+			if (PMPages[pagenum].lastHit ==  PMFrameCount)
+				PMThrashing++;
 
-			PML_LoadPage(pagenum,mainonly, gvar);
-			result = PM_GetPageAddress(pagenum, gvar);
+			PML_LoadPage(pagenum,mainonly);
+			result = PM_GetPageAddress(pagenum);
 		}
 	}
-	gvar->pm.PMPages[pagenum].lastHit =  gvar->pm.PMFrameCount;
+	PMPages[pagenum].lastHit =  PMFrameCount;
 
 #ifdef __DEBUG_2__	// for debugging
 	__asm{
@@ -1242,12 +1242,12 @@ if (!gvar->pm.PMPages[pagenum].offset)	// JDC: sparse page
 //					specified when returning the address. For sound stuff.
 //
 void
-PM_SetPageLock(int pagenum,PMLockType lock, global_game_variables_t *gvar)
+PM_SetPageLock(int pagenum,PMLockType lock)
 {
-	if (pagenum < gvar->pm.fi.PMSoundStart)
-		Quit (gvar, "PM_SetPageLock: Locking/unlocking non-sound page");
+	if (pagenum < PMSoundStart)
+		Quit ("PM_SetPageLock: Locking/unlocking non-sound page");
 
-	gvar->pm.PMPages[pagenum].locked = lock;
+	PMPages[pagenum].locked = lock;
 }
 
 //
@@ -1256,7 +1256,7 @@ PM_SetPageLock(int pagenum,PMLockType lock, global_game_variables_t *gvar)
 //		page, and the total pages that need to be loaded (for thermometer).
 //
 void
-PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *gvar)
+PM_Preload(boolean (*update)(word current,word total))
 {
 	int				i,//j,
 					page,oogypage;
@@ -1268,17 +1268,17 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 	memptr			addr;
 	PageListStruct	__far *p;
 
-	mainfree = (gvar->pm.mm.MainPagesAvail - gvar->pm.MainPagesUsed) + (gvar->pm.emm.EMSPagesAvail - gvar->pm.EMSPagesUsed);
-	xmsfree = (gvar->pm.xmm.XMSPagesAvail - gvar->pm.XMSPagesUsed);
+	mainfree = (MainPagesAvail - MainPagesUsed) + (EMSPagesAvail - EMSPagesUsed);
+	xmsfree = (XMSPagesAvail - XMSPagesUsed);
 
 	xmstotal = maintotal = 0;
 
-	for (i = 0;i < gvar->pm.fi.ChunksInFile;i++)
+	for (i = 0;i < ChunksInFile;i++)
 	{
-		if (!gvar->pm.PMPages[i].offset)
+		if (!PMPages[i].offset)
 			continue;			// sparse
 
-		if ( gvar->pm.PMPages[i].emsPage != -1 || gvar->pm.PMPages[i].mainPage != -1 )
+		if ( PMPages[i].emsPage != -1 || PMPages[i].mainPage != -1 )
 			continue;			// already in main mem
 
 		if ( mainfree )
@@ -1286,7 +1286,7 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 			maintotal++;
 			mainfree--;
 		}
-		else if ( xmsfree && (gvar->pm.PMPages[i].xmsPage == -1) )
+		else if ( xmsfree && (PMPages[i].xmsPage == -1) )
 		{
 			xmstotal++;
 			xmsfree--;
@@ -1307,14 +1307,14 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 //
 	while (maintotal)
 	{
-		while ( !gvar->pm.PMPages[page].offset || gvar->pm.PMPages[page].mainPage != -1
-			||	gvar->pm.PMPages[page].emsPage != -1 )
+		while ( !PMPages[page].offset || PMPages[page].mainPage != -1
+			||	PMPages[page].emsPage != -1 )
 			page++;
 
-		if (page >= gvar->pm.fi.ChunksInFile)
-			Quit (gvar, "PM_Preload: Pages>=gvar->pm.fi.ChunksInFile");
+		if (page >= ChunksInFile)
+			Quit ("PM_Preload: Pages>=ChunksInFile");
 
-		PM_GetPage(page, gvar);
+		PM_GetPage(page);
 
 		page++;
 		current++;
@@ -1327,30 +1327,30 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 //
 	if (xmstotal)
 	{
-		for (oogypage = 0 ; gvar->pm.PMPages[oogypage].mainPage == -1 ; oogypage++)
+		for (oogypage = 0 ; PMPages[oogypage].mainPage == -1 ; oogypage++)
 		;
-		addr = PM_GetPage(oogypage, gvar);
+		addr = PM_GetPage(oogypage);
 		if (!addr)
-			Quit (gvar, "PM_Preload: XMS buffer failed");
+			Quit ("PM_Preload: XMS buffer failed");
 
 		while (xmstotal)
 		{
-			while ( !gvar->pm.PMPages[page].offset || gvar->pm.PMPages[page].xmsPage != -1 )
+			while ( !PMPages[page].offset || PMPages[page].xmsPage != -1 )
 				page++;
 
-			if (page >= gvar->pm.fi.ChunksInFile)
-				Quit (gvar, "PM_Preload: Pages>=gvar->pm.fi.ChunksInFile");
+			if (page >= ChunksInFile)
+				Quit ("PM_Preload: Pages>=ChunksInFile");
 
-			p = &gvar->pm.PMPages[page];
+			p = &PMPages[page];
 
-			p->xmsPage = gvar->pm.XMSPagesUsed++;
-			if (gvar->pm.XMSPagesUsed > gvar->pm.xmm.XMSPagesAvail)
-				Quit (gvar, "PM_Preload: Exceeded XMS pages");
+			p->xmsPage = XMSPagesUsed++;
+			if (XMSPagesUsed > XMSPagesAvail)
+				Quit ("PM_Preload: Exceeded XMS pages");
 			if (p->length > PMPageSize)
-				Quit (gvar, "PM_Preload: Page too long");
+				Quit ("PM_Preload: Page too long");
 
-			PML_ReadFromFile((byte far *)addr,p->offset,p->length, gvar);
-			PML_CopyToXMS((byte far *)addr,p->xmsPage,p->length, gvar);
+			PML_ReadFromFile((byte far *)addr,p->offset,p->length);
+			PML_CopyToXMS((byte far *)addr,p->xmsPage,p->length);
 
 			page++;
 			current++;
@@ -1358,8 +1358,8 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 			update(current,total);
 		}
 
-		p = &gvar->pm.PMPages[oogypage];
-		PML_ReadFromFile((byte far *)addr,p->offset,p->length, gvar);
+		p = &PMPages[oogypage];
+		PML_ReadFromFile((byte far *)addr,p->offset,p->length);
 	}
 
 	update(total,total);
@@ -1381,66 +1381,66 @@ PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *
 //
 //
 void
-PM_NextFrame(global_game_variables_t *gvar)
+PM_NextFrame(void)
 {
 	int	i;
 
 	// Frame count overrun - kill the LRU hit entries & reset frame count
-	if (++gvar->pm.PMFrameCount >= LONG_MAX - 4)
+	if (++PMFrameCount >= LONG_MAX - 4)
 	{
-		for (i = 0;i < gvar->pm.PMNumBlocks;i++)
-			gvar->pm.PMPages[i].lastHit = 0;
-		gvar->pm.PMFrameCount = 0;
+		for (i = 0;i < PMNumBlocks;i++)
+			PMPages[i].lastHit = 0;
+		PMFrameCount = 0;
 	}
 
 //#if 0
-	for (i = 0;i < gvar->pm.fi.PMSoundStart;i++)
+	for (i = 0;i < PMSoundStart;i++)
 	{
-		if (gvar->pm.PMPages[i].locked)
+		if (PMPages[i].locked)
 		{
 			char buf[40];
 			sprintf(buf,"PM_NextFrame: Page %d is locked",i);
-			Quit (gvar, buf);
+			Quit (buf);
 		}
 	}
 //#endif
 
-	if (gvar->pm.PMPanicMode)
+	if (PMPanicMode)
 	{
 		// DEBUG - set border color
-		if ((!gvar->pm.PMThrashing) && (!--gvar->pm.PMPanicMode))
+		if ((!PMThrashing) && (!--PMPanicMode))
 		{
 			// DEBUG - reset border color
 		}
 	}
-	if (gvar->pm.PMThrashing >= PMThrashThreshold)
-		gvar->pm.PMPanicMode = PMUnThrashThreshold;
-	gvar->pm.PMThrashing = false;
+	if (PMThrashing >= PMThrashThreshold)
+		PMPanicMode = PMUnThrashThreshold;
+	PMThrashing = false;
 }
 
 //
 //	PM_Reset() - Sets up caching structures
 //
 void
-PM_Reset(global_game_variables_t *gvar)
+PM_Reset(void)
 {
 	int				i;
 	PageListStruct	far *page;
 
-	gvar->pm.xmm.XMSPagesAvail = gvar->pm.xmm.XMSAvail / PMPageSizeKB;
+	XMSPagesAvail = XMSAvail / PMPageSizeKB;
 
-	gvar->pm.emm.EMSPagesAvail = gvar->pm.emm.EMSAvail * (EMSPageSizeKB / PMPageSizeKB);
-	gvar->pm.emm.EMSPhysicalPage = 0;
+	EMSPagesAvail = EMSAvail * (EMSPageSizeKB / PMPageSizeKB);
+	EMSPhysicalPage = 0;
 
-	gvar->pm.MainPagesUsed = gvar->pm.EMSPagesUsed = gvar->pm.XMSPagesUsed = 0;
+	MainPagesUsed = EMSPagesUsed = XMSPagesUsed = 0;
 
-	gvar->pm.PMPanicMode = false;
+	PMPanicMode = false;
 
-	gvar->pm.fi.PageFile = -1;
-	gvar->pm.xmm.XMSProtectPage = -1;
+	PageFile = -1;
+	XMSProtectPage = -1;
 
 	// Initialize page list
-	for (i = 0,page = gvar->pm.PMPages;i < gvar->pm.PMNumBlocks;i++,page++)
+	for (i = 0,page = PMPages;i < PMNumBlocks;i++,page++)
 	{
 		page->mainPage = -1;
 		page->emsPage = -1;
@@ -1453,15 +1453,15 @@ PM_Reset(global_game_variables_t *gvar)
 //	PM_Startup() - Start up the Page Mgr
 //
 void
-PM_Startup(global_game_variables_t *gvar)
+PM_Startup(void)
 {
 	boolean	nomain,noems,noxms;
 	int		i;
 
-	if (gvar->pm.PMStarted)
+	if (PMStarted)
 		return;
 
-	//0000+=+=strcpy(&(gvar->pm.fi.PageFileName), "VSWAP.");
+	//0000+=+=strcpy(&(PageFileName), "VSWAP.");
 
 	nomain = noems = noxms = false;
 	for (i = 1;i < _argc;i++)
@@ -1489,27 +1489,27 @@ PM_Startup(global_game_variables_t *gvar)
 	if(!nomain)
 		PML_StartupMainMem(gvar);
 
-	if (!gvar->pm.mm.MainPresent && !gvar->pm.emm.EMSPresent && !gvar->pm.xmm.XMSPresent)
+	if (!MainPresent && !EMSPresent && !XMSPresent)
 	{
-		Quit (gvar, "PM_Startup: No main or EMS\n");
+		Quit ("PM_Startup: No main or EMS\n");
 		//return;
 	}
 
 	PM_Reset(gvar);
 
-	gvar->pm.PMStarted = true;
+	PMStarted = true;
 }
 
 //
 //	PM_Shutdown() - Shut down the Page Mgr
 //
 void
-PM_Shutdown(global_game_variables_t *gvar)
+PM_Shutdown(void)
 {
 	if(MML_CheckForXMS()) PML_ShutdownXMS(gvar);
 	if(MML_CheckForEMS()) PML_ShutdownEMS(gvar);
 
-	if (!gvar->pm.PMStarted)
+	if (!PMStarted)
 		return;
 
 	//0000+=+=PML_ClosePageFile(gvar);

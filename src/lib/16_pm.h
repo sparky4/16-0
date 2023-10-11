@@ -35,7 +35,7 @@
 #include <dos.h>
 
 //#define __PM__NOHOGEMS__
-/*//	NOTE! PMPageSize must be an even divisor of EMSPageSize, and >= 1024
+//	NOTE! PMPageSize must be an even divisor of EMSPageSize, and >= 1024
 #define	EMSPageSize		16384
 #define	EMSPageSizeSeg	(EMSPageSize >> 4)
 #define	EMSPageSizeKB	(EMSPageSize >> 10)
@@ -84,12 +84,12 @@ typedef	struct
 			dword	lastHit;		// Last frame number of hit
 		} EMSListStruct;
 
-extern	boolean			XMSPresent,EMSPresent;
-extern	word			XMSPagesAvail,EMSPagesAvail;
+extern	boolean			XMSPresent,EMSPresent,MainPresent;;
+extern	word			XMSPagesAvail,EMSPagesAvail,EMSVer,EMSPageFrame,XMSVer,XMSDriver,XMSHandle;
 
 extern	word			ChunksInFile,
 						PMSpriteStart,PMSoundStart;
-extern	PageListStruct	far *PMPages;*///moved to src/lib/typdefst.h
+extern	PageListStruct	far *PMPages;
 
 #define	PM_GetSoundPage(v)	PM_GetPage(gvar->pm.fi.PMSoundStart + (v), gvar)
 #define	PM_GetSpritePage(v)	PM_GetPage(gvar->pm.fi.PMSpriteStart + (v), gvar)
@@ -101,17 +101,17 @@ extern	PageListStruct	far *PMPages;*///moved to src/lib/typdefst.h
 extern	char	PageFileName[13];
 
 
-extern	void	PM_Startup(global_game_variables_t *gvar),
-				PM_Shutdown(global_game_variables_t *gvar),
-				PM_Reset(global_game_variables_t *gvar),
-				PM_Preload(boolean (*update)(word current,word total), global_game_variables_t *gvar),
-				PM_NextFrame(global_game_variables_t *gvar),
-				PM_SetPageLock(int pagenum,PMLockType lock, global_game_variables_t *gvar),
+extern	void	PM_Startup(void),
+				PM_Shutdown(void),
+				PM_Reset(void),
+				PM_Preload(boolean (*update)(word current,word total)),
+				PM_NextFrame(void),
+				PM_SetPageLock(int pagenum,PMLockType lock),
 				PM_SetMainPurge(int level),
-				PM_CheckMainMem(global_game_variables_t *gvar);
-extern	memptr	PM_GetPageAddress(int pagenum, global_game_variables_t *gvar),
-				PM_GetPage(int pagenum, global_game_variables_t *gvar);		// Use this one to cache page
+				PM_CheckMainMem(void);
+extern	memptr	PM_GetPageAddress(int pagenum),
+				PM_GetPage(int pagenum);		// Use this one to cache page
 
-void PM_SetMainMemPurge(int level, global_game_variables_t *gvar);
-void PML_StartupMainMem(global_game_variables_t *gvar);
+void PM_SetMainMemPurge(int level);
+void PML_StartupMainMem(void);
 #endif
