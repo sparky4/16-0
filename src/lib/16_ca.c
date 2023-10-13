@@ -1989,8 +1989,8 @@ void CA_CacheMap (int mapnum)
 			source = bufferseg;
 		else
 		{
-			MM_GetPtr((memptr)&bigbufferseg,compressed);
-			MM_SetLock ((memptr)&bigbufferseg,true);
+			MM_GetPtr(&bigbufferseg,compressed);
+			MM_SetLock (&bigbufferseg,true);
 			source = bigbufferseg;
 		}
 
@@ -2019,7 +2019,7 @@ void CA_CacheMap (int mapnum)
 #endif
 
 		if (compressed>BUFFERSIZE)
-			MM_FreePtr((memptr)&bigbufferseg);
+			MM_FreePtr(&bigbufferseg);
 	}
 }
 
@@ -2321,7 +2321,7 @@ void CA_CacheMarks (char *title)
 		if (grneeded[i]&ca_levelbit)
 		{
 			if (grsegs[i])					// its allready in memory, make
-				MM_SetPurge(grsegs[i],0);	// sure it stays there!
+				MM_SetPurge(&grsegs[i],0);	// sure it stays there!
 			else
 				numcache++;
 		}
