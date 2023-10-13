@@ -1053,7 +1053,7 @@ void CAL_SetupGrFile (void)
 //
 
 	strcpy(fname,GDICTNAME);
-	strcat(fname,"hp1");
+	strcat(fname,EXTENSION);
 
 	if ((handle = open(fname,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
@@ -1068,7 +1068,7 @@ void CAL_SetupGrFile (void)
 	MM_GetPtr ((memptr)&grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
 
 	strcpy(fname,GHEADNAME);
-	strcat(fname,"hp1");
+	strcat(fname,EXTENSION);
 
 	if ((handle = open(fname,
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
@@ -1085,7 +1085,7 @@ void CAL_SetupGrFile (void)
 // Open the graphics file, leaving it open until the game is finished
 //
 	strcpy(fname,GFILENAME);
-	strcat(fname,"hp1");
+	strcat(fname,EXTENSION);
 
 	grhandle = open(fname, O_RDONLY | O_BINARY);
 	if (grhandle == -1)
@@ -1154,7 +1154,7 @@ void CAL_SetupMapFile (void)
 		Quit ("Can't open maphead.mph");
 	length = filelength(handle);
 	MM_GetPtr ((memptr)&tinf,length);
-	CA_FarRead(handle->ca.tinf, length);
+	CA_FarRead(handle, tinf, length);
 	close(handle);
 #else
 
@@ -1477,7 +1477,6 @@ void CAL_ShiftSprite (unsigned segment,unsigned source,unsigned dest,
 		mov	bp,[pixshift]
 		shl	bp,1
 		mov	bp,WORD PTR [shifttabletable+bp]	// bp holds pointer to shift table
-//		mov	bp,WORD PTR [shifttabletable+bp]	// bp holds pointer to shift table
 
 		cmp	[ss:dothemask],0
 		je		skipmask
@@ -1990,8 +1989,8 @@ void CA_CacheMap (int mapnum)
 			source = bufferseg;
 		else
 		{
-			MM_GetPtr(&bigbufferseg,compressed);
-			MM_SetLock (&bigbufferseg,true);
+			MM_GetPtr((memptr)&bigbufferseg,compressed);
+			MM_SetLock ((memptr)&bigbufferseg,true);
 			source = bigbufferseg;
 		}
 
@@ -2020,7 +2019,7 @@ void CA_CacheMap (int mapnum)
 #endif
 
 		if (compressed>BUFFERSIZE)
-			MM_FreePtr(&bigbufferseg);
+			MM_FreePtr((memptr)&bigbufferseg);
 	}
 }
 
@@ -2322,7 +2321,7 @@ void CA_CacheMarks (char *title)
 		if (grneeded[i]&ca_levelbit)
 		{
 			if (grsegs[i])					// its allready in memory, make
-				MM_SetPurge(&grsegs[i],0);	// sure it stays there!
+				MM_SetPurge(grsegs[i],0);	// sure it stays there!
 			else
 				numcache++;
 		}
