@@ -60,7 +60,7 @@ void clrstdin()
 //   finished with it.
 // If you pass in NULL or the new string can't be allocated,
 //   it returns NULL.
-
+#if 0
 char *remove_ext (char* mystr, char dot, char sep) {
 	char *retstr, *lastdot, *lastsep;
 
@@ -98,7 +98,8 @@ char *remove_ext (char* mystr, char dot, char sep) {
 	free(mystr);
 	return retstr;
 }
-
+#endif
+//uses malloc
 
 //from http://quiz.geeksforgeeks.org/c-program-cyclically-rotate-array-one/
 void rotateR(byte *arr, byte n)

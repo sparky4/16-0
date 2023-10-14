@@ -55,12 +55,12 @@ unsigned long HC_farcoreleft(void);
 unsigned long HC_GetFarFreeSize(void);
 size_t HC_GetNearFreeSize(void);
 
-void HC_heapdump(global_game_variables_t *gvar);
-void HCL_heapstatLogWrite(global_game_variables_t *gvar, int heap_status, byte *str);
+void HC_heapdump(void);
+void HCL_heapstatLogWrite( int heap_status, byte *str);
 void HCL_heapstat(int heap_status);
 
-void HC_OpenDebug(global_game_variables_t *gvar);
-void HC_CloseDebug(global_game_variables_t *gvar);
+void HC_OpenDebug(void);
+void HC_CloseDebug(void);
 
 #ifdef __WATCOMC__
 unsigned long farcoreleft();

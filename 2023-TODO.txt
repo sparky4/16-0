@@ -1,8 +1,10 @@
-TEST MEMORY SYSTEM
-EXMMTEST.EXE will be reused
+fix up headers files (CLEAN UP)
 fix up the header files 16_head 16_tail 16_t 16_tdef (remove tdef eventally)
+TEST MEMORY SYSTEM      EXMMTEST.EXE will be reused
+
 fix up 16_in
 fix up 16_us
+
 
 last fix up 16_v* (fix it up mate)
 implement VRL stuff from doslib

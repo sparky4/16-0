@@ -352,13 +352,13 @@ typedef	struct
 
 //===========================================//
 
-typedef struct
+/*typedef struct
 {
 	int profilehandle,debughandle,showmemhandle;
 	int heaphandle;
 	byte datadumpfilename[12];
 	byte heapdumpfilename[12];
-} loghandle_t;
+} loghandle_t;*/
 
 typedef struct
 {
