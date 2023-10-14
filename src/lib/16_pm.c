@@ -136,8 +136,8 @@ PML_MapEMS(word logical, byte physical)
 //		If there's more than our minimum (2 pages) available, allocate it (up
 //			to the maximum we need)
 //
-//	Please call MML_CheckForEMS() before calling this function.
-//	MML_CheckForEMS is not local despite the name wwww.
+//	Please call MM_CheckForEMS() before calling this function.
+//	MM_CheckForEMS is not local despite the name wwww.
 //
 
 boolean
@@ -155,7 +155,7 @@ PML_StartupEMS(void)
 	EMSAvail = EMSmem = 0;
 
 	__asm {
-		//MML_CheckForEMS() takes care of what the code did here
+		//MM_CheckForEMS() takes care of what the code did here
 		mov	ah,EMS_STATUS
 		int	EMS_INT
 		jc	error1			// make sure EMS hardware is present

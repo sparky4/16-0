@@ -128,6 +128,9 @@ void		(* XMSaddr) (void);		// far pointer to XMS driver
 
 unsigned	numUMBs,UMBbase[MAXUMBS];
 
+//#define MM_CheckForEMS() MML_CheckForEMS()
+//#define MM_CheckForXMS() MML_CheckForXMS()
+
 //==========================================================================
 
 //
