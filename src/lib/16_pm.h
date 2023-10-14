@@ -91,11 +91,11 @@ extern	word			ChunksInFile,
 						PMSpriteStart,PMSoundStart;
 extern	PageListStruct	far *PMPages;
 
-#define	PM_GetSoundPage(v)	PM_GetPage(gvar->pm.fi.PMSoundStart + (v), gvar)
-#define	PM_GetSpritePage(v)	PM_GetPage(gvar->pm.fi.PMSpriteStart + (v), gvar)
+#define	PM_GetSoundPage(v)	PM_GetPage(PMSoundStart + (v))
+#define	PM_GetSpritePage(v)	PM_GetPage(PMSpriteStart + (v))
 
-#define	PM_LockMainMem(gvar)	PM_SetMainMemPurge(0, gvar)
-#define	PM_UnlockMainMem(gvar)	PM_SetMainMemPurge(3, gvar)
+#define	PM_LockMainMem()	PM_SetMainMemPurge(0)
+#define	PM_UnlockMainMem()	PM_SetMainMemPurge(3)
 
 
 extern	char	PageFileName[13];

@@ -156,7 +156,7 @@
 //static word far* clockw= (word far*) 0x046C; /* 18.2hz clock */
 extern	int			profilehandle,debughandle;	//make it into game global
 
-//#define OLD16_VL
+#define NUMSNDCHUNKS		84
 
 #define	nil	((void *)0)
 

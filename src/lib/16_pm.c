@@ -29,24 +29,29 @@
 #include "src/lib/16_pm.h"
 #pragma hdrstop
 
+
 //	Main Mem specific variables
 	boolean			MainPresent;
 	memptr			MainMemPages[PMMaxMainMem];
 	PMBlockAttr		MainMemUsed[PMMaxMainMem];
 	int				MainPagesAvail;
+	dword			nearheap,farheap,mainmem;
 
 //	EMS specific variables
 	boolean			EMSPresent;
 	word			EMSAvail,EMSPagesAvail,EMSHandle,
-					EMSPageFrame,EMSPhysicalPage,EMSVer;
+					EMSPageFrame,EMSPhysicalPage,EMSVer,
+					totalEMSpages,freeEMSpages;
 	EMSListStruct	EMSList[EMSFrameCount];
+	dword			EMSmem;
 
 //	XMS specific variables
 	boolean			XMSPresent;
 	word			XMSAvail,XMSPagesAvail,XMSHandle;
-	dword			XMSDriver;
+	word			XMSDriver;
 	word				XMSVer;
 	int				XMSProtectPage = -1;
+	dword			XMSmem;
 
 //	File specific variables
 	char			PageFileName[13] = {"VSWAP."};
@@ -117,7 +122,7 @@ PML_MapEMS(word logical, byte physical)
 		strcpy(str,"MM_MapEMS: EMS error ");
 		MM_EMSerr(str, err);
 		printf("%s\n",str);
-		Quit ("PML_MapEMS: Page mapping failed\n");
+		Quit ("PML_MapEMS: Page mapping failed");
 		return err;
 	}
 	return 0;
@@ -145,8 +150,6 @@ PML_StartupEMS(void)
 	byte	err=0, str[64];
 
 	boolean errorflag=false;
-	unsigned	EMSVer;
-	unsigned	totalEMSpages,freeEMSpages,EMSPageFrame,EMSHandle,EMSAvail;
 	totalEMSpages = freeEMSpages = EMSPageFrame = EMSHandle = EMSAvail = EMSVer = 0;	// set all to 0~
 	EMSPresent = false;			// Assume that we'll fail
 	EMSAvail = EMSmem = 0;
@@ -245,19 +248,19 @@ End2:
 		printf("%s\n",str);
 		return(EMSPresent);
 	}
-	bEMSmem = EMSAvail * (dword)EMSPageSize;
+	EMSmem = EMSAvail * (dword)EMSPageSize;
 
 	// Initialize EMS mapping cache
 	for (i = 0;i < EMSFrameCount;i++)
 		EMSList[i].baseEMSPage = -1;
 
 	EMSPresent = true;			// We have EMS
-	EMSPageFrame = EMSPageFrame;
+	/*EMSPageFrame = EMSPageFrame;
 	EMSAvail = EMSAvail;
 	EMSVer = EMSVer;
 	EMSHandle = EMSHandle;
 	freeEMSpages = freeEMSpages;
-	totalEMSpages = totalEMSpages;
+	totalEMSpages = totalEMSpages;*/
 
 	return(EMSPresent);
 }
@@ -268,11 +271,8 @@ End2:
 void
 PML_ShutdownEMS(void)
 {
-	word EMSHandle;
 	byte err=0, str[64];
-
 	boolean errorflag=false;
-	EMSHandle=EMSHandle;
 
 	if (EMSPresent)
 	{
@@ -304,8 +304,7 @@ PML_ShutdownEMS(void)
 			strcpy(str,"PML_ShutdownEMS: Error freeing EMS ");
 			MM_EMSerr(str, err);
 			printf("%s\n",str);
-			Quit ("PML_ShutdownEMS: Error freeing EMS\n");
-			//return;
+			Quit ("PML_ShutdownEMS: Error freeing EMS");
 		}
 	}
 }
@@ -332,7 +331,7 @@ PML_StartupXMS(void)
 	boolean errorflag=false;
 	word e=0;
 	XMSPresent = false;					// Assume failure
-	XMSAvail = bXMSmem = 0;
+	XMSAvail = XMSmem = 0;
 
 	__asm {
 		mov	ax,0x4300
@@ -443,13 +442,13 @@ End2:
 error:
 	if(errorflag==false)
 	{
-		bXMSmem = (dword)(XMSAvail) * 1024;
-		XMSAvail = XMSAvail;
+		XMSmem = (dword)(XMSAvail) * 1024;
+		/*XMSAvail = XMSAvail;
 		XMSHandle = XMSHandle;
-		//XMSVer = XMSVer;
+		//XMSVer = XMSVer;*/
 		XMSPresent = true;
 #ifdef __DEBUG_PM__
-		printf("	XMSmem=%lu	XMSAvail=%u\n", bXMSmem, XMSAvail);
+		printf("	XMSmem=%lu	XMSAvail=%u\n", XMSmem, XMSAvail);
 #endif
 	}
 	else
@@ -483,9 +482,7 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length)
 	} copy;
 
 	if (!addr)
-	{
-		Quit ("PML_XMSCopy: zero address\n");
-	}
+		Quit("PML_XMSCopy: zero address");
 
 	xoffset = (dword)xmspage * PMPageSize;
 
@@ -504,22 +501,19 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length)
 		pop	si
 	}
 	if (!_AX)
-	{
 		Quit ("PML_XMSCopy: Error on copy");
-		//return;
-	}
 }
 
 #if 1
-#define	PML_CopyToXMS(s,t,l,gvar)	PML_XMSCopy(true,(s),(t),(l),(gvar))
-#define	PML_CopyFromXMS(t,s,l,gvar)	PML_XMSCopy(false,(t),(s),(l),(gvar))
+#define	PML_CopyToXMS(s,t,l)	PML_XMSCopy(true,(s),(t),(l))
+#define	PML_CopyFromXMS(t,s,l)	PML_XMSCopy(false,(t),(s),(l))
 #else
 //
 //	PML_CopyToXMS() - Copies the specified number of bytes from the real mode
 //		segment address to the specified XMS page
 //
 void
-PML_CopyToXMS(byte far *source,int targetpage,word length,global_game_variables_t *gvar)
+PML_CopyToXMS(byte far *source,int targetpage,word length)
 {
 	PML_XMSCopy(true,source,targetpage,length);
 }
@@ -542,7 +536,6 @@ void
 PML_ShutdownXMS(void)
 {
 	boolean errorflag=false;
-	word XMSHandle = XMSHandle;
 	if (XMSPresent)
 	{
 		__asm {
@@ -571,10 +564,7 @@ PML_ShutdownXMS(void)
 		}
 #endif
 		if(errorflag==true)
-		{
 			Quit ("PML_ShutdownXMS: Error freeing XMS");
-			//return;
-		}
 	}
 }
 
@@ -600,17 +590,15 @@ PM_SetMainMemPurge(int level)
 #ifdef __DEBUG_PM__
 #ifdef __DEBUG_PM_MAIN__
 		printf("PM_SetMainMemPurge()	info of MainMemPages[i]\n");
-		printf("&	%Fp,	%Fp\n", &MainMemPages[i],	&(MainMemPages[i]));
+		printf("&	%Fp,	%Fp\n", &MainMemPages[i],	&MainMemPages[i]);
 #endif
 #endif
 		if (MainMemPages[i])
-			MM_SetPurge(&(MainMemPages[i]),level);
+			MM_SetPurge(&MainMemPages[i],level);
 	}
 
 	else
-	{
-		Quit ("MainPresent IS NULL\n");
-	}
+		Quit ("MainPresent IS NULL");
 }
 
 //
@@ -652,7 +640,7 @@ PM_CheckMainMem(void)
 	}
 
 	// Prevent allocation attempts from purging any of our other blocks
-	PM_LockMainMem(gvar);
+	PM_LockMainMem();
 	allocfailed = false;
 	for (i = 0,p = MainMemPages,used = MainMemUsed; i < PMMaxMainMem;i++,p++,used++)
 	{
@@ -717,10 +705,7 @@ PML_StartupMainMem(void)
 	if (mmerror)
 		mmerror = false;
 	if (MainPagesAvail < PMMinMainMem)
-	{
 		Quit ("PM_SetupMainMem: Not enough main memory");
-		//return;
-	}
 	MainPresent = true;
 }
 
@@ -753,25 +738,13 @@ void
 PML_ReadFromFile(byte far *buf,long offset,word length)
 {
 	if (!buf)
-	{
 		Quit ("PML_ReadFromFile: Null pointer");
-		//return;
-	}
 	if (!offset)
-	{
 		Quit ("PML_ReadFromFile: Zero offset");
-		//return;
-	}
 	if (lseek(PageFile,offset,SEEK_SET) != offset)
-	{
 		Quit ("PML_ReadFromFile: Seek failed");
-		//return;
-	}
 	if (!CA_FarRead(PageFile,buf,length))
-	{
 		Quit ("PML_ReadFromFile: Read failed");
-		//return;
-	}
 }
 
 //
@@ -790,10 +763,7 @@ PML_OpenPageFile(void)
 
 	PageFile = open(PageFileName,O_RDONLY + O_BINARY);
 	if (PageFile == -1)
-	{
 		Quit ("PML_OpenPageFile: Unable to open page file");
-		//return;
-	}
 
 	// Read in header variables
 	read(PageFile,&ChunksInFile,sizeof(ChunksInFile));
@@ -802,36 +772,30 @@ PML_OpenPageFile(void)
 
 	// Allocate and clear the page list
 	PMNumBlocks = ChunksInFile;
-	MM_GetPtr((memptr *)&PMSegPages, sizeof(PageListStruct) * (PMNumBlocks));
-	MM_SetLock((memptr *)&PMSegPages,true);
+	MM_GetPtr((memptr)&PMSegPages,sizeof(PageListStruct) * PMNumBlocks);
+	MM_SetLock((memptr)&PMSegPages,true);
 	PMPages = (PageListStruct far *)PMSegPages;
 	_fmemset(PMPages,0,sizeof(PageListStruct) * PMNumBlocks);
 
 	// Read in the chunk offsets
 	size = sizeof(dword) * ChunksInFile;
-	MM_GetPtr((memptr *)&buf, size);
+	MM_GetPtr(&buf, size);
 	if (!CA_FarRead(PageFile,(byte far *)buf,size))
-	{
 		Quit ("PML_OpenPageFile: Offset read failed");
-		//return;
-	}
 	offsetptr = (dword far *)buf;
 	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
 		page->offset = *offsetptr++;
-	MM_FreePtr((memptr *)&buf);
+	MM_FreePtr(&buf);
 
 	// Read in the chunk lengths
 	size = sizeof(word) * ChunksInFile;
 	MM_GetPtr(&buf,size);
 	if (!CA_FarRead(PageFile,(byte far *)buf,size))
-	{
 		Quit ("PML_OpenPageFile: Length read failed");
-		//return;
-	}
 	lengthptr = (word far *)buf;
 	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
 		page->length = *lengthptr++;
-	MM_FreePtr((memptr *)&buf);
+	MM_FreePtr(&buf);
 }
 
 //
@@ -844,7 +808,7 @@ PML_ClosePageFile(void)
 		close(PageFile);
 	if (PMSegPages)
 	{
-		MM_SetLock((memptr *)&PMSegPages,false);
+		MM_SetLock((memptr)&PMSegPages,false);
 		MM_FreePtr((void _seg *)&PMSegPages);
 	}
 }
@@ -1025,7 +989,7 @@ PML_PutPageInXMS(int pagenum)
 		page->xmsPage = XMSPagesUsed++;
 	else
 	{
-		usexms = PML_GiveLRUXMSPage(gvar);
+		usexms = PML_GiveLRUXMSPage();
 		if (usexms == -1)
 			Quit ("PML_PutPageInXMS: No XMS LRU");
 		page->xmsPage = PMPages[usexms].xmsPage;
@@ -1258,12 +1222,12 @@ PM_SetPageLock(int pagenum,PMLockType lock)
 void
 PM_Preload(boolean (*update)(word current,word total))
 {
-	int				i,//j,
+	int				i,j,
 					page,oogypage;
 	word			current,total,
-					//totalnonxms,totalxms,
+					totalnonxms,totalxms,
 					mainfree,maintotal,
-					//emstotal,emsfree,
+					emsfree,emstotal,
 					xmsfree,xmstotal;
 	memptr			addr;
 	PageListStruct	__far *p;
@@ -1461,7 +1425,7 @@ PM_Startup(void)
 	if (PMStarted)
 		return;
 
-	//0000+=+=strcpy(&(PageFileName), "VSWAP.");
+	//0000+=+=strcpy(&PageFileName, "VSWAP.");
 
 	nomain = noems = noxms = false;
 	for (i = 1;i < _argc;i++)
@@ -1480,22 +1444,19 @@ PM_Startup(void)
 		}
 	}
 
-	//0000+=+=PML_OpenPageFile(gvar);
+	//0000+=+=PML_OpenPageFile();
 
 	if (!noems && MML_CheckForEMS())
-		PML_StartupEMS(gvar);
+		PML_StartupEMS();
 	if (!noxms && MML_CheckForXMS())
-		PML_StartupXMS(gvar);
+		PML_StartupXMS();
 	if(!nomain)
-		PML_StartupMainMem(gvar);
+		PML_StartupMainMem();
 
 	if (!MainPresent && !EMSPresent && !XMSPresent)
-	{
-		Quit ("PM_Startup: No main or EMS\n");
-		//return;
-	}
+		Quit ("PM_Startup: No main or EMS");
 
-	PM_Reset(gvar);
+	PM_Reset();
 
 	PMStarted = true;
 }
@@ -1506,13 +1467,13 @@ PM_Startup(void)
 void
 PM_Shutdown(void)
 {
-	if(MML_CheckForXMS()) PML_ShutdownXMS(gvar);
-	if(MML_CheckForEMS()) PML_ShutdownEMS(gvar);
+	if(MML_CheckForXMS()) PML_ShutdownXMS();
+	if(MML_CheckForEMS()) PML_ShutdownEMS();
 
 	if (!PMStarted)
 		return;
 
-	//0000+=+=PML_ClosePageFile(gvar);
+	//0000+=+=PML_ClosePageFile();
 
-	PML_ShutdownMainMem(gvar);
+	PML_ShutdownMainMem();
 }

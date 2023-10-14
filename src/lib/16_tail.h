@@ -179,6 +179,4 @@ void ClearMemory ();
 void Quit (char *error);
 void turboXT(byte bakapee);
 
-#define NUMSNDCHUNKS		84
-
 #endif	/*__16_TAIL__ */
