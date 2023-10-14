@@ -107,8 +107,6 @@ extern	void		(* aftersort) (void);
 
 //==========================================================================
 
-boolean MML_CheckForEMS (void);
-boolean MML_CheckForXMS (void);
 void MML_UseSpace (unsigned segstart, unsigned seglength);
 void MML_ClearBlock (void);
 

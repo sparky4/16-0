@@ -1437,9 +1437,9 @@ PM_Startup(void)
 
 	//0000+=+=PML_OpenPageFile();
 
-	if (!noems && MML_CheckForEMS())
+	if (!noems)
 		PML_StartupEMS();
-	if (!noxms && MML_CheckForXMS())
+	if (!noxms)
 		PML_StartupXMS();
 	if(!nomain)
 		PML_StartupMainMem();
@@ -1458,8 +1458,8 @@ PM_Startup(void)
 void
 PM_Shutdown(void)
 {
-	if(MML_CheckForXMS()) PML_ShutdownXMS();
-	if(MML_CheckForEMS()) PML_ShutdownEMS();
+	PML_ShutdownXMS();
+	PML_ShutdownEMS();
 
 	if (!PMStarted)
 		return;
