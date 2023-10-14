@@ -1,4 +1,5 @@
-fix up 16_pm and 16_ca
+TEST MEMORY SYSTEM
+EXMMTEST.EXE will be reused
 fix up the header files 16_head 16_tail 16_t 16_tdef (remove tdef eventally)
 fix up 16_in
 fix up 16_us
