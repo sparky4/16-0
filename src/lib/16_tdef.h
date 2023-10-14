@@ -857,7 +857,7 @@ typedef struct glob_game_vars
 	video_t	video;	// video settings variable
 //	ca_t		ca;	// ca stuff
 //	pm_t		pm;	// pm stuff
-	loghandle_t	handle;	//handles for file logging
+//	loghandle_t	handle;	//handles for file logging
 	kurokku_t	kurokku;	//clock struct
 //		mminfo_t	mm; mminfotype	mmi;	// mm stuff
 	in_info_t	in;		// 16_in info
