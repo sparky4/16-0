@@ -255,12 +255,6 @@ End2:
 		EMSList[i].baseEMSPage = -1;
 
 	EMSPresent = true;			// We have EMS
-	/*EMSPageFrame = EMSPageFrame;
-	EMSAvail = EMSAvail;
-	EMSVer = EMSVer;
-	EMSHandle = EMSHandle;
-	freeEMSpages = freeEMSpages;
-	totalEMSpages = totalEMSpages;*/
 
 	return(EMSPresent);
 }
@@ -443,9 +437,6 @@ error:
 	if(errorflag==false)
 	{
 		XMSmem = (dword)(XMSAvail) * 1024;
-		/*XMSAvail = XMSAvail;
-		XMSHandle = XMSHandle;
-		//XMSVer = XMSVer;*/
 		XMSPresent = true;
 #ifdef __DEBUG_PM__
 		printf("	XMSmem=%lu	XMSAvail=%u\n", XMSmem, XMSAvail);
