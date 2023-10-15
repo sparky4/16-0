@@ -145,7 +145,7 @@ LIBFLAGS=$(WLIBQ) -b -n
 VGMSNDOBJ = vgmSnd.$(OBJ)
 OLDLIBOBJS=bitmap.$(OBJ) 16render.$(OBJ)
 GFXLIBOBJS = 16_vl.$(OBJ) 16_vl_1.$(OBJ) 16_vl_2.$(OBJ) 16_vlpal.$(OBJ) 16text.$(OBJ) scroll16.$(OBJ) 16_spri.$(OBJ) gamepal.$(OBJ)
-16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) 16_dbg.$(OBJ) 16_in.$(OBJ) kitten.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) 16_dbg_1.$(OBJ)
+16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) hp_tail.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) 16_dbg.$(OBJ) 16_in.$(OBJ) kitten.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) 16_dbg_1.$(OBJ)
 DOSLIBOBJ = adlib.$(OBJ) 8254.$(OBJ) 8259.$(OBJ) dos.$(OBJ) cpu.$(OBJ)
 !ifeq DEBUGSERIAL 1
 DOSLIBOBJ += 8250.$(OBJ)
@@ -450,7 +450,8 @@ mapread.$(OBJ):	$(SRCLIB)/mapread.c	$(SRCLIB)/mapread.h
 16_dbg_1.$(OBJ):	$(SRCLIB)/16_dbg_1.c	$(SRCLIB)/16_dbg.h
 16_head.$(OBJ):	$(SRCLIB)/16_head.c	$(SRCLIB)/16_head.h
 16_tail.$(OBJ):	$(SRCLIB)/16_tail.c	$(SRCLIB)/16_tail.h
-16_tail_.$(OBJ):	$(SRCLIB)/16_tail_.c	$(SRCLIB)/16_tail.h
+hp_tail.$(OBJ):	$(SRCLIB)/hp_tail.c	$(SRCLIB)/hp_tail.h
+#16_tail_.$(OBJ):	$(SRCLIB)/16_tail_.c	$(SRCLIB)/16_tail.h
 16_hc.$(OBJ):	$(SRCLIB)/16_hc.c	$(SRCLIB)/16_hc.h
 16_snd.$(OBJ):	$(SRCLIB)/16_snd.c	$(SRCLIB)/16_snd.h
 16_sd.$(OBJ):	$(SRCLIB)/16_sd.c	$(SRCLIB)/16_sd.h

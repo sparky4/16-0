@@ -352,12 +352,6 @@ End:
 		printf("%s\n",str);
 		return err;
 	}
-	totalEMSpages=totalEMSpages;
-	freeEMSpages=freeEMSpages;
-	EMSPageFrame=EMSPageFrame;
-	EMSpagesmapped=EMSpagesmapped;
-	EMSHandle=EMSHandle;
-	EMSVer=EMSVer;
 	return 0;
 }
 
@@ -373,7 +367,6 @@ End:
 void MML_ShutdownEMS(void)
 {
 	boolean errorflag=false;
-	unsigned EMSHandle=EMSHandle;
 
 	if(!EMSHandle)
 		return;
@@ -410,11 +403,9 @@ void MML_ShutdownEMS(void)
 byte MM_MapEMS(void)
 {
 	byte	str[160];
-	unsigned	EMSHandle;
 	byte err;
 	boolean	errorflag=false;
 	int	i;
-	EMSHandle=EMSHandle;
 
 	for (i=0;i<4/*MAPPAGES*/;i++)
 	{
@@ -484,7 +475,6 @@ byte MM_MapXEMS(void)
 	word	EMSHandle;
 	boolean	errorflag=false;
 	int	i;
-	EMSHandle=EMSHandle;
 
 	if(EMSVer<0x40)
 		return 5;
@@ -814,12 +804,12 @@ void MML_ClearBlock (void)
 ===================
 */
 
-/*void MM_Reset (void)
+void MM_Reset (void)
 {
 //	//has to be 16
 //	if(sizeof(mmblocktype)!=16)
 //		return;
-
+/*
 #ifdef __BORLANDC__
 	strcpy(gvar->handle.datadumpfilename, "mmdump.16b");
 #endif
@@ -832,8 +822,8 @@ void MML_ClearBlock (void)
 #endif
 #ifdef __WATCOMC__
 	strcpy(gvar->handle.heapdumpfilename, "heap.16w");
-#endif
-}*/
+#endif*/
+}
 
 
 //==========================================================================
@@ -861,7 +851,7 @@ void MM_Startup (void)
 	if(mmstarted)
 		MM_Shutdown ();
 
-	//MM_Reset ();
+	MM_Reset ();
 	mmstarted = true;
 	bombonerror = true;
 //
@@ -1709,6 +1699,7 @@ reset:
 	gvar->video.BOFS = (byte __far *)temp;
 }
 #endif
+#ifdef __16_VL__
 void MM_ShowMemory (void)
 {
 	mmblocktype far *scan;
@@ -1748,6 +1739,7 @@ void MM_ShowMemory (void)
 
 	bufferofs = temp;
 }
+#endif
 
 //==========================================================================
 

@@ -28,8 +28,8 @@
 #include "src/lib/16_pm.h"
 #include "src/lib/16_mm.h"
 #include "src/lib/16_ca.h"
-#include "src/lib/16_in.h"
-#include "src/lib/16_sd.h"
+//#include "src/lib/16_in.h"
+//#include "src/lib/16_sd.h"
 #include "src/lib/16_dbg.h"
 #include "src/lib/16_vl.h"
 #include "src/lib/testpatt.h"
@@ -164,18 +164,13 @@
 
 extern char global_temp_status_text[512];
 
-void	Shutdown16(global_game_variables_t *gvar),
-	Startup16(global_game_variables_t *gvar),
-	StartupCAMMPM (global_game_variables_t *gvar),
-	ShutdownCAMMPM (global_game_variables_t *gvar);
-void MU_IntroScreen(global_game_variables_t *gvar);
 void TL_DosLibStartup(global_game_variables_t *gvar);
 void TL_VidInit(global_game_variables_t *gvar);
-boolean FizzleFade (unsigned source, unsigned dest, unsigned width, unsigned height, unsigned frames, boolean abortable, global_game_variables_t *gvar);
+
 void PL_StartMusic(global_game_variables_t *gvar);
 void PL_StopMusic(global_game_variables_t *gvar);
-void DebugMemory_(boolean q);
-void ClearMemory ();
+
+void ClearMemory (void);
 void Quit (char *error);
 void turboXT(byte bakapee);
 
