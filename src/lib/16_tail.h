@@ -24,15 +24,15 @@
 #define	__16_TAIL__
 
 #include "src/lib/16_head.h"
-#include "src/lib/16text.h"
+//#include "src/lib/16text.h"
 #include "src/lib/16_pm.h"
 #include "src/lib/16_mm.h"
 #include "src/lib/16_ca.h"
 //#include "src/lib/16_in.h"
 //#include "src/lib/16_sd.h"
 #include "src/lib/16_dbg.h"
-#include "src/lib/16_vl.h"
-#include "src/lib/testpatt.h"
+//#include "src/lib/16_vl.h"
+//#include "src/lib/testpatt.h"
 
 #ifdef __WATCOMC__
 #include <hw/cpu/cpu.h>

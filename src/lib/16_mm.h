@@ -104,6 +104,9 @@ extern	memptr		bufferseg;
 extern	boolean		mmerror;
 extern	void		(* beforesort) (void);
 extern	void		(* aftersort) (void);
+#ifdef __16_PM__
+extern	word		totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
+#endif
 
 //==========================================================================
 

@@ -57,6 +57,7 @@ boolean dbg_delayanimation=0;
 */
 
 #pragma warn -pia
+#if 0
 void ShapeTest_(global_game_variables_t *gvar)
 {
 extern	word	NumDigi;
@@ -256,6 +257,7 @@ static	char	buf[10];
 	}
 	//SD_StopDigitized();
 }
+#endif
 #pragma warn +pia
 
 #ifdef __WATCOMC__
@@ -297,7 +299,7 @@ spv_t ShowPalVarSync (spv_t *spv)
 =
 ================
 */
-
+#if 0
 void ShowPalVal (global_game_variables_t *gvar)
 {
 	boolean			done				,err;
@@ -409,5 +411,6 @@ void ShowPalVal (global_game_variables_t *gvar)
 	}
 //	IN_UserInput(1, gvar);
 }
+#endif	//0
 #endif	//debug vl
 #endif	//watcomc

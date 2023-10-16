@@ -35,7 +35,6 @@
 	memptr			MainMemPages[PMMaxMainMem];
 	PMBlockAttr		MainMemUsed[PMMaxMainMem];
 	int				MainPagesAvail;
-	dword			nearheap,farheap,mainmem;
 
 //	EMS specific variables
 	boolean			EMSPresent;
@@ -1437,9 +1436,9 @@ PM_Startup(void)
 
 	//0000+=+=PML_OpenPageFile();
 
-	if (!noems)
+	if (!noems && MML_CheckForEMS())
 		PML_StartupEMS();
-	if (!noxms)
+	if (!noxms && MML_CheckForXMS())
 		PML_StartupXMS();
 	if(!nomain)
 		PML_StartupMainMem();
@@ -1458,8 +1457,8 @@ PM_Startup(void)
 void
 PM_Shutdown(void)
 {
-	PML_ShutdownXMS();
-	PML_ShutdownEMS();
+	if(MML_CheckForXMS()) PML_ShutdownXMS();
+	if(MML_CheckForEMS()) PML_ShutdownEMS();
 
 	if (!PMStarted)
 		return;

@@ -136,7 +136,7 @@ int			audiohandle;	// handle to AUDIOT / AUDIO
 
 long		chunkcomplen,chunkexplen;
 
-SDMode		oldsoundmode;
+//SDMode		oldsoundmode;
 
 
 

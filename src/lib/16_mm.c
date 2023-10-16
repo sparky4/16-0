@@ -82,8 +82,8 @@ typedef struct mmblockstruct
 } mmblocktype;
 
 
-//#define GETNEWBLOCK {if(!(mmnew=mmfree))Quit("MM_GETNEWBLOCK: No free blocks!") ;mmfree=mmfree->next;}
-//
+//#define GETNEWBLOCK {if(!(mmnew=mmfree))Quit("MM_GETNEWBLOCK: No free blocks!")\
+//;mmfree=mmfree->next;}
 
 #define GETNEWBLOCK {if(!mmfree)MML_ClearBlock();mmnew=mmfree;mmfree=mmfree->next;}
 
@@ -121,15 +121,15 @@ mmblocktype	far mmblocks[MAXBLOCKS]
 			,far *mmhead,far *mmfree,far *mmrover,far *mmnew;
 
 boolean		bombonerror;
-
+#ifndef __16_PM__
 unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
-
+#endif
 void		(* XMSaddr) (void);		// far pointer to XMS driver
 
 unsigned	numUMBs,UMBbase[MAXUMBS];
 
-//#define MM_CheckForEMS() MML_CheckForEMS()
-//#define MM_CheckForXMS() MML_CheckForXMS()
+#define MM_CheckForEMS() MML_CheckForEMS()
+#define MM_CheckForXMS() MML_CheckForXMS()
 
 //==========================================================================
 
@@ -851,16 +851,16 @@ void MM_Startup (void)
 	if(mmstarted)
 		MM_Shutdown ();
 
-	MM_Reset ();
+//	MM_Reset ();
 	mmstarted = true;
 	bombonerror = true;
 //
 // set up the linked list (everything in the free list;
 //
 	mmhead = NULL;
-	mmfree = &(mmblocks[0]);
+	mmfree = &mmblocks[0];
 	for (i=0;i<MAXBLOCKS-1;i++)
-		mmblocks[i].next = &(mmblocks[i+1]);
+		mmblocks[i].next = &mmblocks[i+1];
 	mmblocks[i].next = NULL;
 
 //
@@ -1900,10 +1900,10 @@ void MM_Report_ (void)
 		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, XMSHandle);
 		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, mminfo.XMSmem);
 	}
-	printf("	%cConv.	%u\n", 0xC9, MainPresent); DebugMemory_(0);
-	//printf("mainmem:	%lu\n", mminfo.mainmem);
-	//printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
-	//printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
+	printf("	%cConv.	%u\n", 0xC9, MainPresent);
+	printf("mainmem:	%lu\n", mminfo.mainmem);
+	printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
+	printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
 	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
 }
 

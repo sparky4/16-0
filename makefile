@@ -145,7 +145,7 @@ LIBFLAGS=$(WLIBQ) -b -n
 VGMSNDOBJ = vgmSnd.$(OBJ)
 OLDLIBOBJS=bitmap.$(OBJ) 16render.$(OBJ)
 GFXLIBOBJS = 16_vl.$(OBJ) 16_vl_1.$(OBJ) 16_vl_2.$(OBJ) 16_vlpal.$(OBJ) 16text.$(OBJ) scroll16.$(OBJ) 16_spri.$(OBJ) gamepal.$(OBJ)
-16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) hp_tail.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) 16_dbg.$(OBJ) 16_in.$(OBJ) kitten.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) 16_dbg_1.$(OBJ)
+16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) 16_dbg.$(OBJ) 16_in.$(OBJ) kitten.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) 16_dbg_1.$(OBJ)
 DOSLIBOBJ = adlib.$(OBJ) 8254.$(OBJ) 8259.$(OBJ) dos.$(OBJ) cpu.$(OBJ)
 !ifeq DEBUGSERIAL 1
 DOSLIBOBJ += 8250.$(OBJ)
@@ -249,7 +249,8 @@ SPRIUTILEXEC = &
 
 EXEC = &
 	16.exe &
-	bakapi.exe
+	bakapi.exe &
+	exmmtest.exe
 
 !ifdef __LINUX__
 #++?EXEC += $(SPRIUTILEXEC)
@@ -308,7 +309,7 @@ pcxtest2.exe:	pcxtest2.$(OBJ) gfx.lib $(DOSLIB) $(16LIB)
 #planrpcx.exe:	planrpcx.$(OBJ) gfx.lib
 maptest.exe:	maptest.$(OBJ) 16_map.$(OBJ) 16_head.$(OBJ) gfx.lib $(DOSLIB) $(16LIB)
 fmemtest.exe:	fmemtest.$(OBJ)
-exmmtest.exe:	exmmtest.$(OBJ)	$(16LIB) gfx.lib $(DOSLIB)
+exmmtest.exe:	exmmtest.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) kitten.$(OBJ) 16_dbg.$(OBJ)
 mmtest.exe:	mmtest.$(OBJ)	$(16LIB) gfx.lib $(DOSLIB)
 	#16_pm.$(OBJ) 16_head.$(OBJ) 16_ca.$(OBJ) 16_mm.$(OBJ) 16_hc.$(OBJ) kitten.$(OBJ) 16_vl_1.$(OBJ) 16_tail.$(OBJ) 16_in.$(OBJ) 16_dbg.$(OBJ)
 

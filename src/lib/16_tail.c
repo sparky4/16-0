@@ -30,6 +30,23 @@
 /*
 ==========================
 =
+= ClearMemory
+=
+==========================
+*/
+
+void ClearMemory (void)
+{
+#ifdef __16_PM__
+	PM_UnlockMainMem();
+#endif
+	//sd
+	MM_SortMem ();
+}
+
+/*
+==========================
+=
 = Quit
 =
 ==========================
@@ -40,7 +57,8 @@ void Quit (char *error)
 	//unsigned		finscreen;
 	memptr	screen=0;
 
-	ClearMemory ();
+	//ClearMemory ();
+	ClearMemory();
 	if (!*error)
 	{
 // #ifndef JAPAN

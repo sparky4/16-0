@@ -41,24 +41,17 @@
 //file load or read definition
 #define FILEREADLOAD
 #define FILEREAD
-//#define EXMMVERBOSE
+#define EXMMVERBOSE
 #define BUFFDUMPPAUSE
-//#define EXMMVERBOSE__
-//	#define PRINTBBDUMP
+#define EXMMVERBOSE__
+//
+#define PRINTBBDUMP
 #define BUFFDUMP
 
-#ifdef __BORLANDC__
-#define NOVID
-#endif
-#ifdef __WATCOMC__
-#define NOVID
-//#define			SCROLLLOAD
-#endif
+#define KEYP printf("\n\npress any key to continue!\n"); getch();
 
-#define KEYP IN_Shutdown(&gvar); printf("\n\npress any key to continue!\n"); getch(); IN_Startup(&gvar);
-
-#define BBUFNAME gvar.mm.bufferseg
-//#define INITBBUF static memptr BBUFNAME;
+#define BBUFNAME bigbufferseg
+#define INITBBUF static memptr BBUFNAME;
 #define BBUFPTR	MEMPTRCONV BBUFNAME
 
 #ifdef __BORLANDC__
@@ -88,5 +81,8 @@
 	//printf("&bigbuffer=	%Fp\n", &bigbuffer);
 	//printf("bigbuffer=	%04x\n", bigbuffer);
 	//printf("&bigbuffer=	%04x\n", &bigbuffer);
+
+extern void far	*farheap;
+extern void near	*nearheap;
 
 #endif /*__EXMMTEST_H__*/
