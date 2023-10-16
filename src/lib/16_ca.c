@@ -85,8 +85,6 @@ void		_seg	*grsegs[NUMCHUNKS];
 byte		far	grneeded[NUMCHUNKS];
 byte		ca_levelbit,ca_levelnum;
 
-int			profilehandle,debughandle;
-
 char		audioname[13]="AUDIO.";
 
 /*
@@ -1065,7 +1063,7 @@ void CAL_SetupGrFile (void)
 //
 // load the data offsets from ???head.ext
 //
-	MM_GetPtr ((memptr)&grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
+	MM_GetPtr (MEMPTRCONV grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
 
 	strcpy(fname,GHEADNAME);
 	strcat(fname,EXTENSION);
@@ -1096,7 +1094,7 @@ void CAL_SetupGrFile (void)
 // load the pic and sprite headers into the arrays in the data segment
 //
 #if NUMPICS>0
-	MM_GetPtr((memptr)&pictable,NUMPICS*sizeof(pictabletype));
+	MM_GetPtr(MEMPTRCONV pictable,NUMPICS*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
 	printf("CAL_SetupGrFile:\n");
 	printf("	chunkcomplen size is %lu\n"->ca.chunkcomplen);
@@ -1108,7 +1106,7 @@ void CAL_SetupGrFile (void)
 
 #if 0
 	//NUMPICM>0
-	MM_GetPtr((memptr)&picmtable,NUMPICM*sizeof(pictabletype));
+	MM_GetPtr(MEMPTRCONV picmtable,NUMPICM*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPICM);		// position file pointer
 	MM_GetPtr(&compseg,chunkcomplen);
 	CA_FarRead (grhandle,compseg,chunkcomplen);
@@ -1117,7 +1115,7 @@ void CAL_SetupGrFile (void)
 //#endif
 
 //#if NUMSPRITES>0
-	MM_GetPtr((memptr)&spritetable,NUMSPRITES*sizeof(spritetabletype));
+	MM_GetPtr(MEMPTRCONV spritetable,NUMSPRITES*sizeof(spritetabletype));
 	CAL_GetGrChunkLength(STRUCTSPRITE);	// position file pointer
 	MM_GetPtr(&compseg,chunkcomplen);
 	CA_FarRead (grhandle,compseg,chunkcomplen);
@@ -1153,7 +1151,7 @@ void CAL_SetupMapFile (void)
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
 		Quit ("Can't open maphead.mph");
 	length = filelength(handle);
-	MM_GetPtr ((memptr)&tinf,length);
+	MM_GetPtr (MEMPTRCONV tinf,length);
 	CA_FarRead(handle, tinf, length);
 	close(handle);
 #else
@@ -1204,7 +1202,7 @@ void CAL_SetupMapFile (void)
 		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
 		Quit ("Can't open AUDIOHED.16""!");
 	length = filelength(handle);
-	MM_GetPtr ((memptr)&audiostarts,length);
+	MM_GetPtr (MEMPTRCONV audiostarts,length);
 	CA_FarRead(handle, (byte far *)audiostarts, length);
 	close(handle);
 #else
@@ -1332,7 +1330,7 @@ void CA_CacheAudioChunk (int chunk)
 
 	if (audiosegs[chunk])
 	{
-		MM_SetPurge ((memptr)&audiosegs[chunk],0);
+		MM_SetPurge (MEMPTRCONV audiosegs[chunk],0);
 		return;							// allready in memory
 	}
 
@@ -1354,7 +1352,7 @@ void CA_CacheAudioChunk (int chunk)
 
 #ifndef AUDIOHEADERLINKED
 
-	MM_GetPtr ((memptr)&audiosegs[chunk],compressed);
+	MM_GetPtr (MEMPTRCONV audiosegs[chunk],compressed);
 	if (mmerror)
 		return;
 
@@ -1379,7 +1377,7 @@ void CA_CacheAudioChunk (int chunk)
 
 	expanded = *(long far *)source;
 	source += 4;			// skip over length
-	MM_GetPtr ((memptr)&audiosegs[chunk],expanded);
+	MM_GetPtr (MEMPTRCONV audiosegs[chunk],expanded);
 	if (mmerror)
 		goto done;
 	CAL_HuffExpand (source,audiosegs[chunk],expanded,audiohuffman);
@@ -1420,7 +1418,7 @@ void CA_LoadAllSounds (void)
 
 	for (i=0;i<NUMSOUNDS;i++,start++)
 		if (audiosegs[start])
-			MM_SetPurge ((memptr)&audiosegs[start],3);		// make purgable
+			MM_SetPurge (MEMPTRCONV audiosegs[start],3);		// make purgable
 
 cachein:
 
@@ -1928,10 +1926,10 @@ void CA_CacheMap (int mapnum)
 // free up memory from last map
 //
 	if (mapon>-1 && mapheaderseg[mapon])
-		MM_SetPurge ((memptr)&mapheaderseg[mapon],3);
+		MM_SetPurge (MEMPTRCONV mapheaderseg[mapon],3);
 	for (plane=0;plane<MAPPLANES;plane++)
 		if (mapsegs[plane])
-			MM_FreePtr ((memptr)&mapsegs[plane]);
+			MM_FreePtr (MEMPTRCONV mapsegs[plane]);
 
 	mapon = mapnum;
 
@@ -1946,7 +1944,7 @@ void CA_CacheMap (int mapnum)
 		if (pos<0)						// $FFFFFFFF start is a sparse map
 			Quit ("CA_CacheMap: Tried to load a non existent map!");
 
-		MM_GetPtr((memptr)&mapheaderseg[mapnum],sizeof(maptype));
+		MM_GetPtr(MEMPTRCONV mapheaderseg[mapnum],sizeof(maptype));
 		lseek(maphandle,pos,SEEK_SET);
 #ifdef MAPHEADERLINKED
 //#if BUFFERSIZE < sizeof(maptype)
@@ -1963,7 +1961,7 @@ void CA_CacheMap (int mapnum)
 #endif
 	}
 	else
-		MM_SetPurge ((memptr)&mapheaderseg[mapnum], 0);
+		MM_SetPurge (MEMPTRCONV mapheaderseg[mapnum], 0);
 
 //
 // load the planes in
@@ -1981,7 +1979,7 @@ void CA_CacheMap (int mapnum)
 		if (!compressed)
 			continue;		// the plane is not used in this game
 
-		dest = (memptr)&mapsegs[plane];
+		dest = MEMPTRCONV mapsegs[plane];
 		MM_GetPtr(dest,size);
 
 		lseek(maphandle,pos,SEEK_SET);
@@ -2019,7 +2017,7 @@ void CA_CacheMap (int mapnum)
 #endif
 
 		if (compressed>BUFFERSIZE)
-			MM_FreePtr(&bigbufferseg);
+			MM_FreePtr(MEMPTRCONV bigbufferseg);
 	}
 }
 
@@ -2127,7 +2125,7 @@ void CA_SetGrPurge (void)
 
 	for (i=0;i<NUMCHUNKS;i++)
 		if (grsegs[i])
-			MM_SetPurge ((memptr)&grsegs[i],3);
+			MM_SetPurge (MEMPTRCONV grsegs[i],3);
 }
 
 
@@ -2157,18 +2155,18 @@ void CA_SetAllPurge (void)
 //
 	for (i=0;i<NUMMAPS;i++)
 		if (mapheaderseg[i])
-			MM_SetPurge ((memptr)&mapheaderseg[i],3);
+			MM_SetPurge (MEMPTRCONV mapheaderseg[i],3);
 
 	for (i=0;i<3;i++)
 		if (mapsegs[i])
-			MM_FreePtr ((memptr)&mapsegs[i]);
+			MM_FreePtr (MEMPTRCONV mapsegs[i]);
 
 //
 // free sounds
 //
 	for (i=0;i<NUMSNDCHUNKS;i++)
 		if (audiosegs[i])
-			MM_SetPurge ((memptr)&audiosegs[i],3);
+			MM_SetPurge (MEMPTRCONV audiosegs[i],3);
 
 //
 // free graphics

@@ -39,8 +39,8 @@
 #pragma warn -use
 
 //file load or read definition
-#define FILEREADLOAD
-#define FILEREAD
+//#define FILEREADLOAD
+//#define FILEREAD
 #define EXMMVERBOSE
 #define BUFFDUMPPAUSE
 #define EXMMVERBOSE__
@@ -51,7 +51,7 @@
 #define KEYP printf("\n\npress any key to continue!\n"); getch();
 
 #define BBUFNAME bigbufferseg
-#define INITBBUF static memptr BBUFNAME;
+#define INITBBUF 	memptr BBUFNAME;
 #define BBUFPTR	MEMPTRCONV BBUFNAME
 
 #ifdef __BORLANDC__

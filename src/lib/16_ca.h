@@ -73,6 +73,8 @@ extern	void		_seg	*grsegs[NUMCHUNKS];
 extern	byte		far	grneeded[NUMCHUNKS];
 extern	byte		ca_levelbit,ca_levelnum;
 
+extern	int			profilehandle,debughandle;
+
 extern	char		*titleptr[8];
 
 //extern

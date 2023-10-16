@@ -39,8 +39,8 @@
 //	EMS specific variables
 	boolean			EMSPresent;
 	word			EMSAvail,EMSPagesAvail,EMSHandle,
-					EMSPageFrame,EMSPhysicalPage,EMSVer,
-					totalEMSpages,freeEMSpages;
+					EMSPageFrame,EMSPhysicalPage,EMSVer;
+	word			totalEMSpages, freeEMSpages, EMSpagesmapped;
 	EMSListStruct	EMSList[EMSFrameCount];
 
 //	XMS specific variables

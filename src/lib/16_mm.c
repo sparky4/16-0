@@ -887,7 +887,8 @@ void MM_Startup (void)
 	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
 	MML_UseSpace (segstart,seglength);
 	mminfo.nearheap = length;
-	//0000printf("near:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
+	//0000
+	printf("near:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 //
 // get all available far conventional memory segments
 //
@@ -900,7 +901,8 @@ void MM_Startup (void)
 	MML_UseSpace (segstart,seglength);
 	mminfo.farheap = length;
 	mminfo.mainmem = mminfo.nearheap + mminfo.farheap;
-	//0000printf("far:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
+	//0000
+	printf("far:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 #if !defined(__16_PM__)// && defined(__WATCOMC__)
 #if 0
 	if(!dbg_debugpm) {
@@ -1147,6 +1149,7 @@ void MM_FreePtr (memptr *baseptr)
 
 	last->next = scan->next;
 
+	printf("freeing block\n");
 	FREEBLOCK(scan);
 }
 //==========================================================================
@@ -1900,7 +1903,7 @@ void MM_Report_ (void)
 		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, XMSHandle);
 		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, mminfo.XMSmem);
 	}
-	printf("	%cConv.	%u\n", 0xC9, MainPresent);
+	printf("	%cConv.	%u\n", 0xC9, MainPresent);// DebugMemory_(0);
 	printf("mainmem:	%lu\n", mminfo.mainmem);
 	printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
 	printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
@@ -2078,7 +2081,6 @@ void MM_FreeBlock(mmblocktype *x)
 
 void xms_call(byte v)
 {
-	dword XMSDriver = XMSDriver;
 	__asm {
 		mov	ah,[v]
 		call [DWORD PTR XMSDriver]

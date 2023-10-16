@@ -41,7 +41,7 @@
 
 #define	BUFFERSIZE		0x1000		// miscelanious, allways available buffer
 
-#define MAXBLOCKS		1024
+#define MAXBLOCKS		512//1024
 
 
 //--------
@@ -110,8 +110,8 @@ extern	word		totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
 
 //==========================================================================
 
-boolean MM_CheckForEMS(void);
-boolean MM_CheckForXMS(void);
+boolean MML_CheckForEMS(void);
+boolean MML_CheckForXMS(void);
 
 void MML_UseSpace (unsigned segstart, unsigned seglength);
 void MML_ClearBlock (void);

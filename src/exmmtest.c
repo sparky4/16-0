@@ -79,8 +79,7 @@ main(int argc, char *argv[])
 		#endif
 
 								#ifdef PRINTBBDUMP
-								//0000
-			PRINTBB; KEYP
+								//0000			PRINTBB; KEYP
 								#endif
 #ifdef __16_PM__
 #ifdef __DEBUG_PM__
@@ -101,13 +100,16 @@ main(int argc, char *argv[])
 	printf("bakapee2[%s]\n", bakapee2);
 								#ifdef EXMMVERBOSE__
 	printf("coreleft():		%u\n", coreleft());
-	printf("farcoreleft():		%ld\n", farcoreleft());
+	printf("farcoreleft():		%lu\n", farcoreleft());
 								#endif
 	printf("stackavail()=%u\n", stackavail());
+	HC_heapdump();
 	KEYP
+	Quit("testuto");
 
 	//start memory system
 	MM_Startup();
+	KEYP
 #ifdef __16_PM__
 	PM_Startup();
 //????	PM_CheckMainMem();

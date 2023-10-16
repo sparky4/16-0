@@ -549,7 +549,7 @@ void HCL_heapstat(int heap_status)
 
 //++
 #ifdef __WATCOMC__
-dword farcoreleft()
+unsigned long farcoreleft()
 {
 //----	_fheapgrow();
 // #ifdef __BORLANDC__
@@ -567,11 +567,18 @@ dword farcoreleft()
 #endif
 }
 
-dword coreleft()
+unsigned long coreleft()
 {
 	_nheapgrow();
 	return _memavl();
 //	return HC_GetNearFreeSize();
+}
+#endif
+
+#ifdef __BORLANDC__
+unsigned long farcoreleft()
+{
+	return HC_farcoreleft();
 }
 #endif
 
