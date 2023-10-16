@@ -120,6 +120,9 @@ main(int argc, char *argv[])
 PRINTBB; KEYP
 								#endif
 
+	MM_Report_();
+	KEYP
+
 	{
 	byte w;	word baka;
 	w=0;

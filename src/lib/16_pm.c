@@ -42,7 +42,6 @@
 					EMSPageFrame,EMSPhysicalPage,EMSVer,
 					totalEMSpages,freeEMSpages;
 	EMSListStruct	EMSList[EMSFrameCount];
-	dword			EMSmem;
 
 //	XMS specific variables
 	boolean			XMSPresent;
@@ -50,7 +49,6 @@
 	word			XMSDriver;
 	word				XMSVer;
 	int				XMSProtectPage = -1;
-	dword			XMSmem;
 
 //	File specific variables
 	char			PageFileName[13] = {"VSWAP."};
@@ -85,17 +83,15 @@ byte
 PML_MapEMS(word logical, byte physical)
 {
 	byte	err=0, str[160];
-	unsigned	EMShandle;
 	//int	i;
 
 	boolean	errorflag=false;
-	EMShandle=EMSHandle;
 
 	__asm {
 		mov	ah,EMS_MAPPAGE
 		mov	al,physical
 		mov	bx,logical
-		mov	dx,EMShandle
+		mov	dx,EMSHandle
 		int	EMS_INT
 		or	ah,ah
 		jnz	errorme
@@ -151,7 +147,7 @@ PML_StartupEMS(void)
 	boolean errorflag=false;
 	totalEMSpages = freeEMSpages = EMSPageFrame = EMSHandle = EMSAvail = EMSVer = 0;	// set all to 0~
 	EMSPresent = false;			// Assume that we'll fail
-	EMSAvail = EMSmem = 0;
+	EMSAvail = mminfo.EMSmem = 0;
 
 	__asm {
 		//MM_CheckForEMS() takes care of what the code did here
@@ -247,7 +243,7 @@ End2:
 		printf("%s\n",str);
 		return(EMSPresent);
 	}
-	EMSmem = EMSAvail * (dword)EMSPageSize;
+	mminfo.EMSmem = EMSAvail * (dword)EMSPageSize;
 
 	// Initialize EMS mapping cache
 	for (i = 0;i < EMSFrameCount;i++)
@@ -320,11 +316,11 @@ PML_StartupXMS(void)
 //TODO: translate the _REG into working assembly
 //#define STARTUPXMSASM
 	byte err;
-	word XMSAvail, XMSHandle;//, XMSVer;
+	//word XMSAvail, XMSHandle, XMSVer;
 	boolean errorflag=false;
 	word e=0;
 	XMSPresent = false;					// Assume failure
-	XMSAvail = XMSmem = 0;
+	XMSAvail = mminfo.XMSmem = 0;
 
 	__asm {
 		mov	ax,0x4300
@@ -435,10 +431,10 @@ End2:
 error:
 	if(errorflag==false)
 	{
-		XMSmem = (dword)(XMSAvail) * 1024;
+		mminfo.XMSmem = (dword)(XMSAvail) * 1024;
 		XMSPresent = true;
 #ifdef __DEBUG_PM__
-		printf("	XMSmem=%lu	XMSAvail=%u\n", XMSmem, XMSAvail);
+		printf("	mminfo.XMSmem=%lu	XMSAvail=%u\n", mminfo.XMSmem, XMSAvail);
 #endif
 	}
 	else
