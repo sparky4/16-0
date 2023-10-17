@@ -42,6 +42,8 @@
 #include "src/lib/16_in.h"
 #pragma	hdrstop
 
+static word far* clockw= (word far*) 0x046C; /* 18.2hz clock */
+
 #define	KeyInt		9	// The keyboard ISR number
 
 //
@@ -112,6 +114,12 @@ extern "C" {
 	boolean		Paused;
 	char		LastASCII;
 	ScanCode	LastScan;
+
+//the def stuff is need fix warnings
+#ifndef INSTDEFED
+#define INSTDEFED
+static inst_t inst;
+#endif
 
 static	byte        far ASCIINames[] =		// Unshifted ASCII for scan codes
 					{
@@ -217,7 +225,7 @@ static	boolean	special;
 	if (k == 0xe0)		// Special key prefix
 		special = true;
 	else if (k == 0xe1)	// Handle Pause key
-		Paused = true;
+		inst.Paused = true;
 	else
 	{
 		if (k & 0x80)	// Break code
@@ -226,13 +234,13 @@ static	boolean	special;
 
 // DEBUG - handle special keys: ctl-alt-delete, print scrn
 
-			Keyboard[k] = false;
+			inst.Keyboard[k] = false;
 		}
 		else			// Make code
 		{
-			LastCode = CurCode;
-			CurCode = LastScan = k;
-			Keyboard[k] = true;
+			inst.LastCode = inst.CurCode;
+			inst.CurCode = inst.LastScan = k;
+			inst.Keyboard[k] = true;
 
 			if (special)
 				c = SpecialNames[k];
@@ -240,25 +248,25 @@ static	boolean	special;
 			{
 				if (k == sc_CapsLock)
 				{
-					CapsLock ^= true;
+					inst.CapsLock ^= true;
 					// DEBUG - make caps lock light work
 				}
 
-				if (Keyboard[sc_LShift] || Keyboard[sc_RShift])	// If shifted
+				if (inst.Keyboard[sc_LShift] || inst.Keyboard[sc_RShift])	// If shifted
 				{
 					c = ShiftNames[k];
-					if ((c >= 'A') && (c <= 'Z') && CapsLock)
+					if ((c >= 'A') && (c <= 'Z') && inst.CapsLock)
 						c += 'a' - 'A';
 				}
 				else
 				{
 					c = ASCIINames[k];
-					if ((c >= 'a') && (c <= 'z') && CapsLock)
+					if ((c >= 'a') && (c <= 'z') && inst.CapsLock)
 						c -= 'a' - 'A';
 				}
 			}
 			if (c)
-				LastASCII = c;
+				inst.LastASCII = c;
 		}
 
 		special = false;
@@ -267,7 +275,7 @@ static	boolean	special;
 	if (INL_KeyHook && !special)
 		INL_KeyHook();
 #ifdef __DEBUG_InputMgr__
-	if(dbg_testkeyin > 0) printf("%c	%u	[0x%x %u]	%u\n", c, c, k, k, Keyboard[k]);
+	if(dbg_testkeyin > 0) printf("%c	%u	[0x%x %u]	%u\n", c, c, k, k, inst.Keyboard[k]);
 #endif
 	outportb(0x20,0x20);
 }
@@ -778,9 +786,9 @@ IN_ClearKeysDown(void)
 {
 	//int	i;
 
-	LastScan = sc_None;
-	LastASCII = key_None;
-	memset (Keyboard,0,sizeof(Keyboard));
+	inst.LastScan = sc_None;
+	inst.LastASCII = key_None;
+	memset (inst.Keyboard,0,sizeof(inst.Keyboard));
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -903,28 +911,28 @@ register	KeyboardDef	*def;
 //TODO: make this into a function that the joystick AND keyboard can use wwww
 			if(DIRECTIONIFELSE)//(player->info.dir == 2)
 			{
-			if(!Keyboard[def->left] && !Keyboard[def->right]){
-				if((Keyboard[def->up] && !Keyboard[def->down]))
+			if(!inst.Keyboard[def->left] && !inst.Keyboard[def->right]){
+				if((inst.Keyboard[def->up] && !inst.Keyboard[def->down]))
 					my = motion_Up;
-				if((Keyboard[def->down] && !Keyboard[def->up]))
+				if((inst.Keyboard[def->down] && !inst.Keyboard[def->up]))
 					my = motion_Down;
-			}else if(!Keyboard[def->up] && !Keyboard[def->down]){
-				if((Keyboard[def->left] && !Keyboard[def->right]))
+			}else if(!inst.Keyboard[def->up] && !inst.Keyboard[def->down]){
+				if((inst.Keyboard[def->left] && !inst.Keyboard[def->right]))
 					mx = motion_Left;
-				if((Keyboard[def->right] && !Keyboard[def->left]))
+				if((inst.Keyboard[def->right] && !inst.Keyboard[def->left]))
 					mx = motion_Right;
 			}else{	//2 keys pressed
 					switch (player->pdir)
 					{
 						case 0:
 						case 4:
-							if((Keyboard[def->left] && !Keyboard[def->right])){ dir = DirTable[1]; }//mx = motion_Left; }
-							else if((Keyboard[def->right] && !Keyboard[def->left])){ dir = DirTable[3]; }//mx = motion_Right; }
+							if((inst.Keyboard[def->left] && !inst.Keyboard[def->right])){ dir = DirTable[1]; }//mx = motion_Left; }
+							else if((inst.Keyboard[def->right] && !inst.Keyboard[def->left])){ dir = DirTable[3]; }//mx = motion_Right; }
 						break;
 						case 1:
 						case 3:
-							if((Keyboard[def->up] && !Keyboard[def->down])){ dir = DirTable[0]; }//my = motion_Up; }
-							else if((Keyboard[def->down] && !Keyboard[def->up])){ dir = DirTable[4]; }//my = motion_Down; }
+							if((inst.Keyboard[def->up] && !inst.Keyboard[def->down])){ dir = DirTable[0]; }//my = motion_Up; }
+							else if((inst.Keyboard[def->down] && !inst.Keyboard[def->up])){ dir = DirTable[4]; }//my = motion_Down; }
 						break;
 						default:
 						break;
@@ -935,9 +943,9 @@ register	KeyboardDef	*def;
 				}
 			}
 			//input from player
-			if (Keyboard[def->button0])
+			if (inst.Keyboard[def->button0])
 				buttons += 1 << 0;
-			if (Keyboard[def->button1])
+			if (inst.Keyboard[def->button1])
 				buttons += 1 << 1;
 			realdelta = false;
 			break;
@@ -1030,14 +1038,14 @@ static		word		old_buttons=0;
 }
 
 if(dbg_testcontrolnoisy > 0)
-if(player->info.dir!=2/*(Keyboard[def->up] || Keyboard[def->down] || Keyboard[def->left] || Keyboard[def->right])*/ || player->enti.q>1)
+if(player->info.dir!=2/*(inst.Keyboard[def->up] || inst.Keyboard[def->down] || inst.Keyboard[def->left] || inst.Keyboard[def->right])*/ || player->enti.q>1)
 {
 	//printf("b1=%u b2=%u b3=%u b4=%u	", player->info.button0, player->info.button1, player->info.button2, player->info.button3);
 	//printf("q=%d ", player->enti.q);
 	//printf("cpee=%c ", dirchar(conpee));
 	printf("pdir=%c d=%c dir=%c ", dirchar(player->pdir), dirchar(player->enti.d), dirchar(player->info.dir));
 	/*if(realdelta) */printf("dx=%d	dy=%d	mx=%d	my=%d", player->info.x, player->info.y, player->info.xaxis, player->info.yaxis);
-	//else if(!realdelta) printf("%c%d %c%d %c%d %c%d", dirchar(0), Keyboard[def->up], dirchar(4), Keyboard[def->down], dirchar(1), Keyboard[def->left], dirchar(3), Keyboard[def->right]);
+	//else if(!realdelta) printf("%c%d %c%d %c%d %c%d", dirchar(0), inst.Keyboard[def->up], dirchar(4), inst.Keyboard[def->down], dirchar(1), inst.Keyboard[def->left], dirchar(3), inst.Keyboard[def->right]);
 	printf("\n");
 }
 #endif
@@ -1150,9 +1158,9 @@ IN_WaitForKey(void)
 {
 	ScanCode	result;
 
-	while (!(result = LastScan))
+	while (!(result = inst.LastScan))
 		;
-	LastScan = 0;
+	inst.LastScan = 0;
 	return(result);
 }
 
@@ -1167,9 +1175,9 @@ IN_WaitForASCII(void)
 {
 	char		result;
 
-	while (!(result = LastASCII))
+	while (!(result = inst.LastASCII))
 		;
-	LastASCII = '\0';
+	inst.LastASCII = '\0';
 	return(result);
 }
 
@@ -1213,7 +1221,7 @@ boolean IN_CheckAck (global_game_variables_t *gvar)
 		getch();
 	else
 	{
-		if (LastScan)
+		if (inst.LastScan)
 			return true;
 	}
 
@@ -1254,7 +1262,7 @@ IN_IsUserInput(global_game_variables_t *gvar)
 	boolean	result;
 	word	i;
 
-	result = LastScan;
+	result = inst.LastScan;
 
 	if (gvar->in.MousePresent)
 		if (INL_GetMouseButtons())
@@ -1335,11 +1343,11 @@ word	IN_JoyButtons (void)
 boolean IN_KeyDown(byte code)
 {
 #ifdef __DEBUG_InputMgr__
-//	if(Keyboard[code])
-//		printf("IN_KeyDown(%c):	%u\n", code, Keyboard[code]);
+//	if(inst.Keyboard[code])
+//		printf("IN_KeyDown(%c):	%u\n", code, inst.Keyboard[code]);
 	if(!dbg_nointest)
 #endif
-	return Keyboard[code];
+	return inst.Keyboard[code];
 #ifdef __DEBUG_InputMgr__
 	else
 		if(dbg_nointest && kbhit())
@@ -1351,28 +1359,28 @@ boolean IN_KeyDown(byte code)
 
 void IN_ClearKey(byte code)
 {
-	Keyboard[code] = false;
-	if(code == LastScan)
-		LastScan = sc_None;
+	inst.Keyboard[code] = false;
+	if(code == inst.LastScan)
+		inst.LastScan = sc_None;
 	}
 
 boolean IN_qb(byte kee)
 {
 #ifdef __DEBUG_InputMgr__
-	if(dbg_testkeyin) if(Keyboard[kee]) printf("IN_qb():	%u\n", Keyboard[kee]);
+	if(dbg_testkeyin) if(inst.Keyboard[kee]) printf("IN_qb():	%u\n", inst.Keyboard[kee]);
 #endif
-	if(Keyboard[kee]==true) return 1;
+	if(inst.Keyboard[kee]==true) return 1;
 	else return 0;
 }
 
 ScanCode IN_GetLastScan()
 {
-	return LastScan;
+	return inst.LastScan;
 }
 
 ScanCode IN_GetCurCode()
 {
-	return CurCode;
+	return inst.CurCode;
 }
 
 void IN_KbdLED()
