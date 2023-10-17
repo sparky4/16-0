@@ -447,9 +447,11 @@ void HC_heapdump(void)
 		strcpy(scratch,"  "); strcat(scratch,(nh_info._useflag == _USEDENTRY ? "USED" : "FREE")); strcat(scratch," block at ");
 		sprintf(str, "%Fp", nh_info._pentry); //ultoa((dword)nh_info._pentry,str,16);
 			strcat(scratch,str); strcat(scratch," of size "); ultoa(nh_info._size,str,10); strcat(scratch,str); strcat(scratch,"\n");
+#ifdef __DEBUG_HC__
 		printf( "  %s block at %Fp of size %4.4X\n",
 (nh_info._useflag == _USEDENTRY ? "USED" : "FREE"),
 nh_info._pentry, nh_info._size );
+#endif
 		if((nh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="FREE") nh_free += nh_info._size;
 		if((nh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="USED") nh_used += nh_info._size;
 		nh_total += nh_info._size;
@@ -468,9 +470,11 @@ nh_info._pentry, nh_info._size );
 		strcpy(scratch,"  "); strcat(scratch,(fh_info._useflag == _USEDENTRY ? "USED" : "FREE")); strcat(scratch," block at ");
 		sprintf(str, "%Fp", fh_info._pentry); //ultoa((dword)fh_info._pentry,str,16);
 			strcat(scratch,str); strcat(scratch," of size "); ultoa(fh_info._size,str,10); strcat(scratch,str); strcat(scratch,"\n");
+#ifdef __DEBUG_HC__
 		printf( "  %s block at %Fp of size %4.4X\n",
 (fh_info._useflag == _USEDENTRY ? "USED" : "FREE"),
 fh_info._pentry, fh_info._size );
+#endif
 		if((fh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="FREE") fh_free += fh_info._size;
 		if((fh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="USED") fh_used += fh_info._size;
 		fh_total += fh_info._size;

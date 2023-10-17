@@ -32,6 +32,9 @@ boolean dbg_debugpm=0;
 #ifdef __DEBUG_CA__
 boolean dbg_debugca=0;
 #endif
+#ifdef __DEBUG_HC__
+boolean dbg_debughc=0;
+#endif
 #ifdef __DEBUG_InputMgr__
 boolean dbg_testkeyin=0,dbg_testcontrolnoisy=0,dbg_nointest=0,dbg_joymousedelta=0;
 #endif

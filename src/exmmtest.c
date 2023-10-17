@@ -92,6 +92,9 @@ main(int argc, char *argv[])
 #ifdef __DEBUG_MM__
 	dbg_debugmm=1;
 #endif
+#ifdef __DEBUG_HC__
+	dbg_debughc=1;
+#endif
 
 	if(argv[1]){ strcpy(bakapee1, argv[1]);//bakapee1[] = *argv[1];
 	if(argv[2]) strcpy(bakapee2, argv[2]); }//bakapee2[] = argv[2]; }

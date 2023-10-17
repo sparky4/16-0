@@ -33,9 +33,10 @@
 #define __DEBUG_InputMgr__
 #define __DEBUG_MAP__
 //#define __DEBUG_2__
-#define __DEBUG_CA__
-#define __DEBUG_PM__
-#define __DEBUG_MM__
+//#define __DEBUG_CA__
+//#define __DEBUG_PM__
+//#define __DEBUG_MM__
+//#define __DEBUG_HC__
 #define __DEBUG_RF__
 #define __DEBUG_SPRI__
 #define __DEBUG_VL__
@@ -52,6 +53,9 @@ extern boolean dbg_debugpm;
 #endif
 #ifdef __DEBUG_CA__
 extern boolean dbg_debugca;
+#endif
+#ifdef __DEBUG_HC__
+extern boolean dbg_debughc;
 #endif
 #ifdef __DEBUG_InputMgr__
 extern boolean dbg_testkeyin,dbg_testcontrolnoisy,dbg_nointest,dbg_joymousedelta;

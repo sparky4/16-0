@@ -887,8 +887,7 @@ void MM_Startup (void)
 	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
 	MML_UseSpace (segstart,seglength);
 	mminfo.nearheap = length;
-	//0000
-	printf("near:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
+	//0000	printf("near:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 //
 // get all available far conventional memory segments
 //
@@ -901,8 +900,7 @@ void MM_Startup (void)
 	MML_UseSpace (segstart,seglength);
 	mminfo.farheap = length;
 	mminfo.mainmem = mminfo.nearheap + mminfo.farheap;
-	//0000
-	printf("far:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
+	//0000	printf("far:	start=%Fp	segstart=%x	seglen=%lu	len=%lu\n", start, segstart, (dword)seglength, length);
 #if !defined(__16_PM__)// && defined(__WATCOMC__)
 #if 0
 	if(!dbg_debugpm) {
