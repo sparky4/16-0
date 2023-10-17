@@ -1149,7 +1149,6 @@ void MM_FreePtr (memptr *baseptr)
 
 	last->next = scan->next;
 
-	printf("freeing block\n");
 	FREEBLOCK(scan);
 }
 //==========================================================================
