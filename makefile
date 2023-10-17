@@ -185,7 +185,7 @@ DOSLIB=doslib.lib
 
 #CFLAGS is neccessary here
 .$(OBJ).exe :
-	*wcl $(LFLAGS) $(extra_$^&_exe_opts)$<		-fe=$@
+	*wcl $(LFLAGS) $(extra_$^&_exe_opts) $<		-fe=$@
 
 LIBMAKERULE=*wlib $(LIBFLAGS) $(extra_$^&_lib_opts)$@ $<
 .$(OBJ).lib :

@@ -228,6 +228,7 @@ PRINTBB; KEYP
 //	printf("HC_farcoreleft:			%lu\n", (dword)HC_farcoreleft());
 //	printf("HC_Newfarcoreleft():		%lu\n", (dword)HC_Newfarcoreleft());
 #endif
+	//end of program
 //	HC_heapdump();
 	printf("Project 16 ");
 #ifdef __WATCOMC__
@@ -238,10 +239,6 @@ PRINTBB; KEYP
 #endif
 	printf(".exe. This is just a test file!\n");
 	printf("version %s\n", VERSION);
-
-//end of program
-
-
 #if defined(__DEBUG__) && ( defined(__DEBUG_PM__) || defined(__DEBUG_MM__) )
 #ifdef __DEBUG_MM__
 	printf("debugmm: %u\t", dbg_debugmm);
