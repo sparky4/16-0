@@ -183,7 +183,9 @@ PRINTBB; KEYP
 	MM_Report_();
 	printf("bakapee1=%s\n", bakapee1);
 	printf("bakapee2=%s\n", bakapee2);
+								#ifdef FILEREADLOAD
 	MM_FreePtr(BBUFPTR);
+								#endif
 #ifdef __16_PM__
 	PM_Shutdown();
 #endif
