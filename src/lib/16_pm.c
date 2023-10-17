@@ -46,7 +46,7 @@
 //	XMS specific variables
 	boolean			XMSPresent;
 	word			XMSAvail,XMSPagesAvail,XMSHandle;
-	word			XMSDriver;
+	longword			XMSDriver;
 	word				XMSVer;
 	int				XMSProtectPage = -1;
 
@@ -313,14 +313,14 @@ PML_ShutdownEMS(void)
 boolean
 PML_StartupXMS(void)
 {
-//TODO: translate the _REG into working assembly
+//TODO:		translate the _REG into working assembly
+//FIXME:	FIX THE XMS STUFF WITH BORLANDC
 //#define STARTUPXMSASM
 	byte err;
-	//word XMSAvail, XMSHandle, XMSVer;
 	boolean errorflag=false;
 	word e=0;
 	XMSPresent = false;					// Assume failure
-	XMSAvail = mminfo.XMSmem = 0;
+	XMSAvail = 0;//mminfo.XMSmem = 0;
 
 	__asm {
 		mov	ax,0x4300
@@ -444,6 +444,8 @@ error:
 		//printf("	1=%u	2=%u	3=%u	4=%u\n", XMSHandle1, XMSHandle2, XMSHandle3, XMSHandle4);
 		//printf("	2=%u	", XMSHandle);
 		//printf("	%u", XMSHandle);
+		printf("XMSDriver:	%Fp\n", XMSDriver);
+		printf("XMSDriver:	%lu\n", XMSDriver);
 		printf("	err=%02X	e=%u\n", err, e);
 #endif
 	}

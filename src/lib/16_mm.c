@@ -264,7 +264,7 @@ byte MML_SetupEMS(void)
 
 	unsigned int EMSVer = 0;
 	//byte	EMS_status;
-	unsigned	totalEMSpages,freeEMSpages,EMSPageFrame,EMSpagesmapped,EMSHandle;
+	//unsigned	totalEMSpages,freeEMSpages,EMSPageFrame,EMSpagesmapped,EMSHandle;
 	totalEMSpages = freeEMSpages = EMSPageFrame = EMSpagesmapped = 0;
 
 	__asm {

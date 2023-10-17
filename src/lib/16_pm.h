@@ -86,7 +86,7 @@ typedef	struct
 
 extern	boolean			XMSPresent,EMSPresent,MainPresent;;
 extern	word			XMSPagesAvail,EMSPagesAvail,EMSVer,EMSPageFrame,XMSVer,XMSHandle;
-extern	word			XMSDriver;
+extern	longword			XMSDriver;
 
 extern	word			ChunksInFile,
 						PMSpriteStart,PMSoundStart;
