@@ -1,16 +1,16 @@
 
 	== near ==
 
-  USED block at 1a5a:24a6 of size 12
-  USED block at 1a5a:24b2 of size 512
-  USED block at 1a5a:26b2 of size 82
-  USED block at 1a5a:2704 of size 20
-  USED block at 1a5a:2718 of size 20
-  USED block at 1a5a:272c of size 20
-  USED block at 1a5a:2740 of size 20
-  USED block at 1a5a:2754 of size 20
-  FREE block at 1a5a:2768 of size 55444
-  FREE block at 1a5a:2768 of size 55444
+  USED block at 1a51:24a6 of size 12
+  USED block at 1a51:24b2 of size 512
+  USED block at 1a51:26b2 of size 82
+  USED block at 1a51:2704 of size 20
+  USED block at 1a51:2718 of size 20
+  USED block at 1a51:272c of size 20
+  USED block at 1a51:2740 of size 20
+  USED block at 1a51:2754 of size 20
+  FREE block at 1a51:2768 of size 55444
+  FREE block at 1a51:2768 of size 55444
 
 	== far ==
 

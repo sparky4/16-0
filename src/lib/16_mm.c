@@ -1877,8 +1877,6 @@ dword MM_TotalFree (void)
 =====================
 */
 
-
-
 void MM_Report_ (void)
 {
 	printf("========================================\n");
@@ -1904,7 +1902,7 @@ void MM_Report_ (void)
 //	printf("mainmem:	%lu\n", mminfo.mainmem);
 //	printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
 //	printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
-//	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
+	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
 }
 
 //==========================================================================

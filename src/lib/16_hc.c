@@ -21,6 +21,9 @@
  */
 /*
 	heap check
+	This file is mostly used for a farcoreleft and coreleft replacements for Borland C and definitions for Watcom C.
+	As this is vital for the memory manager and page managers to function.
+	malloc is allowed here.
 */
 
 #include "src/lib/16_hc.h"
@@ -550,7 +553,8 @@ void HCL_heapstat(int heap_status)
 	}
 }
 
-//++
+
+//the watcom C equivalent versions of farcoreleft and coreleft
 #ifdef __WATCOMC__
 unsigned long farcoreleft()
 {
@@ -579,11 +583,17 @@ unsigned long coreleft()
 }
 #endif
 
+//Borland C's farcoreleft function is glitchy for some unknown reason so i redefined it here
+//LARGE MEMORY MODEL ONLY
 #ifdef __BORLANDC__
+#if !defined(__LARGE__) && !defined(__COMPACT__) && !defined(__HUGE__)
+//insert medium and small mode equivalent
+#else
 unsigned long farcoreleft()
 {
 	return HC_farcoreleft();
 }
+#endif
 #endif
 
 /*

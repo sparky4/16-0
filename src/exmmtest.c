@@ -111,7 +111,6 @@ main(int argc, char *argv[])
 
 	//start memory system
 	MM_Startup();
-	KEYP
 #ifdef __16_PM__
 	PM_Startup();
 //????	PM_CheckMainMem();
@@ -182,10 +181,10 @@ PRINTBB; KEYP
 
 //	MM_DumpData();
 	HC_heapdump();
-	KEYP
+//	KEYP
 	MM_Report_();
-	printf("bakapee1=%s\n", bakapee1);
-	printf("bakapee2=%s\n", bakapee2);
+//	printf("bakapee1=%s\n", bakapee1);
+//	printf("bakapee2=%s\n", bakapee2);
 								#ifdef FILEREADLOAD
 	MM_FreePtr(BBUFPTR);
 								#endif
