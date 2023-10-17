@@ -1,0 +1,27 @@
+
+	== near ==
+
+  FREE block at 1AD5:0004 of size 528
+  FREE block at 1AF6:0004 of size 80
+  FREE block at 1AFB:0004 of size 20544
+  FREE block at 1FFF:0004 of size 524288
+  FREE block at 1FFF:0004 of size 524288
+
+	== far ==
+
+  FREE block at 1AD5:0004 of size 528
+  FREE block at 1AF6:0004 of size 80
+  FREE block at 1AFB:0004 of size 20544
+  FREE block at 1FFF:0004 of size 524288
+  FREE block at 1FFF:0004 of size 524288
+
+Memory Type         Total      Used       Free
+----------------  --------   --------   --------
+Near		   21152	0	  0
+Far		   21152	0	  0
+----------------  --------   --------   --------
+HC_coreleft = 0
+HC_farcoreleft = 0
+coreleft = 0
+farcoreleft = 0
+stackavail = 2822

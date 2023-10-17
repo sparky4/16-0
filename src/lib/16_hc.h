@@ -62,9 +62,9 @@ void HCL_heapstat(int heap_status);
 void HC_OpenDebug(void);
 void HC_CloseDebug(void);
 
-#ifdef __WATCOMC__
+//#ifdef __WATCOMC__
 unsigned long farcoreleft();
 unsigned long coreleft();
-#endif
+//#endif
 
 #endif /* __16HC__ */

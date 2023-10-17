@@ -574,13 +574,12 @@ unsigned long farcoreleft()
 unsigned long coreleft()
 {
 	_nheapgrow();
-	return _memavl();
-//	return HC_GetNearFreeSize();
+//	return _memavl();
+	return HC_GetNearFreeSize();
 }
 #endif
 
-#if 0
-def __BORLANDC__
+#ifdef __BORLANDC__
 unsigned long farcoreleft()
 {
 	return HC_farcoreleft();
@@ -600,10 +599,12 @@ void HC_OpenDebug(void)
 {
 #ifdef __BORLANDC__
 //	unlink("heap.16b");
+	strcpy(heapdumpfilename, "heap.16b");
 	heaphandle = open(heapdumpfilename, O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #ifdef __WATCOMC__
 //	unlink("heap.16w");
+	strcpy(heapdumpfilename, "heap.16w");
 	heaphandle = open(heapdumpfilename, O_CREAT | O_WRONLY | O_TEXT);
 #endif
 }

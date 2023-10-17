@@ -181,7 +181,7 @@ PRINTBB; KEYP
 	}
 
 //	MM_DumpData();
-//	HC_heapdump();
+	HC_heapdump();
 	KEYP
 	MM_Report_();
 	printf("bakapee1=%s\n", bakapee1);
@@ -228,7 +228,7 @@ PRINTBB; KEYP
 //	printf("HC_farcoreleft:			%lu\n", (dword)HC_farcoreleft());
 //	printf("HC_Newfarcoreleft():		%lu\n", (dword)HC_Newfarcoreleft());
 #endif
-	HC_heapdump();
+//	HC_heapdump();
 	printf("Project 16 ");
 #ifdef __WATCOMC__
 	printf("exmmtest");
