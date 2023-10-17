@@ -85,6 +85,8 @@ void		_seg	*grsegs[NUMCHUNKS];
 byte		far	grneeded[NUMCHUNKS];
 byte		ca_levelbit,ca_levelnum;
 
+int			profilehandle,debughandle,showmemhandle;;
+
 char		audioname[13]="AUDIO.";
 
 /*

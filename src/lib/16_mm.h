@@ -41,7 +41,7 @@
 
 #define	BUFFERSIZE		0x1000		// miscelanious, allways available buffer
 
-#define MAXBLOCKS		512//1024
+#define MAXBLOCKS		1024
 
 
 //--------

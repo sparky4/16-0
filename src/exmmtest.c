@@ -103,9 +103,8 @@ main(int argc, char *argv[])
 	printf("farcoreleft():		%lu\n", farcoreleft());
 								#endif
 	printf("stackavail()=%u\n", stackavail());
-	HC_heapdump();
+//0000	HC_heapdump();
 	KEYP
-	Quit("testuto");
 
 	//start memory system
 	MM_Startup();
@@ -179,6 +178,7 @@ PRINTBB; KEYP
 	}
 
 //	MM_DumpData();
+	HC_heapdump();
 	KEYP
 	MM_Report_();
 	printf("bakapee1=%s\n", bakapee1);

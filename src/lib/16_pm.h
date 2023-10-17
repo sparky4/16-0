@@ -85,7 +85,8 @@ typedef	struct
 		} EMSListStruct;
 
 extern	boolean			XMSPresent,EMSPresent,MainPresent;;
-extern	word			XMSPagesAvail,EMSPagesAvail,EMSVer,EMSPageFrame,XMSVer,XMSDriver,XMSHandle;
+extern	word			XMSPagesAvail,EMSPagesAvail,EMSVer,EMSPageFrame,XMSVer,XMSHandle;
+extern	dword			XMSDriver;
 
 extern	word			ChunksInFile,
 						PMSpriteStart,PMSoundStart;

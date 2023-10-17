@@ -26,7 +26,6 @@
 #include "src/lib/16_hc.h"
 #include <malloc.h>
 
-int profilehandle,debughandle,showmemhandle;
 int heaphandle;
 byte datadumpfilename[12];
 byte heapdumpfilename[12];
@@ -448,9 +447,9 @@ void HC_heapdump(void)
 		strcpy(scratch,"  "); strcat(scratch,(nh_info._useflag == _USEDENTRY ? "USED" : "FREE")); strcat(scratch," block at ");
 		sprintf(str, "%Fp", nh_info._pentry); //ultoa((dword)nh_info._pentry,str,16);
 			strcat(scratch,str); strcat(scratch," of size "); ultoa(nh_info._size,str,10); strcat(scratch,str); strcat(scratch,"\n");
-/*		printf( "  %s block at %Fp of size %4.4X\n",
+		printf( "  %s block at %Fp of size %4.4X\n",
 (nh_info._useflag == _USEDENTRY ? "USED" : "FREE"),
-nh_info._pentry, nh_info._size );*/
+nh_info._pentry, nh_info._size );
 		if((nh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="FREE") nh_free += nh_info._size;
 		if((nh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="USED") nh_used += nh_info._size;
 		nh_total += nh_info._size;
@@ -469,9 +468,9 @@ nh_info._pentry, nh_info._size );*/
 		strcpy(scratch,"  "); strcat(scratch,(fh_info._useflag == _USEDENTRY ? "USED" : "FREE")); strcat(scratch," block at ");
 		sprintf(str, "%Fp", fh_info._pentry); //ultoa((dword)fh_info._pentry,str,16);
 			strcat(scratch,str); strcat(scratch," of size "); ultoa(fh_info._size,str,10); strcat(scratch,str); strcat(scratch,"\n");
-		/*printf( "  %s block at %Fp of size %4.4X\n",
+		printf( "  %s block at %Fp of size %4.4X\n",
 (fh_info._useflag == _USEDENTRY ? "USED" : "FREE"),
-fh_info._pentry, fh_info._size );*/
+fh_info._pentry, fh_info._size );
 		if((fh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="FREE") fh_free += fh_info._size;
 		if((fh_info._useflag == _USEDENTRY ? "USED" : "FREE")=="USED") fh_used += fh_info._size;
 		fh_total += fh_info._size;
@@ -505,10 +504,10 @@ void HCL_heapstatLogWrite(int heap_status, byte *str)
 {
 	switch( heap_status ) {
 		case _HEAPEND:
-			strcpy((str),"OK - end of heap\n");
+//			strcpy((str),"OK - end of heap\n");
 		break;
 		case _HEAPEMPTY:
-			strcpy((str),"OK - heap is empty\n");
+//			strcpy((str),"OK - heap is empty\n");
 
 		break;
 		case _HEAPBADBEGIN:
@@ -551,7 +550,8 @@ void HCL_heapstat(int heap_status)
 #ifdef __WATCOMC__
 unsigned long farcoreleft()
 {
-//----	_fheapgrow();
+//----
+	_fheapgrow();
 // #ifdef __BORLANDC__
 // 	return 0x90000UL-16UL;
 // #endif
@@ -575,7 +575,8 @@ unsigned long coreleft()
 }
 #endif
 
-#ifdef __BORLANDC__
+#if 0
+def __BORLANDC__
 unsigned long farcoreleft()
 {
 	return HC_farcoreleft();
@@ -594,11 +595,11 @@ unsigned long farcoreleft()
 void HC_OpenDebug(void)
 {
 #ifdef __BORLANDC__
-	unlink("heap.16b");
+//	unlink("heap.16b");
 	heaphandle = open(heapdumpfilename, O_CREAT | O_WRONLY | O_TEXT);
 #endif
 #ifdef __WATCOMC__
-	unlink("heap.16w");
+//	unlink("heap.16w");
 	heaphandle = open(heapdumpfilename, O_CREAT | O_WRONLY | O_TEXT);
 #endif
 }
@@ -606,11 +607,12 @@ void HC_OpenDebug(void)
 void HC_CloseDebug(void)
 {
 	close(heaphandle);
-
+/*
 #ifdef __BORLANDC__
 	strcpy(heapdumpfilename, "heap.16b");
 #endif
 #ifdef __WATCOMC__
 	strcpy(heapdumpfilename, "heap.16w");
 #endif
+*/
 }

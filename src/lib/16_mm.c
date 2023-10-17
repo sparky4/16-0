@@ -952,7 +952,7 @@ xmsskip:
 //
 	mmrover = mmhead;		// start looking for space after low block
 
-	MM_GetPtr (&(bufferseg),BUFFERSIZE);
+	MM_GetPtr (&bufferseg,BUFFERSIZE);
 }
 
 //==========================================================================

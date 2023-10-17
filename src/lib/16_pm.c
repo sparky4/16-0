@@ -46,7 +46,7 @@
 //	XMS specific variables
 	boolean			XMSPresent;
 	word			XMSAvail,XMSPagesAvail,XMSHandle;
-	word			XMSDriver;
+	dword			XMSDriver;
 	word				XMSVer;
 	int				XMSProtectPage = -1;
 
