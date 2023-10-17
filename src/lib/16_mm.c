@@ -1900,11 +1900,11 @@ void MM_Report_ (void)
 		printf("	%c%cXMSHandle:	%04x\n", 0xC7, 0xC4, XMSHandle);
 		printf("	%c%cXMSmem:	%lu\n", 0xD3, 0xC4, mminfo.XMSmem);
 	}
-	printf("	%cConv.	%u\n", 0xC9, MainPresent);// DebugMemory_(0);
-	printf("mainmem:	%lu\n", mminfo.mainmem);
-	printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
-	printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
-	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
+	printf("	%cConv.	%u\n", 0xC9, MainPresent); DebugMemory_(0);
+//	printf("mainmem:	%lu\n", mminfo.mainmem);
+//	printf("Total convmem:	%lu	", mminfo.mainmem); printf("TotalFree:	%lu	", MM_TotalFree()+mminfo.EMSmem+mminfo.XMSmem+mminfo.XMSmem); printf("TotalUsed:	%lu\n", mminfo.mainmem);
+//	printf("			UnusedMemory:	%lu\n", MM_UnusedMemory());
+//	printf("nearheap:	%lu		", mminfo.nearheap); printf("farheap:	%lu\n", mminfo.farheap);
 }
 
 //==========================================================================

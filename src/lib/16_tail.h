@@ -170,6 +170,7 @@ void TL_VidInit(global_game_variables_t *gvar);
 void PL_StartMusic(global_game_variables_t *gvar);
 void PL_StopMusic(global_game_variables_t *gvar);
 
+void DebugMemory_(boolean q);
 void ClearMemory (void);
 void Quit (char *error);
 void turboXT(byte bakapee);
