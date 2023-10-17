@@ -71,6 +71,11 @@ typedef void _seg * memptr;
 //#define OBTPTRANDPERCONV	&
 //#define SDTPTRANDPERCONV	&
 
+#define __near	near
+#define __far	far
+#define __pascal pascal
+#define __asm	asm
+
 #define _nmalloc malloc
 #define _nfree free
 

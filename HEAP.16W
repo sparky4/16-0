@@ -1,28 +1,29 @@
 
 	== near ==
 
-  USED block at 1a69:24a6 of size 12
-  USED block at 1a69:24b2 of size 512
-  USED block at 1a69:26b2 of size 82
-  USED block at 1a69:2704 of size 20
-  USED block at 1a69:2718 of size 20
-  USED block at 1a69:272c of size 20
-  USED block at 1a69:2740 of size 20
-  USED block at 1a69:2754 of size 20
-  FREE block at 1a69:2768 of size 55444
-  FREE block at 1a69:2768 of size 55444
+  USED block at 1991:2476 of size 12
+  USED block at 1991:2482 of size 20
+  USED block at 1991:2496 of size 20
+  USED block at 1991:24aa of size 20
+  USED block at 1991:24be of size 20
+  USED block at 1991:24d2 of size 20
+  FREE block at 1991:24e6 of size 56086
+  FREE block at 1991:24e6 of size 56086
 
 	== far ==
 
 ERROR - heap is damaged
-
 Memory Type         Total      Used       Free
 ----------------  --------   --------   --------
-Near		   56150	706	  55444
+Near		   56198	112	  56086
 Far		   0		0	  0
 ----------------  --------   --------   --------
-HC_coreleft = 55442
-HC_farcoreleft = 524266
+HC_coreleft = 56084
+HC_farcoreleft = 524268
+coreleft = 56086
+farcoreleft = 524268
+stackavail = 2794
+rcoreleft = 524266
 coreleft = 55444
 farcoreleft = 524266
 stackavail = 2794

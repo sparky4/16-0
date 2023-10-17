@@ -486,7 +486,8 @@ fh_info._pentry, fh_info._size );
 	HCL_heapstatLogWrite(heap_status, scratch);
 
 	strcpy(scratch,"\n");
-	strcat(scratch,kittengets(2,0,"Memory Type         Total      Used       Free\n"));
+	strcpy(scratch,"Memory Type         Total      Used       Free\n");
+//	strcat(scratch,kittengets(2,0,"Memory Type         Total      Used       Free\n"));
 	strcat(scratch,"----------------  --------   --------   --------\n");
 //--	printmeminfoline(&scratch, "Default", h_total, h_used, h_free);
 	printmeminfoline(scratch, "Near", nh_total, nh_used, nh_free);
