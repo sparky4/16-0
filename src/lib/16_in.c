@@ -416,6 +416,7 @@ void INL_GetJoyDelta(word joy,int *dx,int *dy/*,boolean adaptive*/)
 	longword	time;
 	JoystickDef	*def;
 static	longword	lasttime;
+	TimeCount = *clockw;
 
 	IN_GetJoyAbs(joy,&x,&y);
 	def = JoyDefs + joy;
@@ -508,13 +509,14 @@ IN_GetJoyButtonsDB(word joy)
 {
 	longword	lasttime;
 	word		result1,result2;
+	TimeCount = *clockw;
 
 	do
 	{
 		result1 = INL_GetJoyButtons(joy);
 		lasttime = TimeCount;
 		while (TimeCount == lasttime)
-			;
+		{};
 		result2 = INL_GetJoyButtons(joy);
 	} while (result1 != result2);
 	return(result1);
@@ -1286,6 +1288,7 @@ IN_IsUserInput(void)
 boolean IN_UserInput(longword delay)
 {
 	longword	lasttime;
+	TimeCount = *clockw;
 
 	lasttime = TimeCount;
 	IN_StartAck ();
