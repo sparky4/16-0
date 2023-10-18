@@ -198,7 +198,7 @@ static	Direction	DirTable[] =		// Quick lookup for total direction
 
 static	void			(*INL_KeyHook)(void);
 static	void interrupt	(*OldKeyVect)(void);
-static	char			*ParmStringsIN[] = {"nojoys","nomouse",nil};
+static	char			*ParmStrings[] = {"nojoys","nomouse",nil};
 static	void			INL_StartKbd(void);
 
 //	Internal routines
@@ -693,7 +693,7 @@ IN_Startup(void)
 	checkmouse = true;
 	for (i = 1;i < _argc;i++)
 	{
-		switch (US_CheckParm(_argv[i],ParmStringsIN))
+		switch (US_CheckParm(_argv[i],ParmStrings))
 		{
 		case 0:
 			checkjoys = false;
