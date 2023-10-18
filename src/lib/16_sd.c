@@ -718,7 +718,7 @@ asm	popf
 //	Stuff for digitized sounds
 //
 memptr
-SDL_LoadDigiSegment(word page, global_game_variables_t *gvar)
+SDL_LoadDigiSegment(word page)
 {
 	memptr	addr;
 
@@ -733,7 +733,7 @@ asm	out	dx,al
 #endif
 
 	addr = PM_GetSoundPage(page);
-	PM_SetPageLock(gvar->pm.fi.PMSoundStart + page,pml_Locked, gvar);
+	PM_SetPageLock(PMSoundStart + page,pml_Locked);
 
 #if 0	// for debugging
 asm	mov	dx,STATUS_REGISTER_1
@@ -768,7 +768,7 @@ SDL_PlayDigiSegment(memptr addr,word len)
 }
 
 void
-SD_StopDigitized(global_game_variables_t *gvar)
+SD_StopDigitized(void)
 {
 	int	i;
 
@@ -801,13 +801,13 @@ asm	cli
 asm	popf
 
 	for (i = DigiLastStart;i < DigiLastEnd;i++)
-		PM_SetPageLock(i + gvar->pm.fi.PMSoundStart,pml_Unlocked, gvar);
+		PM_SetPageLock(i + PMSoundStart,pml_Unlocked);
 	DigiLastStart = 1;
 	DigiLastEnd = 0;
 }
 
 void
-SD_Poll(global_game_variables_t *gvar)
+SD_Poll(void)
 {
 	if (DigiLeft && !DigiNextAddr)
 	{
@@ -815,7 +815,7 @@ SD_Poll(global_game_variables_t *gvar)
 		DigiLeft -= DigiNextLen;
 		if (!DigiLeft)
 			DigiLastSegment = true;
-		DigiNextAddr = SDL_LoadDigiSegment(DigiPage++, gvar);
+		DigiNextAddr = SDL_LoadDigiSegment(DigiPage++);
 	}
 	if (DigiMissed && DigiNextAddr)
 	{
@@ -832,7 +832,7 @@ SD_Poll(global_game_variables_t *gvar)
 }
 
 void
-SD_SetPosition(int leftpos,int rightpos, global_game_variables_t *gvar)
+SD_SetPosition(int leftpos,int rightpos)
 {
 	if
 	(
@@ -842,7 +842,7 @@ SD_SetPosition(int leftpos,int rightpos, global_game_variables_t *gvar)
 	||	(rightpos > 15)
 	||	((leftpos == 15) && (rightpos == 15))
 	)
-		Quit(gvar, "SD_SetPosition: Illegal position");
+		Quit("SD_SetPosition: Illegal position");
 
 	switch (DigiMode)
 	{
@@ -853,7 +853,7 @@ SD_SetPosition(int leftpos,int rightpos, global_game_variables_t *gvar)
 }
 
 void
-SD_PlayDigitized(word which,int leftpos,int rightpos, global_game_variables_t *gvar)
+SD_PlayDigitized(word which,int leftpos,int rightpos)
 {
 	word	len;
 	memptr	addr;
@@ -861,11 +861,11 @@ SD_PlayDigitized(word which,int leftpos,int rightpos, global_game_variables_t *g
 	if (!DigiMode)
 		return;
 
-	SD_StopDigitized(gvar);
+	SD_StopDigitized();
 	if (which >= NumDigi)
-		Quit(gvar, "SD_PlayDigitized: bad sound number");
+		Quit("SD_PlayDigitized: bad sound number");
 
-	SD_SetPosition(leftpos,rightpos, gvar);
+	SD_SetPosition(leftpos,rightpos);
 
 	DigiPage = DigiList[(which * 2) + 0];
 	DigiLeft = DigiList[(which * 2) + 1];
@@ -874,7 +874,7 @@ SD_PlayDigitized(word which,int leftpos,int rightpos, global_game_variables_t *g
 	DigiLastEnd = DigiPage + ((DigiLeft + (PMPageSize - 1)) / PMPageSize);
 
 	len = (DigiLeft >= PMPageSize)? PMPageSize : (DigiLeft % PMPageSize);
-	addr = SDL_LoadDigiSegment(DigiPage++, gvar);
+	addr = SDL_LoadDigiSegment(DigiPage++);
 
 	DigiPlaying = true;
 	DigiLastSegment = false;
@@ -884,7 +884,7 @@ SD_PlayDigitized(word which,int leftpos,int rightpos, global_game_variables_t *g
 	if (!DigiLeft)
 		DigiLastSegment = true;
 
-	SD_Poll(gvar);
+	SD_Poll();
 }
 
 void
@@ -916,14 +916,14 @@ SDL_DigitizedDone(void)
 }
 
 void
-SD_SetDigiDevice(SDSMode mode, global_game_variables_t *gvar)
+SD_SetDigiDevice(SDSMode mode)
 {
 	boolean	devicenotpresent;
 
 	if (mode == DigiMode)
 		return;
 
-	SD_StopDigitized(gvar);
+	SD_StopDigitized();
 
 	devicenotpresent = false;
 //SBSS	switch (mode)
@@ -958,29 +958,29 @@ SD_SetDigiDevice(SDSMode mode, global_game_variables_t *gvar)
 }
 
 void
-SDL_SetupDigi(global_game_variables_t *gvar)
+SDL_SetupDigi(void)
 {
 	memptr	list;
 	word	far *p,
 			pg;
 	int		i;
 
-	PM_UnlockMainMem(gvar);
-	MM_GetPtr(&list,PMPageSize, gvar);
-	PM_CheckMainMem(gvar);
-	p = (word far *)MK_FP(PM_GetPage(gvar->pm.fi.ChunksInFile - 1, gvar),0);
+	PM_UnlockMainMem();
+	MM_GetPtr(&list,PMPageSize);
+	PM_CheckMainMem();
+	p = (word far *)MK_FP(PM_GetPage(ChunksInFile - 1),0);
 	_fmemcpy((void far *)list,(void far *)p,PMPageSize);
-	pg = gvar->pm.fi.PMSoundStart;
+	pg = PMSoundStart;
 	for (i = 0;i < PMPageSize / (sizeof(word) * 2);i++,p += 2)
 	{
-		if (pg >= gvar->pm.fi.ChunksInFile - 1)
+		if (pg >= ChunksInFile - 1)
 			break;
 		pg += (p[1] + (PMPageSize - 1)) / PMPageSize;
 	}
-	PM_UnlockMainMem(gvar);
-	MM_GetPtr(MEMPTRCONV DigiList,i * sizeof(word) * 2, gvar);
+	PM_UnlockMainMem();
+	MM_GetPtr(MEMPTRCONV DigiList,i * sizeof(word) * 2);
 	_fmemcpy((void far *)DigiList,(void far *)list,i * sizeof(word) * 2);
-	MM_FreePtr(&list, gvar);
+	MM_FreePtr(&list);
 	NumDigi = i;
 
 	for (i = 0;i < LASTSOUND;i++)
@@ -1166,7 +1166,7 @@ void
 #else
 static void
 #endif
-SDL_ALPlaySound(AdLibSound far *sound, global_game_variables_t *gvar)
+SDL_ALPlaySound(AdLibSound far *sound)
 {
 	Instrument	__far *inst;
 	byte		huge *data;
@@ -1187,7 +1187,7 @@ asm	cli
 	if (!(inst->mSus | inst->cSus))
 	{
 	asm	popf
-		Quit(gvar, "SDL_ALPlaySound() - Bad instrument");
+		Quit("SDL_ALPlaySound() - Bad instrument");
 	}
 
 	SDL_AlSetFXInst(&alZeroInst);	// DEBUG
@@ -1393,7 +1393,8 @@ SDL_t0Service(void)
 static	word	count = 1;
 	boolean myackflag = 0;
 
-//00#if 0	// for debugging
+//00
+#if 0	// for debugging
 asm	mov	dx,STATUS_REGISTER_1
 asm	in	al,dx
 asm	mov	dx,ATR_INDEX
@@ -1401,7 +1402,8 @@ asm	mov	al,ATR_OVERSCAN
 asm	out	dx,al
 asm	mov	al,4	// red
 asm	out	dx,al
-//00#endif
+//00
+#endif
 
 	HackCount++;
 
@@ -1477,7 +1479,8 @@ end1:
 	else
 		outportb(0x20,0x20);	// Ack the interrupt
 
-//00#if 0	// for debugging
+//00
+#if 0	// for debugging
 asm	mov	dx,STATUS_REGISTER_1
 asm	in	al,dx
 asm	mov	dx,ATR_INDEX
@@ -1487,7 +1490,8 @@ asm	mov	al,3	// blue
 asm	out	dx,al
 asm	mov	al,0x20	// normal
 asm	out	dx,al
-//00#endif
+//00
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1559,12 +1563,12 @@ SDL_SetTimerSpeed(void)
 //
 ///////////////////////////////////////////////////////////////////////////
 boolean
-SD_SetSoundMode(SDMode mode, global_game_variables_t *gvar)
+SD_SetSoundMode(SDMode mode)
 {
 	boolean	result = false;
 	word	tableoffset;
 
-	SD_StopSound(gvar);
+	SD_StopSound();
 
 #ifndef	_MUSE_
 	if ((mode == sdm_AdLib) && !AdLibPresent)
@@ -1599,7 +1603,7 @@ SD_SetSoundMode(SDMode mode, global_game_variables_t *gvar)
 		SDL_ShutDevice();
 		SoundMode = mode;
 #ifndef	_MUSE_
-		SoundTable = (word *)(&gvar->ca.audiosegs[tableoffset]);
+		SoundTable = (word *)(&audiosegs[tableoffset]);
 #endif
 		SDL_StartDevice();
 	}
@@ -1653,7 +1657,7 @@ SD_SetMusicMode(SMMode mode)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-SD_Startup(global_game_variables_t *gvar)
+SD_Startup(void)
 {
 	int	i;
 
@@ -1713,7 +1717,7 @@ SD_Startup(global_game_variables_t *gvar)
 #endif
 	LocalTime = TimeCount = alTimeCount = 0;
 
-	SD_SetSoundMode(sdm_Off, gvar);
+	SD_SetSoundMode(sdm_Off);
 	SD_SetMusicMode(smm_Off);
 
 //SS	if (!ssNoCheck)
@@ -1746,7 +1750,7 @@ SD_Startup(global_game_variables_t *gvar)
 //SB						)
 //SB							port = (temp - 0x200) >> 4;
 //SB						else
-//SB							Quit(gvar, "SD_Startup: Unsupported address value in BLASTER");
+//SB							Quit("SD_Startup: Unsupported address value in BLASTER");
 //SB						break;
 //SB					case 'I':
 //SB						temp = strtol(env + 1,&env,10);
@@ -1761,14 +1765,14 @@ SD_Startup(global_game_variables_t *gvar)
 //SB							sbIntVec = sbIntVectors[sbInterrupt];
 //SB						}
 //SB						else
-//SB							Quit(gvar, "SD_Startup: Unsupported interrupt value in BLASTER");
+//SB							Quit("SD_Startup: Unsupported interrupt value in BLASTER");
 //SB						break;
 //SB					case 'D':
 //SB						temp = strtol(env + 1,&env,10);
 //SB						if ((temp == 0) || (temp == 1) || (temp == 3))
 //SB							SDL_SBSetDMA(temp);
 //SB						else
-//SB							Quit(gvar, "SD_Startup: Unsupported DMA value in BLASTER");
+//SB							Quit("SD_Startup: Unsupported DMA value in BLASTER");
 //SB						break;
 //SB					default:
 //SB						while (isspace(*env))
@@ -1789,7 +1793,7 @@ SD_Startup(global_game_variables_t *gvar)
 //SB	if (SoundBlasterPresent)
 //SB		SDL_StartSB();
 
-//++++	SDL_SetupDigi(gvar);
+//++++	SDL_SetupDigi();
 
 	SD_Started = true;
 }
@@ -1801,7 +1805,7 @@ SD_Startup(global_game_variables_t *gvar)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-SD_Default(boolean gotit,SDMode sd,SMMode sm, global_game_variables_t *gvar)
+SD_Default(boolean gotit,SDMode sd,SMMode sm)
 {
 	boolean	gotsd,gotsm;
 
@@ -1824,7 +1828,7 @@ SD_Default(boolean gotit,SDMode sd,SMMode sm, global_game_variables_t *gvar)
 			sd = sdm_PC;
 	}
 	if (sd != SoundMode)
-		SD_SetSoundMode(sd, gvar);
+		SD_SetSoundMode(sd);
 
 
 	if (gotsm)	// Make sure requested music hardware is available
@@ -1852,13 +1856,13 @@ SD_Default(boolean gotit,SDMode sd,SMMode sm, global_game_variables_t *gvar)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-SD_Shutdown(global_game_variables_t *gvar)
+SD_Shutdown(void)
 {
 	if (!SD_Started)
 		return;
 
 	SD_MusicOff();
-	SD_StopSound(gvar);
+	SD_StopSound();
 	SDL_ShutDevice();
 	SDL_CleanDevice();
 
@@ -1912,7 +1916,7 @@ SD_PositionSound(int leftvol,int rightvol)
 //
 ///////////////////////////////////////////////////////////////////////////
 boolean
-SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
+SD_PlaySound(soundnames sound)
 {
 	boolean		ispos;
 	SoundCommon	far *s;
@@ -1931,7 +1935,7 @@ SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
 
 	s = MK_FP(SoundTable[sound],0);
 	if ((SoundMode != sdm_Off) && !s)
-		Quit(gvar, "SD_PlaySound() - Uncached sound");
+		Quit("SD_PlaySound() - Uncached sound");
 
 	if ((DigiMode != sds_Off) && (DigiMap[sound] != -1))
 	{
@@ -1942,7 +1946,7 @@ SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
 
 			SDL_PCStopSound();
 
-			SD_PlayDigitized(DigiMap[sound],lp,rp, gvar);
+			SD_PlayDigitized(DigiMap[sound],lp,rp);
 			SoundPositioned = ispos;
 			SoundNumber = sound;
 			SoundPriority = s->priority;
@@ -1954,14 +1958,14 @@ SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
 			if (DigiPriority && !DigiNumber)
 			{
 			asm	popf
-				Quit(gvar, "SD_PlaySound: Priority without a sound");
+				Quit("SD_PlaySound: Priority without a sound");
 			}
 		asm	popf
 
 			if (s->priority < DigiPriority)
 				return(false);
 
-			SD_PlayDigitized(DigiMap[sound],lp,rp, gvar);
+			SD_PlayDigitized(DigiMap[sound],lp,rp);
 			SoundPositioned = ispos;
 			DigiNumber = sound;
 			DigiPriority = s->priority;
@@ -1973,7 +1977,7 @@ SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
 	if (SoundMode == sdm_Off)
 		return(false);
 	if (!s->length)
-		Quit(gvar, "SD_PlaySound() - Zero length sound");
+		Quit("SD_PlaySound() - Zero length sound");
 	if (s->priority < SoundPriority)
 		return(false);
 
@@ -1983,7 +1987,7 @@ SD_PlaySound(soundnames sound, global_game_variables_t *gvar)
 		SDL_PCPlaySound((void far *)s);
 		break;
 	case sdm_AdLib:
-		SDL_ALPlaySound((void far *)s, gvar);
+		SDL_ALPlaySound((void far *)s);
 		break;
 	}
 
@@ -2026,10 +2030,10 @@ SD_SoundPlaying(void)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-SD_StopSound(global_game_variables_t *gvar)
+SD_StopSound(void)
 {
 	if (DigiPlaying)
-		SD_StopDigitized(gvar);
+		SD_StopDigitized();
 
 	switch (SoundMode)
 	{
