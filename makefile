@@ -253,7 +253,8 @@ SPRIUTILEXEC = &
 EXEC = &
 	16.exe &
 	bakapi.exe &
-	exmmtest.exe
+	exmmtest.exe &
+	inputest.exe
 
 !ifdef __LINUX__
 #++?EXEC += $(SPRIUTILEXEC)
@@ -297,7 +298,7 @@ test0.exe:		test0.$(OBJ)
 fonttest.exe:	 fonttest.$(OBJ) gfx.lib
 #fonttes0.exe:	fonttes0.$(OBJ) $(16LIB)
 fontgfx.exe:	fontgfx.$(OBJ) gfx.lib $(DOSLIB)
-inputest.exe:	 inputest.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
+inputest.exe:	 inputest.$(OBJ) 16_in.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_dbg.$(OBJ) 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_hc.$(OBJ)#$(16LIB) $(DOSLIB) gfx.lib
 sountest.exe:	sountest.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
 imfplay.exe:		imfplay.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
 sdtest.exe:	sdtest.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib

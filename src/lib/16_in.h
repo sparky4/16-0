@@ -162,7 +162,7 @@ typedef	enum		{
 							ctrl_Keyboard1 = ctrl_Keyboard,ctrl_Keyboard2,
 						ctrl_Joystick,
 							ctrl_Joystick1 = ctrl_Joystick,ctrl_Joystick2,
-						ctrl_Mouse,
+						ctrl_Mouse
 					} ControlType;
 typedef	enum		{
 						motion_Left = -1,motion_Up = -1,
@@ -204,6 +204,17 @@ typedef	struct		{
 									joyMultXH,joyMultYH;
 					} JoystickDef;
 
+// Global variables
+extern	boolean		Keyboard[],
+					MousePresent,
+					JoysPresent[];
+extern	boolean		Paused;
+extern	char		LastASCII;
+extern	ScanCode	LastScan;
+extern	KeyboardDef	KbdDefs[];
+extern	JoystickDef	JoyDefs[];
+extern	ControlType	Controls[MaxPlayers];
+
 /*
 =============================================================================
 
@@ -238,7 +249,6 @@ extern	ScanCode	IN_WaitForKey(void);
 extern	word		IN_GetJoyButtonsDB(word joy);
 extern	byte		*IN_GetScanName(ScanCode);
 
-
 byte	IN_MouseButtons (void);
 word	IN_JoyButtons (void);
 
@@ -259,5 +269,7 @@ void		IN_ClearKey(byte code),
 		IN_KbdLED();
 ScanCode	IN_GetLastScan(),
 		IN_GetCurCode();
+
+boolean IN_KeyDown(byte code);
 
 #endif

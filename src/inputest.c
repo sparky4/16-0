@@ -28,19 +28,23 @@
 #define INPUTEST_JOYSTICKPADTEST
 //#define INPUTEST_MOUSETEST
 
+ControlInfo	c;
+byte	far	maphead;
+
 void
 main(int argc, char *argv[])
 {
-	static global_game_variables_t gvar;
+//	static global_game_variables_t gvar;
 #ifdef __DEBUG_InputMgr__
 	dbg_testkeyin=1;
 	dbg_testcontrolnoisy=1;
 	dbg_joymousedelta=1;
 #endif
-	start_timer(&gvar);
-	//Startup16(&gvar);
-	IN_Startup(&gvar);
-	IN_Default(0,&gvar.player[0],
+	//start_timer();
+	clock();
+	//Startup16();
+	IN_Startup();
+/*	IN_Default(0,player[0],
 				#if !defined(INPUTEST_JOYSTICKPADTEST) && !defined(INPUTEST_MOUSETEST)
 								ctrl_Keyboard1
 				#endif
@@ -50,8 +54,8 @@ main(int argc, char *argv[])
 				#if !defined(INPUTEST_JOYSTICKPADTEST) && defined(INPUTEST_MOUSETEST)
 								ctrl_Mouse
 				#endif
-												, &gvar);
-	IN_SetControlType(&gvar.player[0],
+												);*/
+	IN_SetControlType(0,
 				#if !defined(INPUTEST_JOYSTICKPADTEST) && !defined(INPUTEST_MOUSETEST)
 								ctrl_Keyboard1
 				#endif
@@ -63,16 +67,16 @@ main(int argc, char *argv[])
 				#endif
 												);
 
-	gvar.player[0].enti.q=1;
-	gvar.player[0].enti.d=2;
-	gvar.player[0].enti.spt=4;
+//	gvar.player[0].enti.q=1;
+//	gvar.player[0].enti.d=2;
+//	gvar.player[0].enti.spt=4;
 
 	printf("dbg_testkeyin=%u	dbg_testcontrolnoisy=%u\nloop if this is not responsive then please KILL or reset machine sorry!!\n", dbg_testkeyin, dbg_testcontrolnoisy);
-	while(!gvar.in.inst->Keyboard[sc_Escape])
+	while(!IN_KeyDown(sc_Escape))
 	{
-//0000		shinkutxt(&gvar);
-		IN_ReadControl(&gvar.player[0], &gvar);
-		switch(gvar.player[0].enti.d)
+//0000		shinkutxt();
+		IN_ReadControl(0,&c);
+/*		switch(c.dir)
 		{
 		//right movement
 		case 3:
@@ -105,10 +109,10 @@ main(int argc, char *argv[])
 				gvar.player[0].enti.q++;
 			} else { gvar.player[0].enti.q = 1; gvar.player[0].enti.d = 2; }
 		break;
-	}
+	}*/
 		//printf("%u\n", gvar.in.inst->Keyboard[sc_Escape]);
 		//if(
-		if(gvar.in.inst->Keyboard[88])	//speed
+/*		if(gvar.in.inst->Keyboard[88])	//speed
 		{
 			switch(gvar.kurokku.fpscap)
 			{
@@ -120,10 +124,10 @@ main(int argc, char *argv[])
 				break;
 			}
 			//IN_Ack();
-		}
+		}*/
 	}
-	IN_Shutdown(&gvar);
-		//Shutdown16(&gvar);
+	IN_Shutdown();
+		//Shutdown16();
 	//printf("%u\n", in.Keyboard[sc_Escape]);
 	printf("inputest.exe ");
 	printf("version %s\n", VERSION);
@@ -132,6 +136,6 @@ main(int argc, char *argv[])
 	printf("testcontrolnoisy=%u\n", dbg_testcontrolnoisy);
 	printf("dbg_joymousedelta=%u\n", dbg_joymousedelta);
 #endif
-	printf("JoysPresent={%d,%d}\n", gvar.in.JoysPresent[0], gvar.in.JoysPresent[1]);
-	printf("MousePresent=%d\n", gvar.in.MousePresent);
+	printf("JoysPresent={%d,%d}\n", JoysPresent[0], JoysPresent[1]);
+	printf("MousePresent=%d\n", MousePresent);
 }

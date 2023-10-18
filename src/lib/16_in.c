@@ -864,7 +864,7 @@ IN_ReadControl(int player,ControlInfo *info)
 			int			dx,dy;
 			Motion		mx,my;
 			ControlType	type;
-			sword conpee;
+//			sword conpee;
 //			byte dir=DirTable[2];
 register	KeyboardDef	*def;
 
