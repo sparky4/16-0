@@ -34,10 +34,10 @@
 #include "src/lib/16_head.h"
 #include "src/lib/16_timer.h"
 #include "src/lib/16_dbg.h"
-#ifdef __WATCOMC__	//borland C BCEXMM.EXE
+/*#ifdef __WATCOMC__	//borland C BCEXMM.EXE
 #include "src/lib/16_spri.h"
 #include "src/lib/16_enti.h"
-#endif
+#endif*/
 
 #define	KeyInt	9	// The keyboard ISR number
 
@@ -46,12 +46,12 @@
 #define	JoyScaleShift	8
 #define	MaxJoyValue		5000
 
-//#define	MaxPlayers		2//future plans for multiple playable charaters and being able to alternate
+#define	MaxPlayers		4//future plans for multiple playable charaters and being able to alternate
 #define	MaxKbds		2
 #define	MaxJoys		2
 #define	NumCodes	128
 
-//typedef	byte		ScanCode;
+typedef	byte		ScanCode;
 #define	sc_None			0
 #define	sc_Bad			0xff
 #define	sc_Return		0x1c
@@ -144,12 +144,11 @@
 #define	sc_ForeSlash	0x35	//	/ ?
 
 // 	Stuff for the mouse
-//moved to 16_tdef.h
-/*#define	MReset		0
+#define	MReset		0
 #define	MButtons	3
 #define	MDelta		11
 
-#define	MouseInt	0x33*/
+#define	MouseInt	0x33
 #define	Mouse(x)	_AX = x,geninterrupt(MouseInt)
 
 #ifdef DEMO0
@@ -157,9 +156,8 @@ typedef	enum		{
 						demo_Off,demo_Record,demo_Playback,demo_PlayDone
 					} Demo;
 #endif
-//moved to 16_tdef.h
-/*typedef	enum		{
-						//ctrl_None,				// MDM (GAMERS EDGE) - added
+typedef	enum		{
+						ctrl_None,				// MDM (GAMERS EDGE) - added
 						ctrl_Keyboard,
 							ctrl_Keyboard1 = ctrl_Keyboard,ctrl_Keyboard2,
 						ctrl_Joystick,
@@ -172,11 +170,11 @@ typedef	enum		{
 						motion_Right = 1,motion_Down = 1
 					} Motion;
 typedef	enum		{
-						dir_North,//dir_NorthEast,
-						dir_West,//dir_Nortinest,
+						dir_North,dir_NorthEast,
+						dir_West,dir_NorthWest,
 						dir_None,
-						dir_East,//,dir_SouthEast,
-						dir_South,//dir_Soutinest,
+						dir_East,dir_SouthEast,
+						dir_South,dir_SouthWest
 					} Direction;
 typedef	struct		{
 						boolean	near	button0,button1,button2,button3;
@@ -184,17 +182,17 @@ typedef	struct		{
 						Motion	near	xaxis,yaxis;
 						Direction near	dir;
 					} CursorInfo;
-
+typedef	CursorInfo	ControlInfo;
 typedef	struct		{
 						ScanCode near	button0,button1,
-									//upleft,
+									upleft,
 									up,
 									down,
 									left,
-									right
-									//upright,
-									//downleft,
-									//,downright
+									right,
+									upright,
+									downleft,
+									downright
 									;
 					} KeyboardDef;
 typedef	struct		{
@@ -204,7 +202,7 @@ typedef	struct		{
 									joyMaxX,joyMaxY,
 									joyMultXL,joyMultYL,
 									joyMultXH,joyMultYH;
-					} JoystickDef;*/
+					} JoystickDef;
 
 /*
 =============================================================================
@@ -220,34 +218,34 @@ typedef	struct		{
 #endif
 
 //	Internal routines
-extern	void		IN_Startup(global_game_variables_t *gvar),IN_Shutdown(global_game_variables_t *gvar),
-					IN_Default(boolean gotit,player_t *player,ControlType nt, global_game_variables_t *gvar),
+extern	void		IN_Startup(void),IN_Shutdown(void),
+					IN_Default(boolean gotit,ControlType in),
 					IN_SetKeyHook(void (*)()),
 					IN_ClearKeysDown(void),
-					IN_ReadCursor(CursorInfo *, global_game_variables_t *gvar),
-					IN_ReadControl(player_t *player, global_game_variables_t *gvar),
-					IN_SetControlType(player_t *player,ControlType type),
+					IN_ReadCursor(CursorInfo *),
+					IN_ReadControl(int player,ControlInfo *info),
+					IN_SetControlType(int player,ControlType type),
 					IN_GetJoyAbs(word joy,word *xp,word *yp),
 					IN_SetupJoy(word joy,word minx,word maxx,
-								word miny,word maxy, global_game_variables_t *gvar),
+								word miny,word maxy),
 #if DEMO0
 					IN_StopDemo(void),IN_FreeDemoBuffer(void),
 #endif
-					IN_Ack(global_game_variables_t *gvar),IN_AckBack(void);
-extern	boolean		IN_UserInput(word delay, global_game_variables_t *gvar);
+					IN_Ack(void),IN_AckBack(void);
+extern	boolean		IN_UserInput(longword delay);
 extern	char		IN_WaitForASCII(void);
 extern	ScanCode	IN_WaitForKey(void);
 extern	word		IN_GetJoyButtonsDB(word joy);
 extern	byte		*IN_GetScanName(ScanCode);
 
 
-byte	IN_MouseButtons (global_game_variables_t *gvar);
+byte	IN_MouseButtons (void);
 word	IN_JoyButtons (void);
 
-void INL_GetJoyDelta(word joy,int *dx,int *dy/*,boolean adaptive*/, global_game_variables_t *gvar);
-void IN_StartAck(global_game_variables_t *gvar);
-boolean IN_CheckAck (global_game_variables_t *gvar);
-boolean IN_IsUserInput(global_game_variables_t *gvar);
+void INL_GetJoyDelta(word joy,int *dx,int *dy/*,boolean adaptive*/);
+void IN_StartAck(void);
+boolean IN_CheckAck (void);
+boolean IN_IsUserInput(void);
 #if DEMO0
 boolean IN_StartDemoRecord(word bufsize);
 void IN_StartDemoPlayback(byte *buffer,word bufsize);

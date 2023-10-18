@@ -231,6 +231,7 @@ typedef struct {
 
 //from 16_in
 //==========================================================================
+#if 0
 #define	KeyInt		9	// The keyboard ISR number
 
 //
@@ -328,7 +329,7 @@ typedef struct// inconfig
 	JoystickDef	JoyDefs[MaxJoys];
 	inst_t	*inst;
 } in_info_t;
-
+#endif
 //==========================================================================
 
 typedef	struct
@@ -343,8 +344,8 @@ typedef	struct
 
 	//input
 	byte near		pdir;	//previous direction~ used in IN_16 in IN_ReadControl()
-	CursorInfo		info;
-	ControlType	Controls;
+//	CursorInfo		info;
+//	ControlType	Controls;
 	word walktype;
 //newer vars
 	int dx, dy, delta;	//TODO: what is this? ^^
@@ -860,8 +861,8 @@ typedef struct glob_game_vars
 //	loghandle_t	handle;	//handles for file logging
 	kurokku_t	kurokku;	//clock struct
 //		mminfo_t	mm; mminfotype	mmi;	// mm stuff
-	in_info_t	in;		// 16_in info
-	player_t	player[MaxPlayers];	// player vars
+//	in_info_t	in;		// 16_in info
+//	player_t	player[MaxPlayers];	// player vars
 	map_view_t	mv[4];
 	map_t		map;
 //	sw_t		sw;

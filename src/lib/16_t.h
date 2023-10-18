@@ -83,7 +83,6 @@ typedef void _seg * memptr;
 #define _fheapwalk farheapwalk
 
 //heapinfo vars
-#define _heapinfo heapinfo
 #define _pentry	ptr
 #define _size	size
 #define _useflag	in_use
@@ -98,6 +97,7 @@ typedef void _seg * memptr;
 //#define SDFPTRANDPERCONV	(struct diskfree_t *)&
 //#define OBTPTRANDPERCONV	(void const *)&
 //#define SDTPTRANDPERCONV	(struct dostime_t *)&
+#define heapinfo _heapinfo
 
 #define _argv __argv
 #define _argc __argc

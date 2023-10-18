@@ -330,7 +330,7 @@ size_t _basedcoreleft(void)
 
 size_t HC_GetFreeSize(void)
 {
-	struct _heapinfo h_info;
+	struct heapinfo h_info;
 	int heap_status;
 	size_t h_free=0, h_total=0, h_used=0;
 
@@ -347,7 +347,7 @@ size_t HC_GetFreeSize(void)
 }
 */
 
-void HCL_HeapWalking (struct _heapinfo *h_info, hc_use_t *hu, unsigned nearfarswitch)
+void HCL_HeapWalking (struct heapinfo *h_info, hc_use_t *hu, unsigned nearfarswitch)
 {
 	hu->h_free=0; hu->h_total=0; hu->h_used=0;
 
@@ -365,12 +365,12 @@ void HCL_HeapWalking (struct _heapinfo *h_info, hc_use_t *hu, unsigned nearfarsw
 
 dword HC_GetFarFreeSize(void)
 {
-	struct _heapinfo h_info;
+	struct heapinfo h_info;
 	hc_use_t hu;
 	HCL_HeapWalking (&h_info, &hu, 1);
 	return hu.h_free;
 #if 0
-	struct _heapinfo fh_info;
+	struct heapinfo fh_info;
 	int heap_status;
 	dword fh_free=0, fh_total=0, fh_used=0;
 
@@ -389,12 +389,12 @@ dword HC_GetFarFreeSize(void)
 
 size_t HC_GetNearFreeSize(void)
 {
-	struct _heapinfo h_info;
+	struct heapinfo h_info;
 	hc_use_t hu;
 	HCL_HeapWalking (&h_info, &hu, 0);
 	return hu.h_free;
 #if 0
-	struct _heapinfo nh_info;
+	struct heapinfo nh_info;
 	int heap_status;
 	size_t nh_free=0, nh_total=0, nh_used=0;
 
@@ -413,7 +413,7 @@ size_t HC_GetNearFreeSize(void)
 
 void HC_heapdump(void)
 {
-	struct _heapinfo fh_info, nh_info;//, h_info;
+	struct heapinfo fh_info, nh_info;//, h_info;
 	int heap_status;
 	size_t nh_free, fh_free, nh_total, fh_total, nh_used, fh_used;//,	h_free, h_total, h_used;
 	byte	scratch[1024],str[16];
