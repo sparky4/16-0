@@ -1163,7 +1163,95 @@ ret
 }
 }
 
+#if 0
+#define VGAWRITEMODE(x) asm{
+		cli
+		mov	dx,GC_INDEX
+		mov	al,GC_MODE
+		out	dx,al
+		inc	dx
+		in	al,dx
+		and	al,252
+		or	al,x
+		out	dx,al
+		sti
+}
 
+#define VGAMAPMASK(x) asm{
+		cli
+		mov	dx,SC_INDEX
+		mov	al,SC_MAPMASK
+		mov	ah,x
+		out	dx,ax
+		sti
+}
+
+#define VGAREADMAP(x) asm{
+		cli
+		mov	dx,GC_INDEX
+		mov	al,GC_READMAP
+		mov	ah,x
+		out	dx,ax
+		sti
+}
+
+#define EGABITMASK(x) asm{
+		mov	dx,GC_INDEX
+		mov	ax,GC_BITMASK+256*x
+		out	dx,ax
+		sti
+}
+#endif
+void VGAWRITEMODE(byte x)
+{
+	__asm {
+		cli
+		mov	dx,GC_INDEX
+		mov	al,GC_MODE
+		out	dx,al
+		inc	dx
+		in	al,dx
+		and	al,252
+		or	al,x
+		out	dx,al
+		sti
+	}
+}
+
+void VGAMAPMASK(byte x)
+{
+	__asm {
+		cli
+		mov	dx,SC_INDEX
+		mov	al,SC_MAPMASK
+		mov	ah,x
+		out	dx,ax
+		sti
+	}
+}
+
+void VGAREADMAP(byte x)
+{
+	__asm {
+		cli
+		mov	dx,GC_INDEX
+		mov	al,GC_READMAP
+		mov	ah,x
+		out	dx,ax
+		sti
+	}
+}
+
+void VGABITMASK(byte x)
+{
+	word q = 256*x;
+	__asm {
+		mov	dx,GC_INDEX
+		mov	ax,GC_BITMASK+q
+		out	dx,ax
+		sti
+	}
+}
 
 
 
