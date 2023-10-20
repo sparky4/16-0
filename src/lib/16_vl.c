@@ -47,14 +47,16 @@ boolean		fastpalette;				// if true, use outsb to set
 
 byte		far	palette1[256][3],far palette2[256][3];
 
+unsigned	timecount;
+
 //===========================================================================
 
 // asm
 
 int	 VL_VideoID (void);
-void VL_SetCRTC (int crtc);
-void VL_SetScreen (int crtc, int pelpan);
-word VL_WaitVBL (word vbls);
+//void VL_SetCRTC (word crtc);
+//void VL_SetScreen (word crtc, word pelpan);
+//void VL_WaitVBL (word num);
 
 //===========================================================================
 
@@ -265,7 +267,7 @@ void VL_DePlaneVGA (void)
 // enter mode X
 //
 word i;
-dword far*ptr=(dword far*)SCREENSEG;      /* used for faster screen clearing */
+//dword far*ptr=(dword far*)SCREENSEG;      /* used for faster screen clearing */
 word CRTParms[] = {
 	0x0d06,		/* vertical total */
 	0x3e07,		/* overflow (bit 8 of vertical counts) */
@@ -283,16 +285,16 @@ word CRTParms[] = {
 int CRTParmCount = sizeof(CRTParms) / sizeof(CRTParms[0]);
 
 /* disable chain4 mode */
-outportw(SC_INDEX, 0x0604);
+outport(SC_INDEX, 0x0604);
 
 /* synchronous reset while setting Misc Output */
-outportw(SC_INDEX, 0x0100);
+outport(SC_INDEX, 0x0100);
 
 /* select 25 MHz dot clock & 60 Hz scanning rate */
 outportb(MISC_OUTPUT, 0xe3);
 
 /* undo reset (restart sequencer) */
-outportw(SC_INDEX, 0x0300);
+outport(SC_INDEX, 0x0300);
 
 /* reprogram the CRT controller */
 outport(CRTC_INDEX, 0x11); /* VSync End reg contains register write prot */
@@ -300,7 +302,7 @@ outport(CRTC_DATA, 0x7f);  /* get current write protect on varios regs */
 
 /* send the CRTParms */
 for(i=0; i<CRTParmCount; i++) {
-	outportw(CRTC_INDEX, CRTParms[i]);
+	outport(CRTC_INDEX, CRTParms[i]);
 }
 
 }
@@ -450,13 +452,14 @@ void VL_SetPalette (byte far *palette)
 	//	for (i=0;i<768;i++)
 	//		outportb(PEL_DATA,*palette++);
 
-	asm	mov	dx,PEL_WRITE_ADR
-	asm	mov	al,0
-	asm	out	dx,al
-	asm	mov	dx,PEL_DATA
-	asm	lds	si,[palette]
+	__asm {
+		mov	dx,PEL_WRITE_ADR
+		mov	al,0
+		out	dx,al
+		mov	dx,PEL_DATA
+		lds	si,[palette]
 
-	asm	test	[ss:fastpalette],1
+		test	[ss:fastpalette],1
 	//asm	jz	slowset
 	//
 	// set palette fast for cards that can take it
@@ -468,20 +471,39 @@ void VL_SetPalette (byte far *palette)
 	//
 	// set palette slowly for some video cards
 	//
+#ifdef __BORLANDC__
+	}
+#endif
 	slowset:
-	asm	mov	cx,256
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		mov	cx,256
+#ifdef __BORLANDC__
+	}
+#endif
 	setloop:
-	asm	lodsb
-	asm	out	dx,al
-	asm	lodsb
-	asm	out	dx,al
-	asm	lodsb
-	asm	out	dx,al
-	asm	loop	setloop
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		lodsb
+		out	dx,al
+		lodsb
+		out	dx,al
+		lodsb
+		out	dx,al
+		loop	setloop
 
+#ifdef __BORLANDC__
+	}
+#endif
 	done:
-	asm	mov	ax,ss
-	asm	mov	ds,ax
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		mov	ax,ss
+		mov	ds,ax
+	}
 
 }
 
@@ -937,33 +959,41 @@ void VL_LatchToScreen (unsigned source, int width, int height, int x, int y)
 	VGAWRITEMODE(1);
 	VGAMAPMASK(15);
 
-	asm	mov	di,[y]				// dest = bufferofs+ylookup[y]+(x>>2)
-	asm	shl	di,1
-	asm	mov	di,[WORD PTR ylookup+di]
-	asm	add	di,[bufferofs]
-	asm	mov	ax,[x]
-	asm	shr	ax,1
-	asm	shr	ax,1
-	asm	add	di,ax
+	__asm {
+		mov	di,[y]				// dest = bufferofs+ylookup[y]+(x>>2)
+		shl	di,1
+		mov	di,[WORD PTR ylookup+di]
+		add	di,[bufferofs]
+		mov	ax,[x]
+		shr	ax,1
+		shr	ax,1
+		add	di,ax
 
-	asm	mov	si,[source]
-	asm	mov	ax,[width]
-	asm	mov	bx,[linewidth]
-	asm	sub	bx,ax
-	asm	mov	dx,[height]
-	asm	mov	cx,SCREENSEG
-	asm	mov	ds,cx
-	asm	mov	es,cx
+		mov	si,[source]
+		mov	ax,[width]
+		mov	bx,[linewidth]
+		sub	bx,ax
+		mov	dx,[height]
+		mov	cx,SCREENSEG
+		mov	ds,cx
+		mov	es,cx
 
+#ifdef __BORLANDC__
+	}
+#endif
 	drawline:
-	asm	mov	cx,ax
-	asm	rep movsb
-	asm	add	di,bx
-	asm	dec	dx
-	asm	jnz	drawline
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		mov	cx,ax
+		rep movsb
+		add	di,bx
+		dec	dx
+		jnz	drawline
 
-	asm	mov	ax,ss
-	asm	mov	ds,ax
+		mov	ax,ss
+		mov	ds,ax
+}
 
 	VGAWRITEMODE(0);
 }
@@ -1303,6 +1333,7 @@ void VGABITMASK(byte x)
 
 
 
+
 //===========================================================================
 
 
@@ -1314,11 +1345,15 @@ void VGABITMASK(byte x)
 //
 //==============
 
-//	VL_WaitVBL  num:WORD
-word	VL_WaitVBL(
-
+void VL_WaitVBL (word num)
+{
+#ifdef __WATCOMC__
+	__asm {
+#endif
 @@wait:
-
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	mov	dx,STATUS_REGISTER_1
 
 	mov	cx,[num]
@@ -1326,21 +1361,29 @@ word	VL_WaitVBL(
 // wait for a display signal to make sure the raster isn't in the middle
 // of a sync
 //
+#ifdef __BORLANDC__
+	}
+#endif
 @@waitnosync:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	in	al,dx
 	test	al,8
 	jnz	@@waitnosync
-
-
+#ifdef __BORLANDC__
+	}
+#endif
 @@waitsync:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	in	al,dx
 	test	al,8
 	jz	@@waitsync
 
 	loop	@@waitnosync
 	}
-return num
-
 }
 
 
@@ -1352,9 +1395,9 @@ return num
 //
 //==============
 
-PROC	VL_SetCRTC  crtc:WORD
-PUBLIC	VL_SetCRTC
-
+void	VL_SetCRTC (word crtc)
+{
+	__asm {
 //
 // wait for a display signal to make sure the raster isn't in the middle
 // of a sync
@@ -1362,8 +1405,13 @@ PUBLIC	VL_SetCRTC
 	cli
 
 	mov	dx,STATUS_REGISTER_1
-
+#ifdef __BORLANDC__
+	}
+#endif
 @@waitdisplay:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	in	al,dx
 	test	al,1	//1 = display is disabled (HBL / VBL)
 	jnz	@@waitdisplay
@@ -1392,9 +1440,8 @@ PUBLIC	VL_SetCRTC
 
 	sti
 
-	ret
-
-ENDP
+}
+}
 
 
 
@@ -1406,8 +1453,10 @@ ENDP
 //
 //==============
 
-PROC	VL_SetScreen  crtc:WORD, pel:WORD
-PUBLIC	VL_SetScreen
+//PROC	VL_SetScreen  crtc:WORD, pel:WORD
+void	VL_SetScreen (word crtc, word pel)
+{
+	__asm {
 
 
 	mov	cx,[timecount]		// if timecount goes up by two, the retrace
@@ -1419,17 +1468,35 @@ PUBLIC	VL_SetScreen
 // wait for a display signal to make sure the raster isn't in the middle
 // of a sync
 //
+#ifdef __BORLANDC__
+	}
+#endif
 @@waitdisplay:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	in	al,dx
 	test	al,1	//1 = display is disabled (HBL / VBL)
 	jnz	@@waitdisplay
 
-
+#ifdef __BORLANDC__
+	}
+#endif
 @@loop:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	sti
-	jmp	$+2
+	jmp	comparetimecount
 	cli
 
+#ifdef __BORLANDC__
+	}
+#endif
+comparetimecount:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	cmp	[timecount],cx		// will only happen if an interrupt is
 	jae	@@setcrtc			// straddling the entire retrace period
 
@@ -1468,9 +1535,13 @@ PUBLIC	VL_SetScreen
 	test	al,1
 	jz	@@loop
 
-
+#ifdef __BORLANDC__
+	}
+#endif
 @@setcrtc:
-
+#ifdef __BORLANDC__
+	__asm {
+#endif
 
 //
 // set CRTC start
@@ -1498,15 +1569,22 @@ PUBLIC	VL_SetScreen
 	mov	dx,ATR_INDEX
 	mov	al,ATR_PELPAN or 20h
 	out	dx,al
-	jmp	$+2
-	mov	al,[BYTE pel]		//pel pan value
+	jmp	end
+	mov	al,[BYTE ptr pel]		//pel pan value
 	out	dx,al
+
+#ifdef __BORLANDC__
+	}
+#endif
+end:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 
 	sti
 
-	ret
-
-ENDP
+	}
+}
 
 
 //===========================================================================
@@ -1522,9 +1600,11 @@ ENDP
 //
 //============================================================================
 
-PROC	VL_ScreenToScreen	source:WORD, dest:WORD, wide:WORD, height:WORD
-PUBLIC	VL_ScreenToScreen
-USES	SI,DI
+//PROC	VL_ScreenToScreen	source:WORD, dest:WORD, wide:WORD, height:WORD
+void	VL_ScreenToScreen (word source, word dest, word wide, word height)
+{
+	__asm {
+//USES	SI,DI
 
 	pushf
 	cli
@@ -1555,7 +1635,13 @@ USES	SI,DI
 	mov	dx,[height]				//scan lines to draw
 	mov	ax,[wide]
 
+#ifdef __BORLANDC__
+	}
+#endif
 @@lineloop:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	mov	cx,ax
 	rep	movsb
 	add	si,bx
@@ -1572,15 +1658,12 @@ USES	SI,DI
 	mov	ax,ss
 	mov	ds,ax					//restore turbo's data segment
 
-	ret
-
-ENDP
-
+	}
+}
 
 //===========================================================================
 
 
-	MASM
 //อออออออออออออออออออออออออออออออออออออออออออออออออออออออออ
 //
 // Name:	VL_VideoID
@@ -1607,38 +1690,38 @@ ENDP
 // Equates
 //
 //อออออออออออออออออออออออออออออออออออออออออออออออออออออออออ
-VIDstruct	STRUC		// corresponds to C data structure
 
-Video0Type	DB	?	// first subsystem type
-Display0Type	DB	? 	// display attached to first subsystem
+// Equates
+#define MDA 1
+#define CGA 2
+#define EGA 3
+#define MCGA 4
+#define VGA 5
+#define HGC 0x80
+#define HGCPlus 0x81
+#define InColor 0x82
 
-Video1Type	DB	?	// second subsystem type
-Display1Type	DB	?	// display attached to second subsystem
+#define MDADisplay 1
+#define CGADisplay 2
+#define EGAColorDisplay 3
+#define PS2MonoDisplay 4
+#define PS2ColorDisplay 5
 
-VIDstruct	ENDS
+#define TRUE 1
+#define FALSE 0
 
+// Data structure
+struct VIDstruct {
+    unsigned char Video0Type;
+    unsigned char Display0Type;
+    unsigned char Video1Type;
+    unsigned char Display1Type;
+};
 
-Device0	EQU	word ptr Video0Type[di]
-Device1	EQU	word ptr Video1Type[di]
-
-
-MDA	EQU	1	// subsystem types
-CGA	EQU	2
-EGA	EQU	3
-MCGA	EQU	4
-VGA	EQU	5
-HGC	EQU	80h
-HGCPlus	EQU	81h
-InColor	EQU	82h
-
-MDADisplay	EQU	1	// display types
-CGADisplay	EQU	2
-EGAColorDisplay	EQU	3
-PS2MonoDisplay	EQU	4
-PS2ColorDisplay	EQU	5
-
-TRUE	EQU	1
-FALSE	EQU	0
+// Globals
+struct VIDstruct Results;
+unsigned char EGAflag, CGAflag, Monoflag;
+unsigned int NumberOfTests = 4; // Number of tests to be performed
 
 //อออออออออออออออออออออออออออออออออออออออออออออออออออออออออ
 //
@@ -1646,104 +1729,110 @@ FALSE	EQU	0
 //
 //อออออออออออออออออออออออออออออออออออออออออออออออออออออออออ
 
-Results	VIDstruct <>	//results go here!
+int VL_VideoID (void)
+{
+	__asm {
+   ; Get display combination code.
+   ; See RBIL INTERRUP.A - V-101A00.
 
-EGADisplays	DB	CGADisplay	// 0000b, 0001b	(EGA switch values)
-	DB	EGAColorDisplay	// 0010b, 0011b
-	DB	MDADisplay	// 0100b, 0101b
-	DB	CGADisplay	// 0110b, 0111b
-	DB	EGAColorDisplay	// 1000b, 1001b
-	DB	MDADisplay	// 1010b, 1011b
+   mov   ax,1A00h
+   int   10h
 
-DCCtable	DB	0,0	// translate table for INT 10h func 1Ah
-	DB	MDA,MDADisplay
-	DB	CGA,CGADisplay
-	DB	0,0
-	DB	EGA,EGAColorDisplay
-	DB	EGA,MDADisplay
-	DB	0,0
-	DB	VGA,PS2MonoDisplay
-	DB	VGA,PS2ColorDisplay
-	DB	0,0
-	DB	MCGA,EGAColorDisplay
-	DB	MCGA,PS2MonoDisplay
-	DB	MCGA,PS2ColorDisplay
+   cmp   al,1Ah   ; AL = 1Ah if function is supported.
+   jne   @@novga
 
-TestSequence	DB	TRUE	// this list of flags and addresses
-	DW	FindPS2	//  determines the order in which this
-			//  program looks for the various
-EGAflag	DB	?	//  subsystems
-	DW	FindEGA
+   ; BL = Active display code.
+   ; BH = Alternate display code.
 
-CGAflag	DB	?
-	DW	FindCGA
+   cmp   bl,8      ; Is color analog VGA active?
+   jne   @@novga
 
-Monoflag	DB	?
-	DW	FindMono
+   ; Make sure an ATI EGA Wonder isnt lying to us.
+   ; See RBIL INTERRUP.A - V-101A00 and V-101C.
 
-NumberOfTests	EQU	($-TestSequence)/3
+   mov   ax,1C00h   ; Video save/restore state function.
+   mov   cx,2       ; Only video hardware (CX=0) is supported on EGA Wonder.
+   int   10h        ; So lets check for color registers and DAC state. (CX=2)
 
+   cmp   al,1Ch     ; AL = 1Ch if function is supported.
+   jne   @@novga
 
-PUBLIC	VL_VideoID
-VL_VideoID	PROC
+   ; Yes, we have an active color analog VGA!
 
-	push	bp	// preserve caller registers
-	mov	bp,sp
-	push	ds
-	push	si
-	push	di
+   mov   ax,5    ; Original Wolf sources expect (5) to indicate VGA support.
+   jmp   @@done
 
-	push	cs
-	pop	ds
-	ASSUME	DS:@Code
+#ifdef __BORLANDC__
+	}
+#endif
+@@novga:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+   xor   ax,ax   ; Indicate failure, no VGA was detected!
 
-// initialize the data structure that will contain the results
+#ifdef __BORLANDC__
+	}
+#endif
+@@done:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+   ret
+	}
+	return _AX;
+}
 
-	lea	di,Results	// DS:DI -> start of data structure
+// Subroutine prototypes
+//void	near FindPS2();
+//void	near FindEGA();
+//void	near FindCGA();
+//void	near FindMono();
 
-	mov	Device0,0	// zero these variables
-	mov	Device1,0
+// Subroutine to detect active subsystem
+/*void FindActive() {
+    if (Results.Video0Type != 0) {
+        Results.Display0Type = MDADisplay;
+    } else {
+        Results.Display0Type = CGADisplay;
+    }
+}*/
 
-// look for the various subsystems using the subroutines whose addresses are
-// tabulated in TestSequence// each subroutine sets flags in TestSequence
-// to indicate whether subsequent subroutines need to be called
+#if 0
 
-	mov	byte ptr CGAflag,TRUE
-	mov	byte ptr EGAflag,TRUE
-	mov	byte ptr Monoflag,TRUE
+// Main function to detect video subsystems
+int VL_VideoID (void)
+{
+    // Initialize the data structure that will contain the results
+    Results.Video0Type = 0;
+    Results.Display0Type = 0;
+    Results.Video1Type = 0;
+    Results.Display1Type = 0;
 
-	mov	cx,NumberOfTests
-	mov	si,offset TestSequence
+    // Look for the various subsystems using the subroutines
+    EGAflag = TRUE;
+    CGAflag = TRUE;
+    Monoflag = TRUE;
 
-@@L01:	lodsb		// AL := flag
-	test	al,al
-	lodsw		// AX := subroutine address
-	jz	@@L02	// skip subroutine if flag is false
+    // Determine the order in which the program looks for the various subsystems
+/*    void (*TestSequence[])() = { FindPS2, FindEGA, FindCGA, FindMono };
 
-	push	si
-	push	cx
-	call	ax	// call subroutine to detect subsystem
-	pop	cx
-	pop	si
+    for (int i = 0; i < NumberOfTests; i++) {
+        if (*TestSequence[i]()) {
+            break;
+        }
+    }*/
+	FindPS2();
+	FindEGA();
+	FindCGA();
+	FindMono();
 
-@@L02:	loop	@@L01
+    // Determine which subsystem is active
+    FindActive();
+	return Results.Display0Type;
+}
 
-// determine which subsystem is active
-
-	call	FindActive
-
-	mov	al,Results.Video0Type
-	mov	ah,0	// was:  Results.Display0Type
-
-	pop	di	// restore caller registers and return
-	pop	si
-	pop	ds
-	mov	sp,bp
-	pop	bp
-	ret
-
-VL_VideoID	ENDP
-
+// Subroutines to detect subsystems
 
 //
 // FindPS2
@@ -1752,8 +1841,10 @@ VL_VideoID	ENDP
 // Display Combination Code (DCC) for each video subsystem present.
 //
 
-FindPS2	PROC	near
-
+//FindPS2	PROC	near
+void	near FindPS2(void)
+{
+__asm {
 	mov	ax,1A00h
 	int	10h	// call video BIOS for info
 
@@ -1777,8 +1868,14 @@ FindPS2	PROC	near
 
 	mov	bl,cl
 	xor	bh,bh	// BX := active DCC
-
-@@L11:	add	bx,bx
+#ifdef __BORLANDC__
+	}
+#endif
+@@L11:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	add	bx,bx
 	mov	ax,[bx+offset DCCtable]
 
 	mov	Device0,ax
@@ -1797,12 +1894,25 @@ FindPS2	PROC	near
 	cmp	byte ptr [bx],MDA
 	jne	@@L13
 
-@@L12:	mov	word ptr [bx],0    // ... Hercules can't be ruled out
+#ifdef __BORLANDC__
+	}
+#endif
+@@L12:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	word ptr [bx],0    // ... Hercules can't be ruled out
 	mov	byte ptr Monoflag,TRUE
 
-@@L13:	ret
+#ifdef __BORLANDC__
+	}
+#endif
+@@L13:
+#ifdef __WATCOMC__
+	}
+#endif
 
-FindPS2	ENDP
+}
 
 
 //
@@ -1811,7 +1921,10 @@ FindPS2	ENDP
 // Look for an EGA.  This is done by making a call to an EGA BIOS function
 //  which doesn't exist in the default (MDA, CGA) BIOS.
 
-FindEGA	PROC	near	// Caller:	AH = flags
+//FindEGA	PROC	near	// Caller:	AH = flags
+void	near FindEGA (void)
+{
+__asm {
 			// Returns:	AH = flags
 			//		Video0Type and
 			//		 Display0Type updated
@@ -1839,19 +1952,33 @@ FindEGA	PROC	near	// Caller:	AH = flags
 	mov	CGAflag,FALSE	// no CGA if EGA has color display
 	jmp	short @@L22
 
-@@L21:	mov	Monoflag,FALSE	// EGA has a mono display, so MDA and
+#ifdef __BORLANDC__
+	}
+#endif
+@@L21:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	Monoflag,FALSE	// EGA has a mono display, so MDA and
 			//  Hercules are ruled out
-@@L22:	ret
-
-FindEGA	ENDP
+#ifdef __BORLANDC__
+	}
+#endif
+@@L22:
+#ifdef __WATCOMC__
+	}
+#endif
+}
 
 //
 // FindCGA
 //
 // This is done by looking for the CGA's 6845 CRTC at I/O port 3D4H.
 //
-FindCGA	PROC	near	// Returns:	VIDstruct updated
-
+//FindCGA	PROC	near	// Returns:	VIDstruct updated
+void	near FindCGA(void)
+{
+__asm {
 	mov	dx,3D4h	// DX := CRTC address port
 	call	Find6845
 	jc	@@L31	// jump if not present
@@ -1859,10 +1986,15 @@ FindCGA	PROC	near	// Returns:	VIDstruct updated
 	mov	al,CGA
 	mov	ah,CGADisplay
 	call	FoundDevice
+#ifdef __BORLANDC__
+	}
+#endif
+@@L31:
+#ifdef __WATCOMC__
+	}
+#endif
 
-@@L31:	ret
-
-FindCGA	ENDP
+}
 
 //
 // FindMono
@@ -1880,8 +2012,10 @@ FindCGA	ENDP
 // 101b = InColor card
 //
 
-FindMono	PROC	near	// Returns:	VIDstruct updated
-
+//FindMono	PROC	near	// Returns:	VIDstruct updated
+void	near FindMono (void)
+{
+__asm {
 	mov	dx,3B4h	// DX := CRTC address port
 	call	Find6845
 	jc	@@L44	// jump if not present
@@ -1892,7 +2026,14 @@ FindMono	PROC	near	// Returns:	VIDstruct updated
 	mov	ah,al	// AH := bit 7 (vertical sync on HGC)
 
 	mov	cx,8000h	// do this 32768 times
-@@L41:	in	al,dx
+#ifdef __BORLANDC__
+	}
+#endif
+@@L41:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	in	al,dx
 	and	al,80h	// isolate bit 7
 	cmp	ah,al
 	loope	@@L41	// wait for bit 7 to change
@@ -1902,8 +2043,14 @@ FindMono	PROC	near	// Returns:	VIDstruct updated
 	mov	ah,MDADisplay
 	call	FoundDevice
 	jmp	short @@L44
-
-@@L42:	in	al,dx
+#ifdef __BORLANDC__
+	}
+#endif
+@@L42:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	in	al,dx
 	mov	dl,al	// DL := value from status port
 	and	dl,01110000b	// mask bits 4 thru 6
 
@@ -1920,11 +2067,22 @@ FindMono	PROC	near	// Returns:	VIDstruct updated
 	mov	al,InColor	// it's an InColor card
 	mov	ah,EGAColorDisplay
 
-@@L43:	call	FoundDevice
-
-@@L44:	ret
-
-FindMono	ENDP
+#ifdef __BORLANDC__
+	}
+#endif
+@@L43:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	call	FoundDevice
+#ifdef __BORLANDC__
+	}
+#endif
+@@L44:
+#ifdef __WATCOMC__
+	}
+#endif
+}
 
 //
 // Find6845
@@ -1935,7 +2093,10 @@ FindMono	ENDP
 // present at the specified port addr.
 //
 
-Find6845	PROC	near	// Caller:  DX = port addr
+//Find6845	PROC	near	// Caller:  DX = port addr
+void	near Find6845 (void)
+{
+__asm {
 			// Returns: cf set if not present
 	mov	al,0Fh
 	out	dx,al	// select 6845 reg 0Fh (Cursor Low)
@@ -1946,7 +2107,14 @@ Find6845	PROC	near	// Caller:  DX = port addr
 	out	dx,al	// try to write to 6845
 
 	mov	cx,100h
-@@L51:	loop	@@L51	// wait for 6845 to respond
+#ifdef __BORLANDC__
+	}
+#endif
+@@L51:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	loop	@@L51	// wait for 6845 to respond
 
 	in	al,dx
 	xchg	ah,al	// AH := returned value
@@ -1957,10 +2125,14 @@ Find6845	PROC	near	// Caller:  DX = port addr
 	je	@@L52	// jump if it did (cf is reset)
 
 	stc		// set carry flag if no 6845 present
-
-@@L52:	ret
-
-Find6845	ENDP
+#ifdef __BORLANDC__
+	}
+#endif
+@@L52:
+#ifdef __WATCOMC__
+	}
+#endif
+}
 
 
 //
@@ -1970,8 +2142,10 @@ Find6845	ENDP
 // current video mode determines which subsystem is active.
 //
 
-FindActive	PROC	near
-
+//FindActive	PROC	near
+void	near FindActive (void)
+{
+__asm {
 	cmp	word ptr Device1,0
 	je	@@L63	// exit if only one subsystem
 
@@ -1991,16 +2165,35 @@ FindActive	PROC	near
 	jne	@@L63	// exit if Display0 is color
 	jmp	short @@L62
 
-@@L61:	cmp	Display0Type[di],MDADisplay
+#ifdef __BORLANDC__
+	}
+#endif
+@@L61:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	cmp	Display0Type[di],MDADisplay
 	je	@@L63	// exit if Display0 is monochrome
 
-@@L62:	mov	ax,Device0	// make Device0 currently active
+#ifdef __BORLANDC__
+	}
+#endif
+@@L62:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	ax,Device0	// make Device0 currently active
 	xchg	ax,Device1
 	mov	Device0,ax
+#ifdef __BORLANDC__
+	}
+#endif
+@@L63:
+#ifdef __WATCOMC__
+	}
+#endif
 
-@@L63:	ret
-
-FindActive	ENDP
+}
 
 
 //
@@ -2009,22 +2202,29 @@ FindActive	ENDP
 // This routine updates the list of subsystems.
 //
 
-FoundDevice	PROC	near	// Caller:    AH = display #
-			//	     AL = subsystem #
-			// Destroys:  BX
+//FoundDevice	PROC	near	// Caller:    AH = display #
+void	near FoundDevice (void)
+{
+__asm {
+	//	     AL = subsystem #
+	// Destroys:  BX
 	lea	bx,Video0Type[di]
 	cmp	byte ptr [bx],0
 	je	@@L71	// jump if 1st subsystem
 
 	lea	bx,Video1Type[di]	// must be 2nd subsystem
+#ifdef __BORLANDC__
+	}
+#endif
+@@L71:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	[bx],ax	// update list entry
+}
+#endif
 
-@@L71:	mov	[bx],ax	// update list entry
-	ret
-
-FoundDevice	ENDP
-
-IDEAL
 
 
 
-END
+

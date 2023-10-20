@@ -41,6 +41,7 @@ void Quit (char *error);
 #define SC_MEMMODE			4
 
 #define CRTC_INDEX			0x3D4
+#define CRTC_DATA			0x03d5
 #define CRTC_H_TOTAL		0
 #define CRTC_H_DISPEND		1
 #define CRTC_H_BLANK		2
@@ -92,6 +93,7 @@ void Quit (char *error);
 #define PEL_READ_ADR		0x3c7
 #define PEL_DATA			0x3c9
 
+#define MISC_OUTPUT		0x03c2
 
 //===========================================================================
 
@@ -123,7 +125,7 @@ extern	longword	TimeCount;
 // VGA hardware routines
 //
 
-#define VGAWRITEMODE(x) asm{\
+/*#define VGAWRITEMODE(x) asm{\
 cli;\
 mov dx,GC_INDEX;\
 mov al,GC_MODE;\
@@ -136,7 +138,11 @@ out dx,al;\
 sti;}
 
 #define VGAMAPMASK(x) asm{cli;mov dx,SC_INDEX;mov al,SC_MAPMASK;mov ah,x;out dx,ax;sti;}
-#define VGAREADMAP(x) asm{cli;mov dx,GC_INDEX;mov al,GC_READMAP;mov ah,x;out dx,ax;sti;}
+#define VGAREADMAP(x) asm{cli;mov dx,GC_INDEX;mov al,GC_READMAP;mov ah,x;out dx,ax;sti;}*/
+void VGAWRITEMODE(byte x);
+void VGAMAPMASK(byte x);
+void VGAREADMAP(byte x);
+void VGABITMASK(byte x);
 
 
 void VL_Startup (void);
@@ -151,9 +157,9 @@ void VL_ClearVideo (byte color);
 void VL_SetLineWidth (unsigned width);
 void VL_SetSplitScreen (int linenum);
 
-void VL_WaitVBL (int vbls);
+void VL_WaitVBL (word num);
 void VL_CrtcStart (int crtc);
-void VL_SetScreen (int crtc, int pelpan);
+void VL_SetScreen (word crtc, word pelpan);
 
 void VL_FillPalette (int red, int green, int blue);
 void VL_SetColor	(int color, int red, int green, int blue);
@@ -172,7 +178,7 @@ void VL_Bar (int x, int y, int width, int height, int color);
 void VL_MungePic (byte far *source, unsigned width, unsigned height);
 void VL_DrawPicBare (int x, int y, byte far *pic, int width, int height);
 void VL_MemToLatch (byte far *source, int width, int height, unsigned dest);
-void VL_ScreenToScreen (unsigned source, unsigned dest,int width, int height);
+void VL_ScreenToScreen (word source, word dest,word width, word height);
 void VL_MemToScreen (byte far *source, int width, int height, int x, int y);
 void VL_MaskedToScreen (byte far *source, int width, int height, int x, int y);
 
