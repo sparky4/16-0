@@ -5,12 +5,13 @@
 fix up 16_in
 fix/make up 16_us
 
-
 last fix up 16_v* (fix it up mate)
 implement VRL stuff from doslib
 
+import id_rf.c into p16
+
 fix up as in remove GVAR and reimplement the old variables
 why? i fucked up. it's fine. i can redo the render code later.
-alot of the xcroll code is spagetti and the 16_map and 16_scroll and various files are not organized. i will redo this. 
+alot of the xcroll code is spagetti and the 16_map and 16_scroll and various files are not organized. i will redo this. with id_rf.c
 
 next build the normal game engine ontop of the id_* managers like how it is supposed to be done (here will be the stuff for everything thats not low level including xcroll code)
