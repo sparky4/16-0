@@ -115,6 +115,7 @@ extern	unsigned	ylookup[MAXSCANLINES];
 
 extern	boolean		screenfaded;
 extern	unsigned	bordercolor;
+extern	longword	TimeCount;
 
 //===========================================================================
 
