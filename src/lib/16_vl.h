@@ -97,8 +97,8 @@ void Quit (char *error);
 
 #define SCREENSEG		0xa000
 
-#define SCREENWIDTH		80			// default screen width in bytes
-#define MAXSCANLINES	200			// size of ylookup table
+#define SCREENWIDTH		88			// default screen width in bytes
+#define MAXSCANLINES	240			// size of ylookup table
 
 #define CHARWIDTH		2
 #define TILEWIDTH		4
@@ -122,7 +122,7 @@ extern	unsigned	bordercolor;
 // VGA hardware routines
 //
 
-/*#define VGAWRITEMODE(x) asm{\
+#define VGAWRITEMODE(x) asm{\
 cli;\
 mov dx,GC_INDEX;\
 mov al,GC_MODE;\
@@ -132,10 +132,10 @@ in al,dx;\
 and al,252;\
 or al,x;\
 out dx,al;\
-sti;}*/
+sti;}
 
-//#define VGAMAPMASK(x) asm{cli;mov dx,SC_INDEX;mov al,SC_MAPMASK;mov ah,x;out dx,ax;sti;}
-//#define VGAREADMAP(x) asm{cli;mov dx,GC_INDEX;mov al,GC_READMAP;mov ah,x;out dx,ax;sti;}
+#define VGAMAPMASK(x) asm{cli;mov dx,SC_INDEX;mov al,SC_MAPMASK;mov ah,x;out dx,ax;sti;}
+#define VGAREADMAP(x) asm{cli;mov dx,GC_INDEX;mov al,GC_READMAP;mov ah,x;out dx,ax;sti;}
 
 
 void VL_Startup (void);
@@ -182,9 +182,4 @@ void VL_DrawPropString (char *str, unsigned tile8ptr, int printx, int printy);
 void VL_SizePropString (char *str, int *width, int *height, char far *font);
 
 void VL_TestPaletteSet (void);
-
-void VGAWRITEMODE(byte x);
-void VGAMAPMASK(byte x);
-void VGAREADMAP(byte x);
-void VGABITMASK(byte x);
 #endif
