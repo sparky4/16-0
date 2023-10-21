@@ -23,6 +23,10 @@
 #ifndef	__16_VH__
 #define	__16_VH__
 #include "src/lib/16_head.h"
+#include "src/lib/16_rf.h"
+
+// ID_VH.H
+
 
 #define WHITE			15			// graphics mode independant colors
 #define BLACK			0
@@ -32,6 +36,8 @@
 #define F_BLACK			0
 #define F_FIRSTCOLOR	1
 #define F_SECONDCOLOR	12
+
+#define STARTFONT		1
 
 //===========================================================================
 
@@ -154,4 +160,6 @@ boolean 	FizzleFade (unsigned source, unsigned dest,
 #define NUMLATCHPICS	100
 extern	unsigned	latchpics[NUMLATCHPICS];
 extern	unsigned freelatch;
+
+
 #endif

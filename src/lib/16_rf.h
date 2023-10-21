@@ -63,7 +63,7 @@
 #define UPDATEHIGH			PORTTILESHIGH
 
 //from others
-#define SCREENWIDTH	64
+//#define SCREENWIDTH	64
 #define NUMTILE16	1440
 #define STARTTILE16  370
 #define STARTTILE16M 1810
@@ -82,7 +82,7 @@
 #define	CGAGR	1
 #define	EGAGR	2
 //#define	MAXSHIFTS	1
-#define	TILEWIDTH	TILEWH
+//#define	TILEWIDTH	TILEWH
 typedef enum {NOcard,MDAcard,CGAcard,EGAcard,MCGAcard,VGAcard,
 		  HGCcard=0x80,HGCPcard,HICcard} cardtype;
 typedef enum {CGAgr,EGAgr,VGAgr} grtype;

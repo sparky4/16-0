@@ -22,8 +22,9 @@
 // ID_VH.C
 
 #include "src/lib/16_vh.h"
+#include "src/lib/16_vl.h"
 
-#define	SCREENWIDTH		80
+//#define	SCREENWIDTH		80
 #define CHARWIDTH		2
 #define TILEWIDTH		4
 #define GRPLANES		4
@@ -79,25 +80,39 @@ void VW_DrawPropString (char far *string)
 		{
 			VGAMAPMASK(mask);
 
-asm	mov	ah,[BYTE PTR fontcolor]
-asm	mov	bx,[step]
-asm	mov	cx,[height]
-asm	mov	dx,[linewidth]
-asm	lds	si,[source]
-asm	les	di,[dest]
+	__asm {
+	mov	ah,[BYTE PTR fontcolor]
+	mov	bx,[step]
+	mov	cx,[height]
+	mov	dx,[linewidth]
+	lds	si,[source]
+	les	di,[dest]
 
+#ifdef __BORLANDC__
+	}
+#endif
 vertloop:
-asm	mov	al,[si]
-asm	or	al,al
-asm	je	next
-asm	mov	[es:di],ah			// draw color
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	al,[si]
+	or	al,al
+	je	next
+	mov	[es:di],ah			// draw color
 
+#ifdef __BORLANDC__
+	}
+#endif
 next:
-asm	add	si,bx
-asm	add	di,dx
-asm	loop	vertloop
-asm	mov	ax,ss
-asm	mov	ds,ax
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	add	si,bx
+	add	di,dx
+	loop	vertloop
+	mov	ax,ss
+	mov	ds,ax
+	}
 
 			source++;
 			px++;
@@ -135,32 +150,52 @@ void VW_DrawColorPropString (char far *string)
 		{
 			VGAMAPMASK(mask);
 
-asm	mov	ah,[BYTE PTR fontcolor]
-asm	mov	bx,[step]
-asm	mov	cx,[height]
-asm	mov	dx,[linewidth]
-asm	lds	si,[source]
-asm	les	di,[dest]
+		__asm {
+		mov	ah,[BYTE PTR fontcolor]
+		mov	bx,[step]
+		mov	cx,[height]
+		mov	dx,[linewidth]
+		lds	si,[source]
+		les	di,[dest]
 
+#ifdef __BORLANDC__
+		}
+#endif
 vertloop:
-asm	mov	al,[si]
-asm	or	al,al
-asm	je	next
-asm	mov	[es:di],ah			// draw color
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		mov	al,[si]
+		or	al,al
+		je	next
+		mov	[es:di],ah			// draw color
 
+#ifdef __BORLANDC__
+	}
+#endif
 next:
-asm	add	si,bx
-asm	add	di,dx
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		add	si,bx
+		add	di,dx
 
-asm rcr cx,1				// inc font color
-asm jc  cont
-asm	inc ah
+		rcr cx,1				// inc font color
+		jc  cont
+		inc ah
 
+#ifdef __BORLANDC__
+	}
+#endif
 cont:
-asm rcl cx,1
-asm	loop	vertloop
-asm	mov	ax,ss
-asm	mov	ds,ax
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		rcl cx,1
+		loop	vertloop
+		mov	ax,ss
+		mov	ds,ax
+		}
 
 			source++;
 			px++;

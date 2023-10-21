@@ -377,19 +377,19 @@ typedef struct
 #define NUMCHUNKS		416	//keen
 //#define MAXSCANLINES	240	// size of ylookup table
 
-#define MAXSHIFTS		4
+//#define MAXSHIFTS		4
 #define STARTSPRITES	0	//temp
 
-typedef struct
+/*typedef struct
 {
 	int	width,
 		height,
 		orgx,orgy,
 		xl,yl,xh,yh,
 		shifts;
-} spritetabletype;
+} spritetabletype;*/
 
-typedef	struct
+/* typedef	struct
 {
 	unsigned	sourceoffset[MAXSHIFTS];
 	unsigned	planesize[MAXSHIFTS];
@@ -400,7 +400,7 @@ typedef	struct
 typedef struct
 {
 	int width,height;
-} pictabletype;
+} pictabletype;*/
 
 //video
 typedef struct
