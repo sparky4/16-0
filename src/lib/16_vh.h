@@ -37,8 +37,6 @@
 #define F_FIRSTCOLOR	1
 #define F_SECONDCOLOR	12
 
-#define STARTFONT		1
-
 //===========================================================================
 
 #define MAXSHIFTS	1
