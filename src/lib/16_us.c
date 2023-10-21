@@ -86,6 +86,8 @@ static	boolean		US_Started;
 						{"Jay Wilbur",10000,1},
 					};
 
+extern byte	fontcolor,backcolor;
+
 //	Internal routines
 
 //	Public routines

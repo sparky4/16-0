@@ -31,6 +31,8 @@
 
 #include "src/lib/16_head.h"
 #include "src/lib/16_hc.h"
+#include "src/lib/16_vh.h"
+#include "src/lib/16_sd.h"
 
 #ifdef	__DEBUG__
 #define	__DEBUG_UserMgr__

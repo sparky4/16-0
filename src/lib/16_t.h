@@ -123,6 +123,8 @@ typedef void _seg * memptr;
 #define nearmalloc _nmalloc
 #define nearfree _nfree
 
+#define harderr _harderr
+
 //from http://www.verycomputer.com/3_65d875cc818b54ec_1.htm
 void clrscr(void);
 #pragma aux clrscr=\

@@ -185,6 +185,14 @@ extern union REGS CPURegs;
 
 #define geninterrupt(n) int86(n,&CPURegs,&CPURegs);
 
+typedef	struct
+		{
+			int	x,y;
+		} Point;
+typedef	struct
+		{
+			Point	ul,lr;
+		} Rect;
 
 typedef union REGPACK	regs_t;
 #endif
