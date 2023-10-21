@@ -22,7 +22,6 @@
 // ID_VH.C
 
 #include "src/lib/16_vh.h"
-#include "src/lib/16_vl.h"
 
 //#define	SCREENWIDTH		80
 #define CHARWIDTH		2
@@ -56,6 +55,7 @@ int bufferwidth,bufferheight;
 //==========================================================================
 
 void	VWL_UpdateScreenBlocks (void);
+void	VH_UpdateScreen (void);
 
 //==========================================================================
 
@@ -553,26 +553,34 @@ boolean FizzleFade (unsigned source, unsigned dest,
 			//
 			// seperate random value into x/y pair
 			//
-			asm	mov	ax,[WORD PTR rndval]
-			asm	mov	dx,[WORD PTR rndval+2]
-			asm	mov	bx,ax
-			asm	dec	bl
-			asm	mov	[BYTE PTR y],bl			// low 8 bits - 1 = y xoordinate
-			asm	mov	bx,ax
-			asm	mov	cx,dx
-			asm	mov	[BYTE PTR x],ah			// next 9 bits = x xoordinate
-			asm	mov	[BYTE PTR x+1],dl
+			__asm {
+					mov	ax,[WORD PTR rndval]
+					mov	dx,[WORD PTR rndval+2]
+					mov	bx,ax
+					dec	bl
+					mov	[BYTE PTR y],bl			// low 8 bits - 1 = y xoordinate
+					mov	bx,ax
+					mov	cx,dx
+					mov	[BYTE PTR x],ah			// next 9 bits = x xoordinate
+					mov	[BYTE PTR x+1],dl
 			//
 			// advance to next random element
 			//
-			asm	shr	dx,1
-			asm	rcr	ax,1
-			asm	jnc	noxor
-			asm	xor	dx,0x0001
-			asm	xor	ax,0x2000
+					shr	dx,1
+					rcr	ax,1
+					jnc	noxor
+					xor	dx,0x0001
+					xor	ax,0x2000
+#ifdef __BORLANDC__
+			}
+#endif
 noxor:
-			asm	mov	[WORD PTR rndval],ax
-			asm	mov	[WORD PTR rndval+2],dx
+#ifdef __BORLANDC__
+			__asm {
+#endif
+					mov	[WORD PTR rndval],ax
+					mov	[WORD PTR rndval+2],dx
+			}
 
 			if (x>width || y>height)
 				continue;
@@ -600,4 +608,109 @@ noxor:
 	} while (1);
 
 
+}
+
+//
+// asm routines
+//
+//=================
+//
+// VH_UpdateScreen
+//
+//=================
+
+//PUBLIC	VH_UpdateScreen
+void VH_UpdateScreen (void)
+{
+//USES	si,di
+
+	__asm {
+	mov	dx,SC_INDEX
+	mov	ax,SC_MAPMASK+15*256
+	out	dx,ax
+
+	mov dx,GC_INDEX
+	mov al,GC_MODE
+	out dx,al
+
+	inc dx
+	in	al,dx
+	and al,252
+	or	al,1
+	out dx,al
+
+	mov	bx,UPDATEWIDE*UPDATEHIGH-1		; bx is the tile number
+	mov	dx,[linewidth]
+
+//
+// see if the tile needs to be copied
+//
+#ifdef __BORLANDC__
+	}
+#endif
+@@checktile:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	test	[update+bx],1
+	jnz	@@copytile
+#ifdef __BORLANDC__
+	}
+#endif
+@@next:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	dec	bx
+	jns	@@checktile
+
+//
+// done
+//
+	mov dx,GC_INDEX+1
+	in	al,dx
+	and al,NOT 3
+	or	al,0
+	out dx,al
+	ret
+
+//
+// copy a tile
+//
+#ifdef __BORLANDC__
+	}
+#endif
+@@copytile:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	mov	[update+bx],0
+	shl	bx,1
+	mov	si,[blockstarts+bx]
+	shr	bx,1
+	mov	di,si
+	add	si,[bufferofs]
+	add	di,[displayofs]
+
+	mov	ax,SCREENSEG
+	mov	ds,ax
+
+//REPT	16
+	mov	al,[si]
+	mov	[di],al
+	mov	al,[si+1]
+	mov	[di+1],al
+	mov	al,[si+2]
+	mov	[di+2],al
+	mov	al,[si+3]
+	mov	[di+3],al
+	add	si,dx
+	add	di,dx
+//ENDM
+
+	mov	ax,ss
+	mov	ds,ax
+	jmp	@@next
+
+	}
 }

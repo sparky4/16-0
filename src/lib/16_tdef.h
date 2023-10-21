@@ -373,12 +373,11 @@ typedef struct
 } kurokku_t;
 
 //===================================//
-#define PALSIZE			768	//vga
-#define NUMCHUNKS		416	//keen
+//#define NUMCHUNKS		416	//keen
 //#define MAXSCANLINES	240	// size of ylookup table
 
 //#define MAXSHIFTS		4
-#define STARTSPRITES	0	//temp
+//#define STARTSPRITES	0	//temp
 
 /*typedef struct
 {
@@ -455,7 +454,7 @@ typedef struct
 	boolean	VL_Started,VL_Initiated;
 	char old_mode;		//old video mode before game!
 	sword curr_mode;		//modex curent mode
-	byte palette[PALSIZE], dpal[PALSIZE];	//palette array
+//	byte palette[PALSIZE], dpal[PALSIZE];	//palette array
 	page_t page[MAXPAGE];	//can be used as a pointer to root page[0]
 	word vmem_remain;	//remaining video memory
 	byte num_of_pages;	//number of actual pages
@@ -682,7 +681,7 @@ typedef struct
 //
 /////////////////////////////////////////////////
 
-#define NUMSOUNDS		87
+//#define NUMSOUNDS		87
 //--#define NUMSNDCHUNKS		288
 
 //

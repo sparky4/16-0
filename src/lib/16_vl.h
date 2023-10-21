@@ -189,4 +189,5 @@ void VL_DrawPropString (char *str, unsigned tile8ptr, int printx, int printy);
 void VL_SizePropString (char *str, int *width, int *height, char far *font);
 
 void VL_TestPaletteSet (void);
+void VL_LatchToScreen (unsigned source, int width, int height, int x, int y);
 #endif

@@ -57,7 +57,7 @@
 #endif
 #include "src/lib/16_t.h"
 #include "src/lib/16_tdef.h"
-//#include "src/lib/nyan/kitten.h"
+#include "src/lib/graphhp.h"
 
 #define VERSION __DATE__ " " __TIME__
 

@@ -460,6 +460,10 @@
 #define STARTTILE32  3016
 #define STARTTILE32M 3016
 
+#define PALSIZE			768	//vga
+#define LATCHPICS_LUMP_START		91
+#define LATCHPICS_LUMP_END		134
+
 //
 // Thank you for using IGRAB!
 //
