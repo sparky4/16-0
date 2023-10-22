@@ -1043,7 +1043,7 @@ if(info->dir!=4/*(Keyboard[def->up] || Keyboard[def->down] || Keyboard[def->left
 	//printf("q=%d ", player->enti.q);
 	//printf("cpee=%c ", dirchar(conpee));
 	// printf("pdir=%c d=%c dir=%c ", dirchar(player->pdir), dirchar(player->enti.d), dirchar(info->dir));
-	printf("info->dir=%d	", info->dir);
+	printf("info->dir=%c	", dirchar(info->dir));
 	printf("dx=%d	dy=%d	mx=%d	my=%d", info->x, info->y, info->xaxis, info->yaxis);
 	//else if(!realdelta) printf("%c%d %c%d %c%d %c%d", dirchar(0), Keyboard[def->up], dirchar(4), Keyboard[def->down], dirchar(1), Keyboard[def->left], dirchar(3), Keyboard[def->right]);
 	printf("\n");

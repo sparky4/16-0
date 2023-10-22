@@ -172,13 +172,13 @@ byte dirchar(byte in)
 		case 0: //up
 			out = 0x1E;
 		break;
-		case 4: //down
+		case 7: //down
 			out = 0x1F;
 		break;
-		case 1: //left
+		case 2: //left
 			out = 0x11;
 		break;
-		case 3: //right
+		case 5: //right
 			out = 0x10;
 		break;
 		default: //null
