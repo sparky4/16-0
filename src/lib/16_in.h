@@ -184,16 +184,10 @@ typedef	struct		{
 					} CursorInfo;
 typedef	CursorInfo	ControlInfo;
 typedef	struct		{
-						ScanCode near	button0,button1,
-									upleft,
-									up,
-									down,
-									left,
-									right,
-									upright,
-									downleft,
-									downright
-									;
+						ScanCode	button0,button1,
+									upleft,		up,		upright,
+									left,				right,
+									downleft,	down,	downright;
 					} KeyboardDef;
 typedef	struct		{
 						word	near	joyMinX,joyMinY,

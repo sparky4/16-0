@@ -844,8 +844,8 @@ IN_ReadCursor(CursorInfo *info)
 }
 
 //if else for gfxtesting and direction
-#define DIRECTIONIFELSE	(info->dir == 2)
-//#define NDIRECTIONIFELSE	(info->dir != 2)
+#define DIRECTIONIFELSE	(info->dir == 4)
+//#define NDIRECTIONIFELSE	(info->dir != 4)
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -921,23 +921,23 @@ register	KeyboardDef	*def;
 				if((Keyboard[def->right] && !Keyboard[def->left]))
 					mx = motion_Right;
 			}else{	//2 keys pressed
-/*					switch (player->pdir)
+					switch (info->dir)
 					{
 						case 0:
-						case 4:
-							if((Keyboard[def->left] && !Keyboard[def->right])){ dir = DirTable[1]; }//mx = motion_Left; }
-							else if((Keyboard[def->right] && !Keyboard[def->left])){ dir = DirTable[3]; }//mx = motion_Right; }
+						case 7:
+							if((Keyboard[def->left] && !Keyboard[def->right])){ mx = motion_Left; }
+							else if((Keyboard[def->right] && !Keyboard[def->left])){ mx = motion_Right; }
 						break;
-						case 1:
-						case 3:
-							if((Keyboard[def->up] && !Keyboard[def->down])){ dir = DirTable[0]; }//my = motion_Up; }
-							else if((Keyboard[def->down] && !Keyboard[def->up])){ dir = DirTable[4]; }//my = motion_Down; }
+						case 2:
+						case 5:
+							if((Keyboard[def->up] && !Keyboard[def->down])){ my = motion_Up; }
+							else if((Keyboard[def->down] && !Keyboard[def->up])){ my = motion_Down; }
 						break;
 						default:
 						break;
-					}*/
+					}
 #ifdef __DEBUG_InputMgr__
-					//if(dbg_testcontrolnoisy > 0){ printf("dir=%c ", dirchar(dir)); printf("pdir=%c	", dirchar(player->pdir)); }
+					//if(dbg_testcontrolnoisy > 0) printf("dir=%d		dx=%d	dy=%d	mx=%d	my=%d", info->x, info->y, info->xaxis, info->yaxis);//{ printf("dir=%c ", dirchar(dir)); }//printf("pdir=%c	", dirchar(player->pdir)); }
 #endif
 				}
 			}
@@ -1037,13 +1037,14 @@ static		word		old_buttons=0;
 }
 
 if(dbg_testcontrolnoisy > 0)
-if(info->dir!=2/*(Keyboard[def->up] || Keyboard[def->down] || Keyboard[def->left] || Keyboard[def->right])*//* || player->enti.q>1*/)
+if(info->dir!=4/*(Keyboard[def->up] || Keyboard[def->down] || Keyboard[def->left] || Keyboard[def->right])*//* || player->enti.q>1*/)
 {
 	//printf("b1=%u b2=%u b3=%u b4=%u	", info->button0, info->button1, info->button2, info->button3);
 	//printf("q=%d ", player->enti.q);
 	//printf("cpee=%c ", dirchar(conpee));
 	// printf("pdir=%c d=%c dir=%c ", dirchar(player->pdir), dirchar(player->enti.d), dirchar(info->dir));
-	/*if(realdelta) */printf("dx=%d	dy=%d	mx=%d	my=%d", info->x, info->y, info->xaxis, info->yaxis);
+	printf("info->dir=%d	", info->dir);
+	printf("dx=%d	dy=%d	mx=%d	my=%d", info->x, info->y, info->xaxis, info->yaxis);
 	//else if(!realdelta) printf("%c%d %c%d %c%d %c%d", dirchar(0), Keyboard[def->up], dirchar(4), Keyboard[def->down], dirchar(1), Keyboard[def->left], dirchar(3), Keyboard[def->right]);
 	printf("\n");
 }

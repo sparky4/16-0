@@ -1095,6 +1095,7 @@ void CAL_SetupGrFile (void)
 //
 // load the pic and sprite headers into the arrays in the data segment
 //
+#ifdef	__16_VH__
 #if NUMPICS>0
 	MM_GetPtr(MEMPTRCONV pictable,NUMPICS*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
@@ -1124,7 +1125,7 @@ void CAL_SetupGrFile (void)
 	CAL_HuffExpand (compseg, (byte far *)spritetable,NUMSPRITES*sizeof(spritetabletype),grhuffman);
 	MM_FreePtr(&compseg);
 #endif
-
+#endif
 }
 
 //==========================================================================

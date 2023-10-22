@@ -25,7 +25,7 @@
 #include "src/lib/16_in.h"
 #include "src/lib/16_tail.h"
 
-#define INPUTEST_JOYSTICKPADTEST
+//#define INPUTEST_JOYSTICKPADTEST
 //#define INPUTEST_MOUSETEST
 
 ControlInfo	c;
@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 {
 //	static global_game_variables_t gvar;
 #ifdef __DEBUG_InputMgr__
-	dbg_testkeyin=1;
+	dbg_testkeyin=0;
 	dbg_testcontrolnoisy=1;
 	dbg_joymousedelta=1;
 #endif
