@@ -251,8 +251,6 @@ SPRIUTILEXEC = &
 !endif
 
 EXEC = &
-	16.exe &
-	bakapi.exe &
 	exmmtest.exe &
 	inputest.exe
 
@@ -274,7 +272,7 @@ testexec: $(EXEC) $(TESTEXEC2)
 #
 # game and bakapi executables
 #
-16.exe:		16.$(OBJ) $(16LIB) gfx.lib $(DOSLIB)
+16.exe:		16.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) 16_dbg.$(OBJ)
 bakapi.exe:		bakapi.$(OBJ) 16_vl.$(OBJ) 16_vl_1.$(OBJ) 16text.$(OBJ) bakapee.$(OBJ) $(DOSLIB) 16_wcpu.$(OBJ) gamepal.$(OBJ)# gfx.lib
 sp2.exe:		sp2.$(OBJ)
 
@@ -449,7 +447,7 @@ mapread.$(OBJ):	$(SRCLIB)/mapread.c	$(SRCLIB)/mapread.h
 16_mm.$(OBJ):	$(SRCLIB)/16_mm.c	$(SRCLIB)/16_mm.h
 16_pm.$(OBJ):	$(SRCLIB)/16_pm.c	$(SRCLIB)/16_pm.h
 16_ca.$(OBJ):	$(SRCLIB)/16_ca.c	$(SRCLIB)/16_ca.h
-16_rf.$(OBJ):	$(SRCLIB)/16_rf.c
+#16_rf.$(OBJ):	$(SRCLIB)/16_rf.c
 16_us.$(OBJ):	$(SRCLIB)/16_us.c
 16_dbg.$(OBJ):	$(SRCLIB)/16_dbg.c	$(SRCLIB)/16_dbg.h
 16_dbg_1.$(OBJ):	$(SRCLIB)/16_dbg_1.c	$(SRCLIB)/16_dbg.h
@@ -511,7 +509,7 @@ clean: .symbolic
 	@if not exist pcx2vrl wmake -s -h pcx2vrl
 	#@if not exist png2vrl wmake -s -h png2vrl
 	@if not exist dro2imf wmake -s -h drotoimf
-	@if not exist raw2vgm wmake -s -h vgmtools
+#	@if not exist raw2vgm wmake -s -h vgmtools
 !else
 	@if exist *.o $(REMOVECOMMAND) *.o
 !endif

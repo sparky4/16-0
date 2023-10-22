@@ -23,7 +23,7 @@
 #ifndef	__16_VH__
 #define	__16_VH__
 #include "src/lib/16_head.h"
-#include "src/lib/16_rf.h"
+//#include "src/lib/16_rf.h"
 #include "src/lib/16_vl.h"
 #include "src/lib/16_in.h"
 
