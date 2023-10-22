@@ -407,7 +407,7 @@ done:
 void INL_GetJoyDelta(word joy,int *dx,int *dy/*,boolean adaptive*/)
 {
 	word		x,y;
-	longword	time;
+//	longword	time;	unused
 	JoystickDef	*def;
 static	longword	lasttime;
 #ifndef	__16_SD__
