@@ -726,3 +726,5 @@ __asm {
 //
 // page systems?
 //
+//TODO reimplement pages as we need them where we are going
+//make the pages work with id engine code.
