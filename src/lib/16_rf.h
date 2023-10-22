@@ -1,29 +1,4 @@
-/* Project 16 Source Code~
- * Copyright (C) 2012-2023 sparky4 & pngwen & andrius4669 & joncampbell123 & yakui-lover
- *
- * This file is part of Project 16.
- *
- * Project 16 is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Project 16 is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>, or
- * write to the Free Software Foundation, Inc., 51 Franklin Street,
- * Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
-/* Reconstructed Commander Keen 4-6 Source Code
- * Copyright (C) 2021 K1n9_Duk3
- *
- * This file is primarily based on:
- * Catacomb 3-D Source Code
+/* Catacomb Apocalypse Source Code
  * Copyright (C) 1993-2014 Flat Rock Software
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,12 +17,14 @@
  */
 
 // ID_RF.H
+
 #ifndef __16_RF__
 #define __16_RF__
-
-#ifndef __16_MM__
-#include "src/lib/16_mm.h"
+#include "src/lib/16_head.h"
 #include "src/lib/16_vl.h"
+
+#ifndef __ID_MM__
+#include "src/lib/16_mm.h"
 #endif
 
 /*
@@ -59,28 +36,16 @@
 */
 
 #define	MINTICS				2
-#define	MAXTICS				5
+#define	MAXTICS				6
 #define DEMOTICS			3
 
 #define	MAPBORDER			2		// map border must be at least 1
 
-#ifdef KEEN5
-
-#define	MAXSPRITES			60		// max tracked sprites
+#define	MAXSPRITES			50		// max tracked sprites
 #define	MAXANIMTILES		90		// max animating tiles on screen
-#define MAXANIMTYPES		80		// max different unique anim tiles on map
-
-#define	MAXMAPHEIGHT		250
-
-#else
-
-#define	MAXSPRITES			60		// max tracked sprites
-#define	MAXANIMTILES		90		// max animating tiles on screen
-#define MAXANIMTYPES		65		// max different unique anim tiles on map
+#define MAXANIMTYPES		50		// max different unique anim tiles on map
 
 #define	MAXMAPHEIGHT		200
-
-#endif
 
 #define	PRIORITIES			4
 #define	MASKEDTILEPRIORITY	3		// planes go: 0,1,2,MTILES,3

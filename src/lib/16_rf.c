@@ -19,28 +19,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/* Reconstructed Commander Keen 4-6 Source Code
- * Copyright (C) 2021 K1n9_Duk3
- *
- * This file is primarily based on:
- * Catacomb 3-D Source Code
- * Copyright (C) 1993-2014 Flat Rock Software
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
 // ID_RF.C
 
 /*
@@ -135,11 +113,6 @@ typedef struct
 {
 	unsigned	current;		// foreground tiles have high bit set
 	int			count;
-#ifdef KEEN6
-	unsigned	soundtile;
-	unsigned	visible;
-	int		sound;
-#endif
 } tiletype;
 
 
@@ -289,14 +262,6 @@ void RF_Startup (void)
 	int i,x,y;
 	unsigned	*blockstart;
 
-#ifndef KEEN
-	//
-	// Keen 4-6 store the compatability setting in the game's config file.
-	// The setting is loaded from that file AFTER RF_Startup is executed,
-	// making this check useless (unless the config file doesn't exist).
-	// Instead, US_Startup now checks for that parameter after the config
-	// file has been read.
-	//
 	if (grmode == EGAGR)
 		for (i = 1;i < _argc;i++)
 			if (US_CheckParm(_argv[i],ParmStrings) == 0)
@@ -304,7 +269,6 @@ void RF_Startup (void)
 				compatability = true;
 				break;
 			}
-#endif
 
 	for (i=0;i<PORTTILESHIGH;i++)
 		uwidthtable[i] = UPDATEWIDE*i;
@@ -387,10 +351,6 @@ void RF_Shutdown (void)
 
 void RF_FixOfs (void)
 {
-	screenstart[0] = 0;
-	screenstart[1] = SCREENSPACE;
-	screenstart[2] = SCREENSPACE*2;
-
 	if (grmode == EGAGR)
 	{
 		screenpage = 0;
@@ -403,7 +363,6 @@ void RF_FixOfs (void)
 	}
 	else
 	{
-		panx = pany = pansx = pansy = panadjust = 0;
 		bufferofs = 0;
 		masterofs = 0x8000;
 	}
@@ -482,47 +441,6 @@ void RF_NewMap (void)
 
 //===========================================================================
 
-#ifdef KEEN6
-/*
-==========================
-=
-= RFL_CheckTileSound
-=
-= Checks if the tile plays a sound and if so adds that info to the animation
-=
-==========================
-*/
-
-#define NUMSOUNDTILES 2
-typedef struct {
-	unsigned tilenums[NUMSOUNDTILES];
-	int sounds[NUMSOUNDTILES];
-} tilesoundtype;
-
-tilesoundtype far soundtiles = {
-	{2152|0x8000, 2208|0x8000},
-	{SND_STOMP,   SND_FLAME}
-};
-
-void RFL_CheckTileSound(tiletype *anim, unsigned tile)
-{
-	int i;
-
-	for (i=0; i<NUMSOUNDTILES; i++)
-	{
-		if (soundtiles.tilenums[i] == tile)
-		{
-			anim->soundtile = tile;
-			anim->sound = soundtiles.sounds[i];
-			break;
-		}
-	}
-}
-
-#endif
-
-//===========================================================================
-
 /*
 ==========================
 =
@@ -590,25 +508,15 @@ void RF_MarkTileGraphics (void)
 						Quit ("RF_MarkTileGraphics: Too many unique animated tiles!");
 					allanims[i].current = tile;
 					allanims[i].count = tinf[SPEED+tile];
-#ifdef KEEN6
-					allanims[i].visible = 0;
-					allanims[i].sound = -1;
-#endif
 					*info = (unsigned)&allanims[i];
 					numanimchains++;
 				}
-#ifdef KEEN6
-				RFL_CheckTileSound(&allanims[i], tile);
-#endif
 
 				anims = 0;
 				change = (signed char)(tinf[ANIM+tile]);
 				next = tile+change;
 				while (change && next != tile)
 				{
-#ifdef KEEN6
-					RFL_CheckTileSound(&allanims[i], next);
-#endif
 					CA_MarkGrChunk(STARTTILE16+next);
 					change = (signed char)(tinf[ANIM+next]);
 					next += change;
@@ -666,25 +574,16 @@ nextback:
 						Quit ("RF_MarkTileGraphics: Too many unique animated tiles!");
 					allanims[i].current = tilehigh;
 					allanims[i].count = tinf[MSPEED+tile];
-#ifdef KEEN6
-					allanims[i].visible = 0;
-					allanims[i].sound = -1;
-#endif
+
 					*info = (unsigned)&allanims[i];
 					numanimchains++;
 				}
 
-#ifdef KEEN6
-				RFL_CheckTileSound(&allanims[i], tilehigh);
-#endif
 				anims = 0;
 				change = (signed char)(tinf[MANIM+tile]);
 				next = tile+change;
 				while (change && next != tile)
 				{
-#ifdef KEEN6
-					RFL_CheckTileSound(&allanims[i], next | 0x8000);	// foreground tiles have high bit
-#endif
 					CA_MarkGrChunk(STARTTILE16M+next);
 					change = (signed char)(tinf[MANIM+next]);
 					next += change;
@@ -731,15 +630,6 @@ void RFL_InitAnimList (void)
 	animarray[i].nexttile = NULL;
 
 	animhead = NULL;			// nothing in list
-
-#ifdef KEEN6
-	{
-		tiletype *anim;
-
-		for (anim = allanims; anim->current != 0; anim++)
-			anim->visible = 0;
-	}
-#endif
 }
 
 
@@ -785,9 +675,6 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 		anim->tile = tile;
 		anim->mapplane = map;
 		anim->chain = (tiletype *)*(mapsegs[2]+offset);
-#ifdef KEEN6
-		anim->chain->visible++;
-#endif
 	}
 
 //
@@ -813,9 +700,6 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 		anim->tile = tile;
 		anim->mapplane = map;
 		anim->chain = (tiletype *)*(mapsegs[2]+offset);
-#ifdef KEEN6
-		anim->chain->visible++;
-#endif
 	}
 
 }
@@ -838,9 +722,6 @@ void RFL_RemoveAnimsOnX (unsigned x)
 	{
 		if (current->x == x)
 		{
-#ifdef KEEN6
-			current->chain->visible--;
-#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -872,9 +753,6 @@ void RFL_RemoveAnimsOnY (unsigned y)
 	{
 		if (current->y == y)
 		{
-#ifdef KEEN6
-			current->chain->visible--;
-#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -906,9 +784,6 @@ void RFL_RemoveAnimsInBlock (unsigned x, unsigned y, unsigned width, unsigned he
 	{
 		if (current->x - x < width && current->y - y < height)
 		{
-#ifdef KEEN6
-			current->chain->visible--;
-#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -960,12 +835,6 @@ void RFL_AnimateTiles (void)
 				anim->count += tinf[SPEED+tile];
 			}
 			anim->current = tile;
-#ifdef KEEN6
-			if (anim->visible && anim->current == anim->soundtile && anim->sound != -1)
-			{
-				SD_PlaySound(anim->sound);
-			}
-#endif
 		}
 		anim++;
 	}
@@ -1616,7 +1485,15 @@ void RF_CalcTics (void)
 	}
 }
 
-//===========================================================================
+/*
+=============================================================================
+
+					EGA specific routines
+
+=============================================================================
+*/
+
+#if GRMODE == EGAGR
 
 /*
 =====================
@@ -1650,15 +1527,7 @@ unsigned RF_FindFreeBuffer (void)
 	return 0;	// never get here...
 }
 
-/*
-=============================================================================
-
-					EGA specific routines
-
-=============================================================================
-*/
-
-#if GRMODE == EGAGR
+//===========================================================================
 
 /*
 =====================
@@ -1952,10 +1821,7 @@ linknewspot:
 	globalx+=spr->orgx;
 
 	pixx = globalx >> G_SY_SHIFT;
-	if (nopan)
-		shift = 0;
-	else
-		shift = (pixx&7)/2;
+	shift = (pixx&7)/2;
 
 	sprite->screenx = pixx >> (G_EGASX_SHIFT-G_SY_SHIFT);
 	sprite->screeny = globaly >> G_SY_SHIFT;
@@ -2263,8 +2129,6 @@ redraw:
 				break;
 
 			case maskdraw:
-				VW_InverseMask(grsegs[sprite->grseg], sourceofs,
-					dest,sprite->width,height);
 				break;
 
 			}
@@ -2916,8 +2780,6 @@ redraw:
 				break;
 
 			case maskdraw:
-				VW_InverseMask(grsegs[sprite->grseg], sourceofs,
-					dest,sprite->width,height);
 				break;
 
 			}
@@ -2980,7 +2842,7 @@ void RF_Refresh (void)
 //
 // calculate tics since last refresh for adaptive timing
 //
-	RF_CalcTics ();
+	RFL_CalcTics ();
 }
 
 #endif		// GRMODE == CGAGR
