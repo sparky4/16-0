@@ -408,14 +408,14 @@ typedef struct
 	word	quadwh;			//preproccessed quad size of tilewidth and tileheight
 } tile_dimention_t;
 
-#define MAXSCROLLEDGES 2
+//#define MAXSCROLLEDGES 2
 typedef struct
 {
 	unsigned	panx,pany;		// panning adjustments inside port in pixels
 	unsigned	pansx,pansy;
 	unsigned	panadjust;		// panx/pany adjusted by screen resolution
-	int		hscrollblocks,vscrollblocks;
-	int		hscrolledge[MAXSCROLLEDGES],vscrolledge[MAXSCROLLEDGES];
+//	int		hscrollblocks,vscrollblocks;
+//	int		hscrolledge[MAXSCROLLEDGES],vscrolledge[MAXSCROLLEDGES];
 } pan_t;
 
 typedef struct
@@ -682,7 +682,7 @@ typedef struct
 /////////////////////////////////////////////////
 
 //#define NUMSOUNDS		87
-//--#define NUMSNDCHUNKS		288
+// //--#define NUMSNDCHUNKS		288
 
 //
 // Sound names & indexes

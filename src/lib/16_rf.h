@@ -1,5 +1,30 @@
-/* Keen Dreams Source Code
- * Copyright (C) 2014 Javier M. Chavez
+/* Project 16 Source Code~
+ * Copyright (C) 2012-2023 sparky4 & pngwen & andrius4669 & joncampbell123 & yakui-lover
+ *
+ * This file is part of Project 16.
+ *
+ * Project 16 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Project 16 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>, or
+ * write to the Free Software Foundation, Inc., 51 Franklin Street,
+ * Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+/* Reconstructed Commander Keen 4-6 Source Code
+ * Copyright (C) 2021 K1n9_Duk3
+ *
+ * This file is primarily based on:
+ * Catacomb 3-D Source Code
+ * Copyright (C) 1993-2014 Flat Rock Software
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,7 +33,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -16,12 +41,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// 16_RF.H
-
+// ID_RF.H
+#ifndef __16_RF__
 #define __16_RF__
 
 #ifndef __16_MM__
 #include "src/lib/16_mm.h"
+#include "src/lib/16_vl.h"
 #endif
 
 /*
@@ -33,15 +59,28 @@
 */
 
 #define	MINTICS				2
-#define	MAXTICS				6
+#define	MAXTICS				5
+#define DEMOTICS			3
 
 #define	MAPBORDER			2		// map border must be at least 1
 
-#define	MAXSPRITES			100		// max tracked sprites
-#define	MAXANIMTILES		90		// max animating tiles on screen
-#define MAXANIMTYPES		50		// max different unique anim tiles on map
+#ifdef KEEN5
 
-#define	MAXMAPHEIGHT		128
+#define	MAXSPRITES			60		// max tracked sprites
+#define	MAXANIMTILES		90		// max animating tiles on screen
+#define MAXANIMTYPES		80		// max different unique anim tiles on map
+
+#define	MAXMAPHEIGHT		250
+
+#else
+
+#define	MAXSPRITES			60		// max tracked sprites
+#define	MAXANIMTILES		90		// max animating tiles on screen
+#define MAXANIMTYPES		65		// max different unique anim tiles on map
+
+#define	MAXMAPHEIGHT		200
+
+#endif
 
 #define	PRIORITIES			4
 #define	MASKEDTILEPRIORITY	3		// planes go: 0,1,2,MTILES,3
@@ -62,47 +101,6 @@
 #define UPDATEWIDE			(PORTTILESWIDE+1)
 #define UPDATEHIGH			PORTTILESHIGH
 
-//from others
-//#define SCREENWIDTH	64
-#define NUMTILE16	1440
-#define STARTTILE16  370
-#define STARTTILE16M 1810
-#define NUMTILE16M   1206
-#define	SPEED	502
-#define ANIM	(SPEED+NUMTILE16)
-#define DEMOTICS			3
-
-#define NORTHWALL	(ANIM+NUMTILE16)
-#define EASTWALL	(NORTHWALL+NUMTILE16M)
-#define SOUTHWALL   (EASTWALL+NUMTILE16M)
-#define WESTWALL    (SOUTHWALL+NUMTILE16M)
-#define MANIM       (WESTWALL+NUMTILE16M)
-#define INTILE      (MANIM+NUMTILE16M)
-#define MSPEED      (INTILE+NUMTILE16M)
-#define	CGAGR	1
-#define	EGAGR	2
-//#define	MAXSHIFTS	1
-//#define	TILEWIDTH	TILEWH
-typedef enum {NOcard,MDAcard,CGAcard,EGAcard,MCGAcard,VGAcard,
-		  HGCcard=0x80,HGCPcard,HICcard} cardtype;
-typedef enum {CGAgr,EGAgr,VGAgr} grtype;
-/*typedef struct
-{
-  int	width,
-	height,
-	orgx,orgy,
-	xl,yl,xh,yh,
-	shifts;
-} spritetabletype;
-
-typedef	struct
-{
-	unsigned	sourceoffset[MAXSHIFTS];
-	unsigned	planesize[MAXSHIFTS];
-	unsigned	width[MAXSHIFTS];
-	byte		data[];
-} spritetype;		// the memptr for each sprite points to this*/
-//
 
 //===========================================================================
 
@@ -162,17 +160,32 @@ extern unsigned	uwidthtable[UPDATEHIGH];		// lookup instead of multiple
 void RF_Startup (void);
 void RF_Shutdown (void);
 
+void RF_FixOfs (void);
 void RF_NewMap (void);
 void RF_MarkTileGraphics (void);
+void RF_SetScrollBlock (int x, int y, boolean horizontal);
 void RF_NewPosition (unsigned x, unsigned y);
 void RF_Scroll (int x, int y);
+
+void RF_MapToMap (unsigned srcx, unsigned srcy,
+				  unsigned destx, unsigned desty,
+				  unsigned width, unsigned height);
+void RF_MemToMap (unsigned far *source, unsigned plane,
+				  unsigned destx, unsigned desty,
+				  unsigned width, unsigned height);
+
+void RF_ClearBlock (int	x, int y, int width, int height);
+void RF_RedrawBlock (int x, int y, int width, int height);
 
 void RF_PlaceSprite (void **user,unsigned globalx,unsigned globaly,
 	unsigned spritenumber, drawtype draw, int priority);
 void RF_RemoveSprite (void **user);
 
+void RF_CalcTics (void);
+
 void RF_Refresh (void);
 void RF_ForceRefresh (void);
 void RF_SetRefreshHook (void (*func) (void) );
 
-
+unsigned RF_FindFreeBuffer (void);
+#endif

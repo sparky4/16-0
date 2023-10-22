@@ -257,4 +257,12 @@ void regidump();
 
 #define PRINT_OPAQUE_STRUCT(p)  print_mem((p), sizeof(*(p)))
 
+
+#define	TEXTGR	0
+#define	CGAGR	1
+#define	EGAGR	2
+#define	VGAGR	3
+
+#define GRMODE	VGAGR
+
 #endif/*__16_HEAD_H__*/

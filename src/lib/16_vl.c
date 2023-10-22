@@ -32,8 +32,14 @@
 // SC_INDEX is expected to stay at SC_MAPMASK for proper operation
 //
 
+grtype		grmode;			// CGAgr, EGAgr, VGAgr
+
 unsigned	bufferofs;
 unsigned	displayofs,pelpan;
+unsigned	panx,pany;		// panning adjustments inside port in pixels
+unsigned	pansx,pansy;	// panning adjustments inside port in screen
+							// block limited pixel values (ie 0/8 for ega x)
+unsigned	panadjust;		// panx/pany adjusted by screen resolution
 
 unsigned	screenseg=SCREENSEG;		// set to 0xa000 for asm convenience
 
@@ -1696,7 +1702,153 @@ int VL_VideoID (void)
 	return _AX;
 }
 
+/*//=================
+//
+// SyncVBL
+//
+//=================
 
+
+extern dword	TimeCount;
+extern word	jerk;
+extern word	nopan;
+
+
+void SyncVBL ()
+{
+	unsigned i;
+	__asm {
+	mov	dx,STATUS_REGISTER_1
+	mov	bx,[WORD ptr TimeCount]
+	add	bx,3
+#ifdef __BORLANDC__
+	}
+#endif
+@@waitloop:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	sti
+	jmp	$+2
+	cli
+	cmp	[WORD ptr TimeCount],bx
+	je	@@done
+#ifdef __BORLANDC__
+	}
+#endif
+@@waitnovert:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	in	al,dx
+	test	al,1
+	jnz	@@waitnovert
+#ifdef __BORLANDC__
+	}
+#endif
+@@waitvert:
+#ifdef __BORLANDC__
+__asm {
+#endif
+	in	al,dx
+	test	al,1
+	jz	@@waitvert
+	}
+
+	for(i=0;i<5;i++)
+	{
+		__asm {
+	in	al,dx
+	test	al,8
+	jnz	@@waitloop
+	test	al,1
+	jz	@@waitloop
+		}
+	}
+
+	__asm {
+	test	[jerk],1
+	jz	@@done
+	}
+
+	for(i=0;i<5;i++)
+	{
+		__asm {
+	in	al,dx
+	test	al,8
+	jnz	@@waitloop
+	test	al,1
+	jz	@@waitloop
+		}
+	}
+
+#ifdef __BORLANDC__
+	}
+#endif
+@@done:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+	ret
+}}*/
+
+word	nopan;
+//==============
+//
+// VW_SetScreen
+//
+//==============
+
+//PROC	VW_SetScreen  crtc:WORD, pel:WORD
+void	VW_SetScreen (word crtc, word pel)
+{
+	VL_WaitVBL(1);
+	__asm {
+//
+// set CRTC start
+//
+// for some reason, my XT's EGA card doesn't like word outs to the CRTC
+// index...
+//
+	mov	cx,[crtc]
+	mov	dx,CRTC_INDEX
+	mov	al,0ch		;start address high register
+	out	dx,al
+	inc	dx
+	mov	al,ch
+	out	dx,al
+	dec	dx
+	mov	al,0dh		;start address low register
+	out	dx,al
+	mov	al,cl
+	inc	dx
+	out	dx,al
+
+	test	[nopan],1
+	jnz	@@done
+//
+// set horizontal panning
+//
+
+	mov	dx,ATR_INDEX
+	mov	al,ATR_PELPAN or 20h
+	out	dx,al
+	jmp	@@done
+	mov	al,[BYTE ptr pel]		//pel pan value
+	out	dx,al
+
+#ifdef __BORLANDC__
+	}
+#endif
+@@done:
+#ifdef __BORLANDC__
+__asm {
+#endif
+	sti
+
+	ret
+}
+}
 
 
 

@@ -105,10 +105,17 @@ void Quit (char *error);
 #define CHARWIDTH		2
 #define TILEWIDTH		4
 
+typedef enum {CGAgr,EGAgr,VGAgr} grtype;
+
 //===========================================================================
+
+extern	grtype		grmode;			// CGAgr, EGAgr, VGAgr
 
 extern	unsigned	bufferofs;			// all drawing is reletive to this
 extern	unsigned	displayofs,pelpan;	// last setscreen coordinates
+extern	unsigned	panx,pany;		// panning adjustments inside port in pixels
+extern	unsigned	pansx,pansy;
+extern	unsigned	panadjust;		// panx/pany adjusted by screen resolution
 
 extern	unsigned	screenseg;			// set to 0xa000 for asm convenience
 
@@ -148,6 +155,7 @@ void VGABITMASK(byte x);
 void VL_Startup (void);
 void VL_Shutdown (void);
 
+void VW_SetScreenMode (int grmode);
 void VL_SetVGAPlane (void);
 void VL_SetTextMode (void);
 void VL_DePlaneVGA (void);
@@ -190,4 +198,6 @@ void VL_SizePropString (char *str, int *width, int *height, char far *font);
 
 void VL_TestPaletteSet (void);
 void VL_LatchToScreen (unsigned source, int width, int height, int x, int y);
+
+void	VW_SetScreen (word crtc, word pel);
 #endif

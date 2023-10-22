@@ -1,5 +1,30 @@
-/* Keen Dreams Source Code
- * Copyright (C) 2014 Javier M. Chavez
+/* Project 16 Source Code~
+ * Copyright (C) 2012-2023 sparky4 & pngwen & andrius4669 & joncampbell123 & yakui-lover
+ *
+ * This file is part of Project 16.
+ *
+ * Project 16 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Project 16 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>, or
+ * write to the Free Software Foundation, Inc., 51 Franklin Street,
+ * Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+/* Reconstructed Commander Keen 4-6 Source Code
+ * Copyright (C) 2021 K1n9_Duk3
+ *
+ * This file is primarily based on:
+ * Catacomb 3-D Source Code
+ * Copyright (C) 1993-2014 Flat Rock Software
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,7 +33,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -16,7 +41,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// 16_RF.C
+// ID_RF.C
 
 /*
 =============================================================================
@@ -34,9 +59,6 @@ updated
 
 #include "src/lib/16_rf.h"
 #pragma hdrstop
-
-struct glob_game_vars *gvar;
-static word far* clockw= (word far*) 0x046C; /* 18.2hz clock */
 
 /*
 =============================================================================
@@ -73,7 +95,7 @@ unsigned	SX_T_SHIFT;		// screen x >> ?? = tile EGA = 1, CGA = 2;
 
 #define	EGAPORTSCREENWIDE	42
 #define	CGAPORTSCREENWIDE	84
-#define	PORTSCREENHIGH  224
+#define	PORTSCREENHIGH		224
 
 #define	UPDATESCREENSIZE	(UPDATEWIDE*PORTTILESHIGH+2)
 #define	UPDATESPARESIZE		(UPDATEWIDE*2+4)
@@ -113,6 +135,11 @@ typedef struct
 {
 	unsigned	current;		// foreground tiles have high bit set
 	int			count;
+#ifdef KEEN6
+	unsigned	soundtile;
+	unsigned	visible;
+	int		sound;
+#endif
 } tiletype;
 
 
@@ -157,7 +184,6 @@ unsigned	originxtile,originytile;
 unsigned	originxscreen,originyscreen;
 unsigned	originmap;
 unsigned	originxmin,originxmax,originymin,originymax;
-unsigned	originxtile,originytile;
 
 unsigned	masterofs;
 
@@ -178,14 +204,6 @@ byte		*updateptr,*baseupdateptr,						// current start of update window
 			*updatestart[2],
 			*baseupdatestart[2];
 
-//from others
-cardtype	videocard;		// set by VW_Startup
-grtype		grmode;			// CGAgr, EGAgr, VGAgr
-
-unsigned	bufferofs;		// hidden area to draw to before displaying
-unsigned	displayofs;		// origin of the visable screen
-//
-
 /*
 =============================================================================
 
@@ -193,9 +211,8 @@ unsigned	displayofs;		// origin of the visable screen
 
 =============================================================================
 */
-#ifdef PROFILE
-static		char	scratch[20],str[20];
-#endif
+
+static		char	scratch[20],str[80];
 
 tiletype	allanims[MAXANIMTYPES];
 unsigned	numanimchains;
@@ -210,9 +227,6 @@ unsigned	xpanmask;			// prevent panning to odd pixels
 unsigned	screenpage;			// screen currently being displayed
 unsigned	otherpage;
 
-#if GRMODE == EGAGR
-unsigned	tilecache[NUMTILE16];
-#endif
 
 spritelisttype	spritearray[MAXSPRITES],*prioritystart[PRIORITIES],
 				*spritefreeptr;
@@ -222,6 +236,9 @@ animtiletype	animarray[MAXANIMTILES],*animhead,*animfreeptr;
 int				animfreespot;
 
 eraseblocktype	eraselist[2][MAXSPRITES],*eraselistptr[2];
+
+int		hscrollblocks,vscrollblocks;
+int		hscrolledge[MAXSCROLLEDGES],vscrolledge[MAXSCROLLEDGES];
 
 /*
 =============================================================================
@@ -235,9 +252,9 @@ void RFL_NewTile (unsigned updateoffset);
 void RFL_MaskForegroundTiles (void);
 void RFL_UpdateTiles (void);
 
-void RFL_BoundScroll (int x, int y);//++++??
+void RFL_BoundScroll (int x, int y);
 void RFL_CalcOriginStuff (long x, long y);
-void RFL_ClearScrollBlocks (void);//++++??
+void RFL_ClearScrollBlocks (void);
 void RFL_InitSpriteList (void);
 void RFL_InitAnimList (void);
 void RFL_CheckForAnimTile (unsigned x, unsigned y);
@@ -272,6 +289,14 @@ void RF_Startup (void)
 	int i,x,y;
 	unsigned	*blockstart;
 
+#ifndef KEEN
+	//
+	// Keen 4-6 store the compatability setting in the game's config file.
+	// The setting is loaded from that file AFTER RF_Startup is executed,
+	// making this check useless (unless the config file doesn't exist).
+	// Instead, US_Startup now checks for that parameter after the config
+	// file has been read.
+	//
 	if (grmode == EGAGR)
 		for (i = 1;i < _argc;i++)
 			if (US_CheckParm(_argv[i],ParmStrings) == 0)
@@ -279,6 +304,7 @@ void RF_Startup (void)
 				compatability = true;
 				break;
 			}
+#endif
 
 	for (i=0;i<PORTTILESHIGH;i++)
 		uwidthtable[i] = UPDATEWIDE*i;
@@ -359,23 +385,28 @@ void RF_Shutdown (void)
 =====================
 */
 
-void RF_FixOfs (global_game_variables_t *gvar)
+void RF_FixOfs (void)
 {
-//	if (grmode == EGAGR)
-//	{
+	screenstart[0] = 0;
+	screenstart[1] = SCREENSPACE;
+	screenstart[2] = SCREENSPACE*2;
+
+	if (grmode == EGAGR)
+	{
 		screenpage = 0;
 		otherpage = 1;
-		gvar->video.ofs.pan.panx = gvar->video.ofs.pan.pany = gvar->video.ofs.pan.pansx = gvar->video.ofs.pan.pansy = gvar->video.ofs.pan.panadjust = 0;
+		panx = pany = pansx = pansy = panadjust = 0;
 		displayofs = screenstart[screenpage];
 		bufferofs = screenstart[otherpage];
 		masterofs = screenstart[2];
-/*++++		VL_SetScreen (displayofs,0);
+		VW_SetScreen (displayofs,0);
 	}
 	else
 	{
+		panx = pany = pansx = pansy = panadjust = 0;
 		bufferofs = 0;
 		masterofs = 0x8000;
-	}*/
+	}
 }
 
 
@@ -390,7 +421,7 @@ void RF_FixOfs (global_game_variables_t *gvar)
 =
 =====================
 */
-/*++++
+
 void RF_NewMap (void)
 {
 	int i,x,y;
@@ -406,7 +437,7 @@ void RF_NewMap (void)
 // make a lookup table for the maps left edge
 //
 	if (mapheight > MAXMAPHEIGHT)
-	Quit (gvar, "RF_NewMap: Map too tall!");
+		Quit ("RF_NewMap: Map too tall!");
 	spot = 0;
 	for (i=0;i<mapheight;i++)
 	{
@@ -448,7 +479,48 @@ void RF_NewMap (void)
 	lasttimecount = TimeCount;		// setup for adaptive timing
 	tics = 1;
 }
+
+//===========================================================================
+
+#ifdef KEEN6
+/*
+==========================
+=
+= RFL_CheckTileSound
+=
+= Checks if the tile plays a sound and if so adds that info to the animation
+=
+==========================
 */
+
+#define NUMSOUNDTILES 2
+typedef struct {
+	unsigned tilenums[NUMSOUNDTILES];
+	int sounds[NUMSOUNDTILES];
+} tilesoundtype;
+
+tilesoundtype far soundtiles = {
+	{2152|0x8000, 2208|0x8000},
+	{SND_STOMP,   SND_FLAME}
+};
+
+void RFL_CheckTileSound(tiletype *anim, unsigned tile)
+{
+	int i;
+
+	for (i=0; i<NUMSOUNDTILES; i++)
+	{
+		if (soundtiles.tilenums[i] == tile)
+		{
+			anim->soundtile = tile;
+			anim->sound = soundtiles.sounds[i];
+			break;
+		}
+	}
+}
+
+#endif
+
 //===========================================================================
 
 /*
@@ -466,13 +538,14 @@ void RF_NewMap (void)
 =
 ==========================
 */
-/*++++
+
 void RF_MarkTileGraphics (void)
 {
 	unsigned	size;
-	int			tile,next,anims;
+	int			tile,next,anims,change;
 	unsigned	far	*start,far *end,far *info;
 	unsigned	i,tilehigh;
+	char		str[80],str2[10];
 
 	memset (allanims,0,sizeof(allanims));
 	numanimchains = 0;
@@ -495,31 +568,57 @@ void RF_MarkTileGraphics (void)
 			{
 				// this tile will animated
 
-				for (i=0;i<numanimchains;i++)
-					if (allanims[i].current == tile)
+				if (tinf[SPEED+tile])
+				{
+					if (!tinf[ANIM+tile])
 					{
-						*info = (unsigned)&allanims[i];
-						goto nextback;
+						strcpy (str,"RF_MarkTileGraphics: Background anim of 0:");
+						itoa (tile,str2,10);
+						strcat (str,str2);
+						Quit (str);
 					}
+					for (i=0;i<numanimchains;i++)
+						if (allanims[i].current == tile)
+						{
+							*info = (unsigned)&allanims[i];
+							goto nextback;
+						}
 
-				// new chain of animating tiles
+					// new chain of animating tiles
 
-				if (i>=MAXANIMTYPES)
-					Quit (gvar, "RF_MarkTileGraphics: Too many unique animated tiles!");
-				allanims[i].current = tile;
-				allanims[i].count = tinf[SPEED+tile];
-
-				*info = (unsigned)&allanims[i];
-				numanimchains++;
+					if (i>=MAXANIMTYPES)
+						Quit ("RF_MarkTileGraphics: Too many unique animated tiles!");
+					allanims[i].current = tile;
+					allanims[i].count = tinf[SPEED+tile];
+#ifdef KEEN6
+					allanims[i].visible = 0;
+					allanims[i].sound = -1;
+#endif
+					*info = (unsigned)&allanims[i];
+					numanimchains++;
+				}
+#ifdef KEEN6
+				RFL_CheckTileSound(&allanims[i], tile);
+#endif
 
 				anims = 0;
-				next = tile+(signed char)(tinf[ANIM+tile]);
-				while (next != tile)
+				change = (signed char)(tinf[ANIM+tile]);
+				next = tile+change;
+				while (change && next != tile)
 				{
+#ifdef KEEN6
+					RFL_CheckTileSound(&allanims[i], next);
+#endif
 					CA_MarkGrChunk(STARTTILE16+next);
-					next += (signed char)(tinf[ANIM+next]);
+					change = (signed char)(tinf[ANIM+next]);
+					next += change;
 					if (++anims > 20)
-						Quit (gvar, "MarkTileGraphics: Unending animation!");
+					{
+						strcpy (str,"RF_MarkTileGraphics: Unending background animation:");
+						itoa (next,str2,10);
+						strcat (str,str2);
+						Quit (str);
+					}
 				}
 
 			}
@@ -544,32 +643,58 @@ nextback:
 			{
 				// this tile will animated
 
-				tilehigh = tile | 0x8000;	// foreground tiles have high bit
-				for (i=0;i<numanimchains;i++)
-					if (allanims[i].current == tilehigh)
-					{
-						*info = (unsigned)&allanims[i];
-						goto nextfront;
-					}
-
-				// new chain of animating tiles
-
-				if (i>=MAXANIMTYPES)
-					Quit (gvar, "RF_MarkTileGraphics: Too many unique animated tiles!");
-				allanims[i].current = tilehigh;
-				allanims[i].count = tinf[MSPEED+tile];
-
-				*info = (unsigned)&allanims[i];
-				numanimchains++;
-
-				anims = 0;
-				next = tile+(signed char)(tinf[MANIM+tile]);
-				while (next != tile)
+				if (tinf[MSPEED+tile])
 				{
+					if (!tinf[MANIM+tile])
+					{
+						strcpy (str,"RF_MarkTileGraphics: Foreground anim of 0:");
+						itoa (tile,str2,10);
+						strcat (str,str2);
+						Quit (str);
+					}
+					tilehigh = tile | 0x8000;	// foreground tiles have high bit
+					for (i=0;i<numanimchains;i++)
+						if (allanims[i].current == tilehigh)
+						{
+							*info = (unsigned)&allanims[i];
+							goto nextfront;
+						}
+
+					// new chain of animating tiles
+
+					if (i>=MAXANIMTYPES)
+						Quit ("RF_MarkTileGraphics: Too many unique animated tiles!");
+					allanims[i].current = tilehigh;
+					allanims[i].count = tinf[MSPEED+tile];
+#ifdef KEEN6
+					allanims[i].visible = 0;
+					allanims[i].sound = -1;
+#endif
+					*info = (unsigned)&allanims[i];
+					numanimchains++;
+				}
+
+#ifdef KEEN6
+				RFL_CheckTileSound(&allanims[i], tilehigh);
+#endif
+				anims = 0;
+				change = (signed char)(tinf[MANIM+tile]);
+				next = tile+change;
+				while (change && next != tile)
+				{
+#ifdef KEEN6
+					RFL_CheckTileSound(&allanims[i], next | 0x8000);	// foreground tiles have high bit
+#endif
 					CA_MarkGrChunk(STARTTILE16M+next);
-					next += (signed char)(tinf[MANIM+next]);
+					change = (signed char)(tinf[MANIM+next]);
+					next += change;
 					if (++anims > 20)
-						Quit (gvar, "MarkTileGraphics: Unending animation!");
+					{
+						strcpy (str,"RF_MarkTileGraphics: Unending foreground animation:");
+						itoa (next,str2,10);
+						strcat (str,str2);
+						Quit (str);
+					}
 				}
 
 			}
@@ -578,7 +703,7 @@ nextfront:
 		info++;
 	} while (start<end);
 }
-*/
+
 
 //===========================================================================
 
@@ -606,6 +731,15 @@ void RFL_InitAnimList (void)
 	animarray[i].nexttile = NULL;
 
 	animhead = NULL;			// nothing in list
+
+#ifdef KEEN6
+	{
+		tiletype *anim;
+
+		for (anim = allanims; anim->current != 0; anim++)
+			anim->visible = 0;
+	}
+#endif
 }
 
 
@@ -616,7 +750,7 @@ void RFL_InitAnimList (void)
 =
 ====================
 */
-/*++++
+
 void RFL_CheckForAnimTile (unsigned x, unsigned y)
 {
 	unsigned 	tile,offset,speed,lasttime,thistime,timemissed;
@@ -636,7 +770,7 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 	if (tinf[ANIM+tile] && tinf[SPEED+tile])
 	{
 		if (!animfreeptr)
-			Quit (gvar, "RF_CheckForAnimTile: No free spots in tilearray!");
+			Quit ("RF_CheckForAnimTile: No free spots in tilearray!");
 		anim = animfreeptr;
 		animfreeptr = animfreeptr->nexttile;
 		next = animhead;				// stick it at the start of the list
@@ -651,6 +785,9 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 		anim->tile = tile;
 		anim->mapplane = map;
 		anim->chain = (tiletype *)*(mapsegs[2]+offset);
+#ifdef KEEN6
+		anim->chain->visible++;
+#endif
 	}
 
 //
@@ -661,7 +798,7 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 	if (tinf[MANIM+tile] && tinf[MSPEED+tile])
 	{
 		if (!animfreeptr)
-			Quit (gvar, "RF_CheckForAnimTile: No free spots in tilearray!");
+			Quit ("RF_CheckForAnimTile: No free spots in tilearray!");
 		anim = animfreeptr;
 		animfreeptr = animfreeptr->nexttile;
 		next = animhead;				// stick it at the start of the list
@@ -676,10 +813,13 @@ void RFL_CheckForAnimTile (unsigned x, unsigned y)
 		anim->tile = tile;
 		anim->mapplane = map;
 		anim->chain = (tiletype *)*(mapsegs[2]+offset);
+#ifdef KEEN6
+		anim->chain->visible++;
+#endif
 	}
 
 }
-*/
+
 
 /*
 ====================
@@ -698,6 +838,9 @@ void RFL_RemoveAnimsOnX (unsigned x)
 	{
 		if (current->x == x)
 		{
+#ifdef KEEN6
+			current->chain->visible--;
+#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -729,6 +872,9 @@ void RFL_RemoveAnimsOnY (unsigned y)
 	{
 		if (current->y == y)
 		{
+#ifdef KEEN6
+			current->chain->visible--;
+#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -760,6 +906,9 @@ void RFL_RemoveAnimsInBlock (unsigned x, unsigned y, unsigned width, unsigned he
 	{
 		if (current->x - x < width && current->y - y < height)
 		{
+#ifdef KEEN6
+			current->chain->visible--;
+#endif
 			*(void **)current->prevptr = current->nexttile;
 			if (current->nexttile)
 				current->nexttile->prevptr = current->prevptr;
@@ -781,7 +930,7 @@ void RFL_RemoveAnimsInBlock (unsigned x, unsigned y, unsigned width, unsigned he
 =
 ====================
 */
-/*++++
+
 void RFL_AnimateTiles (void)
 {
 	animtiletype *current;
@@ -811,6 +960,12 @@ void RFL_AnimateTiles (void)
 				anim->count += tinf[SPEED+tile];
 			}
 			anim->current = tile;
+#ifdef KEEN6
+			if (anim->visible && anim->current == anim->soundtile && anim->sound != -1)
+			{
+				SD_PlaySound(anim->sound);
+			}
+#endif
 		}
 		anim++;
 	}
@@ -835,16 +990,11 @@ void RFL_AnimateTiles (void)
 
 			*(current->mapplane) = tile & 0x7fff; 		// change in map
 
-#if GRMODE == EGAGR
-			if (tile<0x8000)		// background
-				tilecache[tile] = 0;
-#endif
-
 			x = current->x-originxtile;
 			y = current->y-originytile;
 
 			if (x>=PORTTILESWIDE || y>=PORTTILESHIGH)
-				Quit (gvar, "RFL_AnimateTiles: Out of bounds!");
+				Quit ("RFL_AnimateTiles: Out of bounds!");
 
 			updateofs = uwidthtable[y] + x;
 			RFL_NewTile(updateofs);				// puts "1"s in both pages
@@ -852,7 +1002,7 @@ void RFL_AnimateTiles (void)
 		current = current->nexttile;
 	}
 }
-*/
+
 
 //===========================================================================
 
@@ -897,16 +1047,6 @@ void RFL_InitSpriteList (void)
 
 void RFL_CalcOriginStuff (long x, long y)
 {
-	if (x<originxmin)
-	  x=originxmin;
-	else if (x>originxmax)
-	  x=originxmax;
-
-	if (y<originymin)
-	  y=originymin;
-	else if (y>originymax)
-	  y=originymax;
-
 	originxglobal = x;
 	originyglobal = y;
 	originxtile = originxglobal>>G_T_SHIFT;
@@ -915,21 +1055,19 @@ void RFL_CalcOriginStuff (long x, long y)
 	originyscreen = originytile<<SY_T_SHIFT;
 	originmap = mapbwidthtable[originytile] + originxtile*2;
 
-//#if GRMODE == EGAGR
-	gvar->video.ofs.pan.panx = (originxglobal>>G_P_SHIFT) & 15;
-	gvar->video.ofs.pan.pansx = gvar->video.ofs.pan.panx & 8;
-	gvar->video.ofs.pan.pany = gvar->video.ofs.pan.pansy = (originyglobal>>G_P_SHIFT) & 15;
-//	gvar->video.ofs.pan.panadjust = gvar->video.ofs.pan.panx/8 + gvar->video.ofs.ylookup[gvar->video.ofs.pan.pany];
-	gvar->video.ofs.pan.panadjust = gvar->video.ofs.pan.panx/8 + (gvar->video.ofs.pan.pany*gvar->video.page[0].stridew);
-/*#endif
+#if GRMODE == EGAGR
+	panx = (originxglobal>>G_P_SHIFT) & 15;
+	pansx = panx & 8;
+	pany = pansy = (originyglobal>>G_P_SHIFT) & 15;
+	panadjust = panx/8 + ylookup[pany];
+#endif
 
 #if GRMODE == CGAGR
-	gvar->video.ofs.pan.panx = (originxglobal>>G_P_SHIFT) & 15;
-	gvar->video.ofs.pan.pansx = gvar->video.ofs.pan.panx & 12;
-	gvar->video.ofs.pan.pany = gvar->video.ofs.pan.pansy = (originyglobal>>G_P_SHIFT) & 15;
-	gvar->video.ofs.pan.panadjust = gvar->video.ofs.pan.pansx/4 + gvar->video.ofs.ylookup[gvar->video.ofs.pan.pansy];
+	panx = (originxglobal>>G_P_SHIFT) & 15;
+	pansx = panx & 12;
+	pany = pansy = (originyglobal>>G_P_SHIFT) & 15;
+	panadjust = pansx/4 + ylookup[pansy];
 #endif
-	*/
 
 }
 
@@ -944,7 +1082,7 @@ void RFL_CalcOriginStuff (long x, long y)
 
 void RFL_ClearScrollBlocks (void)
 {
-	gvar->video.ofs.pan.hscrollblocks = gvar->video.ofs.pan.vscrollblocks = 0;
+	hscrollblocks = vscrollblocks = 0;
 }
 
 
@@ -963,15 +1101,15 @@ void RF_SetScrollBlock (int x, int y, boolean horizontal)
 {
 	if (horizontal)
 	{
-		gvar->video.ofs.pan.hscrolledge[gvar->video.ofs.pan.hscrollblocks] = y;
-		if (gvar->video.ofs.pan.hscrollblocks++ == MAXSCROLLEDGES)
-			Quit (gvar, "RF_SetScrollBlock: Too many horizontal scroll blocks");
+		hscrolledge[hscrollblocks] = y;
+		if (hscrollblocks++ == MAXSCROLLEDGES)
+			Quit ("RF_SetScrollBlock: Too many horizontal scroll blocks");
 	}
 	else
 	{
-		gvar->video.ofs.pan.vscrolledge[gvar->video.ofs.pan.vscrollblocks] = x;
-		if (gvar->video.ofs.pan.vscrollblocks++ == MAXSCROLLEDGES)
-			Quit (gvar, "RF_SetScrollBlock: Too many vertical scroll blocks");
+		vscrolledge[vscrollblocks] = x;
+		if (vscrollblocks++ == MAXSCROLLEDGES)
+			Quit ("RF_SetScrollBlock: Too many vertical scroll blocks");
 	}
 }
 
@@ -999,8 +1137,8 @@ void RFL_BoundScroll (int x, int y)
 	if (x>0)
 	{
 		newxtile+=SCREENTILESWIDE;
-		for (check=0;check<gvar->video.ofs.pan.vscrollblocks;check++)
-			if (gvar->video.ofs.pan.vscrolledge[check] == newxtile)
+		for (check=0;check<vscrollblocks;check++)
+			if (vscrolledge[check] == newxtile)
 			{
 				originxglobal = originxglobal&0xff00;
 				break;
@@ -1008,8 +1146,8 @@ void RFL_BoundScroll (int x, int y)
 	}
 	else if (x<0)
 	{
-		for (check=0;check<gvar->video.ofs.pan.vscrollblocks;check++)
-			if (gvar->video.ofs.pan.vscrolledge[check] == newxtile)
+		for (check=0;check<vscrollblocks;check++)
+			if (vscrolledge[check] == newxtile)
 			{
 				originxglobal = (originxglobal&0xff00)+0x100;
 				break;
@@ -1020,8 +1158,8 @@ void RFL_BoundScroll (int x, int y)
 	if (y>0)
 	{
 		newytile+=SCREENTILESHIGH;
-		for (check=0;check<gvar->video.ofs.pan.hscrollblocks;check++)
-			if (gvar->video.ofs.pan.hscrolledge[check] == newytile)
+		for (check=0;check<hscrollblocks;check++)
+			if (hscrolledge[check] == newytile)
 			{
 				originyglobal = originyglobal&0xff00;
 				break;
@@ -1029,8 +1167,8 @@ void RFL_BoundScroll (int x, int y)
 	}
 	else if (y<0)
 	{
-		for (check=0;check<gvar->video.ofs.pan.hscrollblocks;check++)
-			if (gvar->video.ofs.pan.hscrolledge[check] == newytile)
+		for (check=0;check<hscrollblocks;check++)
+			if (hscrolledge[check] == newytile)
 			{
 				originyglobal = (originyglobal&0xff00)+0x100;
 				break;
@@ -1117,7 +1255,7 @@ void	RFL_NewRow (int dir)
 		count = PORTTILESHIGH;
 		break;
 	default:
-		Quit (gvar, "RFL_NewRow: Bad dir!");
+		Quit ("RFL_NewRow: Bad dir!");
 	}
 
 	while (count--)
@@ -1159,7 +1297,7 @@ void RF_ForceRefresh (void)
 =
 =====================
 */
-/*++++
+
 void RF_MapToMap (unsigned srcx, unsigned srcy,
 				  unsigned destx, unsigned desty,
 				  unsigned width, unsigned height)
@@ -1224,7 +1362,7 @@ void RF_MapToMap (unsigned srcx, unsigned srcy,
 			}
 		}
 }
-*/
+
 //===========================================================================
 
 
@@ -1238,7 +1376,7 @@ void RF_MapToMap (unsigned srcx, unsigned srcy,
 =
 =====================
 */
-/*++++
+
 void RF_MemToMap (unsigned far *source, unsigned plane,
 				  unsigned destx, unsigned desty,
 				  unsigned width, unsigned height)
@@ -1281,7 +1419,7 @@ void RF_MemToMap (unsigned far *source, unsigned plane,
 				RFL_CheckForAnimTile (destx+x,desty+y);
 			}
 		}
-}*/
+}
 
 //===========================================================================
 
@@ -1317,9 +1455,9 @@ void RFL_BoundNewOrigin (unsigned orgx,unsigned orgy)
 	originxtile = orgx>>G_T_SHIFT;
 	originytile = orgy>>G_T_SHIFT;
 
-	for (check=0;check<gvar->video.ofs.pan.vscrollblocks;check++)
+	for (check=0;check<vscrollblocks;check++)
 	{
-		edge = gvar->video.ofs.pan.vscrolledge[check];
+		edge = vscrolledge[check];
 		if (edge>=originxtile && edge <=originxtile+10)
 		{
 			orgx = (edge+1)*TILEGLOBAL;
@@ -1332,9 +1470,9 @@ void RFL_BoundNewOrigin (unsigned orgx,unsigned orgy)
 		}
 	}
 
-	for (check=0;check<gvar->video.ofs.pan.hscrollblocks;check++)
+	for (check=0;check<hscrollblocks;check++)
 	{
-		edge = gvar->video.ofs.pan.hscrolledge[check];
+		edge = hscrolledge[check];
 		if (edge>=originytile && edge <=originytile+6)
 		{
 			orgy = (edge+1)*TILEGLOBAL;
@@ -1369,7 +1507,7 @@ void RFL_BoundNewOrigin (unsigned orgx,unsigned orgy)
 
 void RF_ClearBlock (int	x, int y, int width, int height)
 {
-//	eraseblocktype block;
+	eraseblocktype block;
 
 #if GRMODE == EGAGR
 	block.screenx = x/8+originxscreen;
@@ -1408,10 +1546,10 @@ void RF_RedrawBlock (int x, int y, int width, int height)
 {
 	int	xx,yy,xl,xh,yl,yh;
 
-	xl=(x+gvar->video.ofs.pan.panx)/16;
-	xh=(x+gvar->video.ofs.pan.panx+width+15)/16;
-	yl=(y+gvar->video.ofs.pan.pany)/16;
-	yh=(y+gvar->video.ofs.pan.pany+height+15)/16;
+	xl=(x+panx)/16;
+	xh=(x+panx+width+15)/16;
+	yl=(y+pany)/16;
+	yh=(y+pany+height+15)/16;
 	for (yy=yl;yy<=yh;yy++)
 		for (xx=xl;xx<=xh;xx++)
 			RFL_NewTile (yy*UPDATEWIDE+xx);
@@ -1430,8 +1568,7 @@ void RF_RedrawBlock (int x, int y, int width, int height)
 
 void RF_CalcTics (void)
 {
-	long	newtime;//,oldtimecount;
-	word TimeCount = *clockw;
+	long	newtime,oldtimecount;
 
 //
 // calculate tics since last refresh for adaptive timing
@@ -1439,7 +1576,7 @@ void RF_CalcTics (void)
 	if (lasttimecount > TimeCount)
 		TimeCount = lasttimecount;		// if the game was paused a LONG time
 
-/*++++	if (DemoMode)					// demo recording and playback needs
+	if (DemoMode)					// demo recording and playback needs
 	{								// to be constant
 //
 // take DEMOTICS or more tics, and modify Timecount to reflect time taken
@@ -1452,7 +1589,7 @@ void RF_CalcTics (void)
 		tics = DEMOTICS;
 	}
 	else
-	{*/
+	{
 //
 // non demo, so report actual time
 //
@@ -1476,18 +1613,10 @@ void RF_CalcTics (void)
 			TimeCount -= (tics-MAXTICS);
 			tics = MAXTICS;
 		}
-//	}
+	}
 }
 
-/*
-=============================================================================
-
-					EGA specific routines
-
-=============================================================================
-*/
-
-#if GRMODE == EGAGR
+//===========================================================================
 
 /*
 =====================
@@ -1521,7 +1650,15 @@ unsigned RF_FindFreeBuffer (void)
 	return 0;	// never get here...
 }
 
-//===========================================================================
+/*
+=============================================================================
+
+					EGA specific routines
+
+=============================================================================
+*/
+
+#if GRMODE == EGAGR
 
 /*
 =====================
@@ -1538,11 +1675,6 @@ void RF_NewPosition (unsigned x, unsigned y)
 	unsigned 	updatenum;
 
 	RFL_BoundNewOrigin (x,y);
-
-// calculate new origin related globals
-//
-	RFL_CalcOriginStuff (x,y);
-
 //
 // clear out all animating tiles
 //
@@ -1551,8 +1683,6 @@ void RF_NewPosition (unsigned x, unsigned y)
 //
 // set up the new update arrays at base position
 //
-	memset (tilecache,0,sizeof(tilecache));		// old cache is invalid
-
 	updatestart[0] = baseupdatestart[0];
 	updatestart[1] = baseupdatestart[1];
 	updateptr = updatestart[otherpage];
@@ -1581,41 +1711,6 @@ void RF_NewPosition (unsigned x, unsigned y)
 
 //===========================================================================
 
-/*
-=================
-=
-= RFL_OldRow EGA
-=
-= Uncache the trailing row of tiles
-=
-=================
-*/
-
-void	RFL_OldRow (unsigned updatespot,unsigned count,unsigned step)
-{
-
-asm	mov	si,[updatespot]			// pointer inside each map plane
-asm	mov	cx,[count]				// number of tiles to clear
-asm	mov	dx,[step]				// move to next tile
-asm	mov	es,[WORD PTR mapsegs]			// background plane
-asm	mov	ds,[WORD PTR mapsegs+2]			// foreground plane
-
-clearcache:
-asm	mov	bx,[si]
-asm	or	bx,bx
-asm	jnz	blockok					// if a foreground tile, block wasn't cached
-asm	mov	bx,[es:si]
-asm	shl	bx,1
-asm	mov	[WORD PTR ss:tilecache+bx],0  //tile is no longer in master screen cache
-blockok:
-asm	add	si,dx
-asm	loop	clearcache
-
-asm	mov	ax,ss
-asm	mov	ds,ax
-
-}
-
 
 /*
 =====================
@@ -1637,16 +1732,15 @@ void RF_Scroll (int x, int y)
 	int			oldxt,oldyt,move,yy;
 	unsigned	updatespot;
 	byte		*update0,*update1;
-	unsigned	oldgvar->video.ofs.pan.panx,oldgvar->video.ofs.pan.panadjust,oldoriginmap,oldscreen,newscreen,screencopy;
+	unsigned	oldpanx,oldpanadjust,oldscreen,newscreen,screencopy;
 	int			screenmove;
 
 	oldxt = originxtile;
 	oldyt = originytile;
-	oldoriginmap = originmap;
-	oldgvar->video.ofs.pan.panadjust = gvar->video.ofs.pan.panadjust;
-	oldgvar->video.ofs.pan.panx = gvar->video.ofs.pan.panx;
+	oldpanadjust = panadjust;
+	oldpanx = panx;
 
-	RFL_CalcOriginStuff ((long)originxglobal + x,(long)originyglobal + y);
+	RFL_BoundScroll (x,y);
 
 	deltax = originxtile - oldxt;
 	absdx = abs(deltax);
@@ -1682,11 +1776,11 @@ void RF_Scroll (int x, int y)
 			oldscreen = screenstart[i] - screenmove;
 			newscreen = oldscreen + screencopy;
 			screenstart[i] = newscreen + screenmove;
-//++++			VW_ScreenToScreen (oldscreen,newscreen,
+			VW_ScreenToScreen (oldscreen,newscreen,
 				PORTTILESWIDE*2,PORTTILESHIGH*16);
 
-//++++			if (i==screenpage)
-//++++				VL_SetScreen(newscreen+oldgvar->video.ofs.pan.panadjust,oldgvar->video.ofs.pan.panx & xpanmask);
+			if (i==screenpage)
+				VW_SetScreen(newscreen+oldpanadjust,oldpanx & xpanmask);
 		}
 	}
 	bufferofs = screenstart[otherpage];
@@ -1717,14 +1811,11 @@ void RF_Scroll (int x, int y)
 		if (deltax==1)
 		{
 			RFL_NewRow (1);			// new right row
-			RFL_OldRow (oldoriginmap,PORTTILESHIGH,mapbyteswide);
 			RFL_RemoveAnimsOnX (originxtile-1);
 		}
 		else
 		{
 			RFL_NewRow (3);			// new left row
-			RFL_OldRow (oldoriginmap+(PORTTILESWIDE-1)*2,PORTTILESHIGH
-			,mapbyteswide);
 			RFL_RemoveAnimsOnX (originxtile+PORTTILESWIDE);
 		}
 
@@ -1744,17 +1835,14 @@ void RF_Scroll (int x, int y)
 	{
 		if (deltay==1)
 		{
-			RFL_NewRow (2);			// new bottom row
-			RFL_OldRow (oldoriginmap,PORTTILESWIDE,2);
 			updatespot = UPDATEWIDE*(PORTTILESHIGH-1);
+			RFL_NewRow (2);			// new bottom row
 			RFL_RemoveAnimsOnY (originytile-1);
 		}
 		else
 		{
-			RFL_NewRow (0);			// new top row
-			RFL_OldRow (oldoriginmap+mapbwidthtable[PORTTILESHIGH-1]
-			,PORTTILESWIDE,2);
 			updatespot = 0;
+			RFL_NewRow (0);			// new top row
 			RFL_RemoveAnimsOnY (originytile+PORTTILESHIGH);
 		}
 
@@ -1832,7 +1920,7 @@ void RF_PlaceSprite (void **user,unsigned globalx,unsigned globaly,
 	// this is a brand new sprite, so allocate a block from the array
 
 		if (!spritefreeptr)
-			Quit (gvar, "RF_PlaceSprite: No free spots in spritearray!");
+			Quit ("RF_PlaceSprite: No free spots in spritearray!");
 
 		sprite = spritefreeptr;
 		spritefreeptr = spritefreeptr->nextsprite;
@@ -1864,7 +1952,10 @@ linknewspot:
 	globalx+=spr->orgx;
 
 	pixx = globalx >> G_SY_SHIFT;
-	shift = (pixx&7)/2;
+	if (nopan)
+		shift = 0;
+	else
+		shift = (pixx&7)/2;
 
 	sprite->screenx = pixx >> (G_EGASX_SHIFT-G_SY_SHIFT);
 	sprite->screeny = globaly >> G_SY_SHIFT;
@@ -2018,8 +2109,8 @@ void RFL_EraseBlocks (void)
 	//
 	// erase the block by copying from the master screen
 	//
-		pos = gvar->video.ofs.ylookup[block->screeny]+block->screenx;
-//++++		VW_ScreenToScreen (masterofs+pos,bufferofs+pos,
+		pos = ylookup[block->screeny]+block->screenx;
+		VW_ScreenToScreen (masterofs+pos,bufferofs+pos,
 			block->width,block->height);
 
 	//
@@ -2162,16 +2253,18 @@ redraw:
 				height = PORTSCREENHIGH - porty;    // clip bottom off
 			}
 
-			dest = bufferofs + gvar->video.ofs.ylookup[porty] + portx;
+			dest = bufferofs + ylookup[porty] + portx;
 
 			switch (sprite->draw)
 			{
 			case spritedraw:
-//++++				VW_MaskBlock(grsegs[sprite->grseg], sourceofs,
+				VW_MaskBlock(grsegs[sprite->grseg], sourceofs,
 					dest,sprite->width,height,sprite->planesize);
 				break;
 
 			case maskdraw:
+				VW_InverseMask(grsegs[sprite->grseg], sourceofs,
+					dest,sprite->width,height);
 				break;
 
 			}
@@ -2241,7 +2334,7 @@ void RF_Refresh (void)
 //
 // display the changed screen
 //
-	VL_SetScreen(bufferofs+gvar->video.ofs.pan.panadjust,gvar->video.ofs.pan.panx & xpanmask);
+	VW_SetScreen(bufferofs+panadjust,panx & xpanmask);
 
 //
 // prepare for next refresh
@@ -2297,10 +2390,6 @@ void RF_NewPosition (unsigned x, unsigned y)
 	unsigned 	updatenum;
 
 	RFL_BoundNewOrigin (x,y);
-
-// calculate new origin related globals
-//
-	RFL_CalcOriginStuff (x,y);
 
 //
 // clear out all animating tiles
@@ -2358,7 +2447,7 @@ void RF_Scroll (int x, int y)
 	oldxt = originxtile;
 	oldyt = originytile;
 
-	RFL_CalcOriginStuff ((long)originxglobal + x,(long)originyglobal + y);
+	RFL_BoundScroll (x,y);
 
 	deltax = originxtile - oldxt;
 	absdx = abs(deltax);
@@ -2505,7 +2594,7 @@ void RF_PlaceSprite (void **user,unsigned globalx,unsigned globaly,
 	// this is a brand new sprite, so allocate a block from the array
 
 		if (!spritefreeptr)
-			Quit (gvar, "RF_PlaceSprite: No free spots in spritearray!");
+			Quit ("RF_PlaceSprite: No free spots in spritearray!");
 
 		sprite = spritefreeptr;
 		spritefreeptr = spritefreeptr->nextsprite;
@@ -2679,11 +2768,10 @@ void RFL_EraseBlocks (void)
 	//
 	// erase the block by copying from the master screen
 	//
-//----		pos = gvar->video.ofs.ylookup[block->screeny]+block->screenx;
-		pos = (block->screeny*gvar->video.page[0].stridew)+block->screenx;
+		pos = ylookup[block->screeny]+block->screenx;
 		block->width = (block->width + (pos&1) + 1)& ~1;
 		pos &= ~1;				// make sure a word copy gets used
-//++++		VW_ScreenToScreen (masterofs+pos,bufferofs+pos,
+		VW_ScreenToScreen (masterofs+pos,bufferofs+pos,
 			block->width,block->height);
 
 	//
@@ -2818,7 +2906,7 @@ redraw:
 				height = PORTSCREENHIGH - porty;    // clip bottom off
 			}
 
-			dest = bufferofs + gvar->video.ofs.ylookup[porty] + portx;
+			dest = bufferofs + ylookup[porty] + portx;
 
 			switch (sprite->draw)
 			{
@@ -2828,6 +2916,8 @@ redraw:
 				break;
 
 			case maskdraw:
+				VW_InverseMask(grsegs[sprite->grseg], sourceofs,
+					dest,sprite->width,height);
 				break;
 
 			}
@@ -2858,7 +2948,7 @@ redraw:
 
 void RF_Refresh (void)
 {
-	long newtime;
+	long newtime,oldtimecount;
 
 	RFL_AnimateTiles ();
 
@@ -2894,749 +2984,3 @@ void RF_Refresh (void)
 }
 
 #endif		// GRMODE == CGAGR
-//===============================
-/*
-; Keen Dreams Source Code
-; Copyright (C) 2014 Javier M. Chavez
-;
-; This program is free software; you can redistribute it and/or modify
-; it under the terms of the GNU General Public License as published by
-; the Free Software Foundation; either version 2 of the License, or
-; (at your option) any later version.
-;
-; This program is distributed in the hope that it will be useful,
-; but WITHOUT ANY WARRANTY; without even the implied warranty of
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-; GNU General Public License for more details.
-;
-; You should have received a copy of the GNU General Public License along
-; with this program; if not, write to the Free Software Foundation, Inc.,
-; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-; ID_RF_A.ASM
-
-IDEAL
-MODEL	MEDIUM,C
-
-INCLUDE	"ID_ASM.EQU"
-
-CACHETILES	= 1		;enable master screen tile caching
-
-;============================================================================
-
-TILESWIDE	=	21
-TILESHIGH	=	14
-
-UPDATESIZE	=	(TILESWIDE+1)*TILESHIGH+1
-
-DATASEG
-
-EXTRN	screenseg:WORD
-EXTRN	updateptr:WORD
-EXTRN	updatestart:WORD
-EXTRN	masterofs:WORD		;start of master tile port
-EXTRN	bufferofs:WORD		;start of current buffer port
-EXTRN	screenstart:WORD	;starts of three screens (0/1/master) in EGA mem
-EXTRN	grsegs:WORD
-EXTRN	mapsegs:WORD
-EXTRN	originmap:WORD
-EXTRN	updatemapofs:WORD
-EXTRN	tilecache:WORD
-EXTRN	tinf:WORD			;seg pointer to map header and tile info
-EXTRN	blockstarts:WORD	;offsets from bufferofs for each update block
-
-planemask	db	?
-planenum	db	?
-
-CODESEG
-
-screenstartcs	dw	?		;in code segment for accesability
-
-
-
-
-IFE GRMODE-CGAGR
-;============================================================================
-;
-; CGA refresh routines
-;
-;============================================================================
-
-TILEWIDTH	=	4
-
-;=================
-;
-; RFL_NewTile
-;
-; Draws a composit two plane tile to the master screen and sets the update
-; spot to 1 in both update pages, forcing the tile to be copied to the
-; view pages the next two refreshes
-;
-; Called to draw newlly scrolled on strips and animating tiles
-;
-;=================
-
-PROC	RFL_NewTile	updateoffset:WORD
-PUBLIC	RFL_NewTile
-USES	SI,DI
-
-;
-; mark both update lists at this spot
-;
-	mov	di,[updateoffset]
-
-	mov	bx,[updateptr]			;start of update matrix
-	mov	[BYTE bx+di],1
-
-	mov	dx,SCREENWIDTH-TILEWIDTH		;add to get to start of next line
-
-;
-; set di to the location in screenseg to draw the tile
-;
-	shl	di,1
-	mov	si,[updatemapofs+di]	;offset in map from origin
-	add	si,[originmap]
-	mov	di,[blockstarts+di]		;screen location for tile
-	add	di,[masterofs]
-
-;
-; set BX to the foreground tile number and SI to the background number
-; If either BX or SI = 0xFFFF, the tile does not need to be masked together
-; as one of the planes totally eclipses the other
-;
-	mov	es,[mapsegs+2]			;foreground plane
-	mov	bx,[es:si]
-	mov	es,[mapsegs]			;background plane
-	mov	si,[es:si]
-
-	mov	es,[screenseg]
-
-	or	bx,bx
-	jz	@@singletile
-	jmp	@@maskeddraw			;draw both together
-
-;=============
-;
-; Draw single background tile from main memory
-;
-;=============
-
-@@singletile:
-	shl	si,1
-	mov	ds,[grsegs+STARTTILE16*2+si]
-
-	xor	si,si					;block is segment aligned
-
-REPT	15
-	movsw
-	movsw
-	add	di,dx
-ENDM
-	movsw
-	movsw
-
-	mov	ax,ss
-	mov	ds,ax					;restore turbo's data segment
-	ret
-
-
-;=========
-;
-; Draw a masked tile combo
-; Interupts are disabled and the stack segment is reassigned
-;
-;=========
-@@maskeddraw:
-	cli							; don't allow ints when SS is set
-	shl	bx,1
-	mov	ss,[grsegs+STARTTILE16M*2+bx]
-	shl	si,1
-	mov	ds,[grsegs+STARTTILE16*2+si]
-
-	xor	si,si					;first word of tile data
-
-REPT	16
-	mov	ax,[si]					;background tile
-	and	ax,[ss:si]				;mask
-	or	ax,[ss:si+64]			;masked data
-	stosw
-	mov	ax,[si+2]				;background tile
-	and	ax,[ss:si+2]			;mask
-	or	ax,[ss:si+66]			;masked data
-	stosw
-	add	si,4
-	add	di,dx
-ENDM
-
-	mov	ax,@DATA
-	mov	ss,ax
-	sti
-	mov	ds,ax
-	ret
-ENDP
-
-ENDIF
-
-
-
-IFE GRMODE-EGAGR
-;===========================================================================
-;
-; EGA refresh routines
-;
-;===========================================================================
-
-TILEWIDTH	=	2
-
-;=================
-;
-; RFL_NewTile
-;
-; Draws a composit two plane tile to the master screen and sets the update
-; spot to 1 in both update pages, forcing the tile to be copied to the
-; view pages the next two refreshes
-;
-; Called to draw newlly scrolled on strips and animating tiles
-;
-; Assumes write mode 0
-;
-;=================
-
-PROC	RFL_NewTile	updateoffset:WORD
-PUBLIC	RFL_NewTile
-USES	SI,DI
-
-;
-; mark both update lists at this spot
-;
-	mov	di,[updateoffset]
-
-	mov	bx,[updatestart]		;page 0 pointer
-	mov	[BYTE bx+di],1
-	mov	bx,[updatestart+2]		;page 1 pointer
-	mov	[BYTE bx+di],1
-
-;
-; set screenstartcs to the location in screenseg to draw the tile
-;
-	shl	di,1
-	mov	si,[updatemapofs+di]	;offset in map from origin
-	add	si,[originmap]
-	mov	di,[blockstarts+di]		;screen location for tile
-	add	di,[masterofs]
-	mov	[cs:screenstartcs],di
-
-;
-; set BX to the foreground tile number and SI to the background number
-; If either BX or SI = 0xFFFF, the tile does not need to be masked together
-; as one of the planes totally eclipses the other
-;
-	mov	es,[mapsegs+2]			;foreground plane
-	mov	bx,[es:si]
-	mov	es,[mapsegs]			;background plane
-	mov	si,[es:si]
-
-	mov	es,[screenseg]
-	mov	dx,SC_INDEX				;for stepping through map mask planes
-
-	or	bx,bx
-	jz	@@singletile
-	jmp	@@maskeddraw			;draw both together
-
-;=========
-;
-; No foreground tile, so draw a single background tile.
-; Use the master screen cache if possible
-;
-;=========
-@@singletile:
-
-	mov	bx,SCREENWIDTH-2		;add to get to start of next line
-	shl	si,1
-
-IFE CACHETILES
-	jmp	@@singlemain
-ENDIF
-
-	mov	ax,[tilecache+si]
-	or	ax,ax
-	jz	@@singlemain
-;=============
-;
-; Draw single tile from cache
-;
-;=============
-
-	mov	si,ax
-
-	mov	ax,SC_MAPMASK + 15*256	;all planes
-	WORDOUT
-
-	mov	dx,GC_INDEX
-	mov	ax,GC_MODE + 1*256		;write mode 1
-	WORDOUT
-
-	mov	di,[cs:screenstartcs]
-	mov	ds,[screenseg]
-
-REPT	15
-	movsb
-	movsb
-	add	si,bx
-	add	di,bx
-ENDM
-	movsb
-	movsb
-
-	xor	ah,ah					;write mode 0
-	WORDOUT
-
-	mov	ax,ss
-	mov	ds,ax					;restore turbo's data segment
-	ret
-
-;=============
-;
-; Draw single tile from main memory
-;
-;=============
-
-@@singlemain:
-	mov	ax,[cs:screenstartcs]
-	mov	[tilecache+si],ax		;next time it can be drawn from here with latch
-	mov	ds,[grsegs+STARTTILE16*2+si]
-
-	xor	si,si					;block is segment aligned
-
-	mov	ax,SC_MAPMASK+0001b*256	;map mask for plane 0
-
-	mov	cx,4					;draw four planes
-@@planeloop:
-	mov	dx,SC_INDEX
-	WORDOUT
-
-	mov	di,[cs:screenstartcs]	;start at same place in all planes
-
-REPT	15
-	movsw
-	add	di,bx
-ENDM
-	movsw
-
-	shl	ah,1					;shift plane mask over for next plane
-	loop	@@planeloop
-
-	mov	ax,ss
-	mov	ds,ax					;restore turbo's data segment
-	ret
-
-
-;=========
-;
-; Draw a masked tile combo
-; Interupts are disabled and the stack segment is reassigned
-;
-;=========
-@@maskeddraw:
-	cli							; don't allow ints when SS is set
-	shl	bx,1
-	mov	ss,[grsegs+STARTTILE16M*2+bx]
-	shl	si,1
-	mov	ds,[grsegs+STARTTILE16*2+si]
-
-	xor	si,si					;first word of tile data
-
-	mov	ax,SC_MAPMASK+0001b*256	;map mask for plane 0
-
-	mov	di,[cs:screenstartcs]
-@@planeloopm:
-	WORDOUT
-tileofs		=	0
-lineoffset	=	0
-REPT	16
-	mov	bx,[si+tileofs]			;background tile
-	and	bx,[ss:tileofs]			;mask
-	or	bx,[ss:si+tileofs+32]	;masked data
-	mov	[es:di+lineoffset],bx
-tileofs		=	tileofs + 2
-lineoffset	=	lineoffset + SCREENWIDTH
-ENDM
-	add	si,32
-	shl	ah,1					;shift plane mask over for next plane
-	cmp	ah,10000b
-	je	@@done					;drawn all four planes
-	jmp	@@planeloopm
-
-@@done:
-	mov	ax,@DATA
-	mov	ss,ax
-	sti
-	mov	ds,ax
-	ret
-ENDP
-
-ENDIF
-
-IFE GRMODE-VGAGR
-;============================================================================
-;
-; VGA refresh routines
-;
-;============================================================================
-
-
-ENDIF
-
-
-;============================================================================
-;
-; reasonably common refresh routines
-;
-;============================================================================
-
-
-;=================
-;
-; RFL_UpdateTiles
-;
-; Scans through the update matrix pointed to by updateptr, looking for 1s.
-; A 1 represents a tile that needs to be copied from the master screen to the
-; current screen (a new row or an animated tiled).  If more than one adjacent
-; tile in a horizontal row needs to be copied, they will be copied as a group.
-;
-; Assumes write mode 1
-;
-;=================
-
-
-; AX	0/1 for scasb, temp for segment register transfers
-; BX    width for block copies
-; CX	REP counter
-; DX	line width deltas
-; SI	source for copies
-; DI	scas dest / movsb dest
-; BP	pointer to UPDATETERMINATE
-;
-; DS
-; ES
-; SS
-
-PROC	RFL_UpdateTiles
-PUBLIC	RFL_UpdateTiles
-USES	SI,DI,BP
-
-	jmp	SHORT @@realstart
-@@done:
-;
-; all tiles have been scanned
-;
-	ret
-
-@@realstart:
-	mov	di,[updateptr]
-	mov	bp,(TILESWIDE+1)*TILESHIGH+1
-	add	bp,di					; when di = bx, all tiles have been scanned
-	push	di
-	mov	cx,-1					; definately scan the entire thing
-
-;
-; scan for a 1 in the update list, meaning a tile needs to be copied
-; from the master screen to the current screen
-;
-@@findtile:
-	pop	di						; place to continue scaning from
-	mov	ax,ss
-	mov	es,ax					; search in the data segment
-	mov	ds,ax
-	mov al,1
-	repne	scasb
-	cmp	di,bp
-	je	@@done
-
-	cmp	[BYTE di],al
-	jne	@@singletile
-	jmp	@@tileblock
-
-;============
-;
-; copy a single tile
-;
-;============
-EVEN
-@@singletile:
-	inc	di						; we know the next tile is nothing
-	push	di					; save off the spot being scanned
-	sub	di,[updateptr]
-	shl	di,1
-	mov	di,[blockstarts-4+di]	; start of tile location on screen
-	mov	si,di
-	add	di,[bufferofs]			; dest in current screen
-	add	si,[masterofs]			; source in master screen
-
-	mov	dx,SCREENWIDTH-TILEWIDTH
-	mov	ax,[screenseg]
-	mov	ds,ax
-	mov	es,ax
-
-;--------------------------
-
-IFE GRMODE-CGAGR
-
-REPT	15
-	movsw
-	movsw
-	add	si,dx
-	add	di,dx
-ENDM
-	movsw
-	movsw
-
-ENDIF
-
-;--------------------------
-
-IFE GRMODE-EGAGR
-
-REPT	15
-	movsb
-	movsb
-	add	si,dx
-	add	di,dx
-ENDM
-	movsb
-	movsb
-
-ENDIF
-
-;--------------------------
-
-	jmp	@@findtile
-
-;============
-;
-; more than one tile in a row needs to be updated, so do it as a group
-;
-;============
-EVEN
-@@tileblock:
-	mov	dx,di					; hold starting position + 1 in dx
-	inc	di						; we know the next tile also gets updated
-	repe	scasb				; see how many more in a row
-	push	di					; save off the spot being scanned
-
-	mov	bx,di
-	sub	bx,dx					; number of tiles in a row
-	shl	bx,1					; number of bytes / row
-
-	mov	di,dx					; lookup position of start tile
-	sub	di,[updateptr]
-	shl	di,1
-	mov	di,[blockstarts-2+di]	; start of tile location
-	mov	si,di
-	add	di,[bufferofs]			; dest in current screen
-	add	si,[masterofs]			; source in master screen
-
-	mov	dx,SCREENWIDTH
-	sub	dx,bx					; offset to next line on screen
-IFE GRMODE-CGAGR
-	sub	dx,bx					; bx is words wide in CGA tiles
-ENDIF
-
-	mov	ax,[screenseg]
-	mov	ds,ax
-	mov	es,ax
-
-REPT	15
-	mov	cx,bx
-IFE GRMODE-CGAGR
-	rep	movsw
-ENDIF
-IFE GRMODE-EGAGR
-	rep	movsb
-ENDIF
-	add	si,dx
-	add	di,dx
-ENDM
-	mov	cx,bx
-IFE GRMODE-CGAGR
-	rep	movsw
-ENDIF
-IFE GRMODE-EGAGR
-	rep	movsb
-ENDIF
-
-	dec	cx						; was 0 from last rep movsb, now $ffff for scasb
-	jmp	@@findtile
-
-ENDP
-
-
-;============================================================================
-
-
-;=================
-;
-; RFL_MaskForegroundTiles
-;
-; Scan through update looking for 3's.  If the foreground tile there is a
-; masked foreground tile, draw it to the screen
-;
-;=================
-
-PROC	RFL_MaskForegroundTiles
-PUBLIC	RFL_MaskForegroundTiles
-USES	SI,DI,BP
-	jmp	SHORT @@realstart
-@@done:
-;
-; all tiles have been scanned
-;
-	ret
-
-@@realstart:
-	mov	di,[updateptr]
-	mov	bp,(TILESWIDE+1)*TILESHIGH+2
-	add	bp,di					; when di = bx, all tiles have been scanned
-	push	di
-	mov	cx,-1					; definately scan the entire thing
-;
-; scan for a 3 in the update list
-;
-@@findtile:
-	mov	ax,ss
-	mov	es,ax					; scan in the data segment
-	mov	al,3
-	pop	di						; place to continue scaning from
-	repne	scasb
-	cmp	di,bp
-	je	@@done
-
-;============
-;
-; found a tile, see if it needs to be masked on
-;
-;============
-
-	push	di
-
-	sub	di,[updateptr]
-	shl	di,1
-	mov	si,[updatemapofs-2+di]	; offset from originmap
-	add	si,[originmap]
-
-	mov	es,[mapsegs+2]			; foreground map plane segment
-	mov	si,[es:si]				; foreground tile number
-
-	or	si,si
-	jz	@@findtile				; 0 = no foreground tile
-
-	mov	bx,si
-	add	bx,INTILE				;INTILE tile info table
-	mov	es,[tinf]
-	test	[BYTE PTR es:bx],80h		;high bit = masked tile
-	jz	@@findtile
-
-;-------------------
-
-IFE GRMODE-CGAGR
-;=================
-;
-; mask the tile CGA
-;
-;=================
-
-	mov	di,[blockstarts-2+di]
-	add	di,[bufferofs]
-	mov	es,[screenseg]
-	shl	si,1
-	mov	ds,[grsegs+STARTTILE16M*2+si]
-
-	mov	bx,64					;data starts 64 bytes after mask
-
-	xor	si,si
-
-lineoffset	=	0
-REPT	16
-	mov	ax,[es:di+lineoffset]	;background
-	and	ax,[si]					;mask
-	or	ax,[si+bx]				;masked data
-	mov	[es:di+lineoffset],ax	;background
-	inc	si
-	inc	si
-	mov	ax,[es:di+lineoffset+2]	;background
-	and	ax,[si]					;mask
-	or	ax,[si+bx]				;masked data
-	mov	[es:di+lineoffset+2],ax	;background
-	inc	si
-	inc	si
-lineoffset	=	lineoffset + SCREENWIDTH
-ENDM
-ENDIF
-
-;-------------------
-
-IFE GRMODE-EGAGR
-;=================
-;
-; mask the tile
-;
-;=================
-
-	mov	[BYTE planemask],1
-	mov	[BYTE planenum],0
-
-	mov	di,[blockstarts-2+di]
-	add	di,[bufferofs]
-	mov	[cs:screenstartcs],di
-	mov	es,[screenseg]
-	shl	si,1
-	mov	ds,[grsegs+STARTTILE16M*2+si]
-
-	mov	bx,32					;data starts 32 bytes after mask
-
-@@planeloopm:
-	mov	dx,SC_INDEX
-	mov	al,SC_MAPMASK
-	mov	ah,[ss:planemask]
-	WORDOUT
-	mov	dx,GC_INDEX
-	mov	al,GC_READMAP
-	mov	ah,[ss:planenum]
-	WORDOUT
-
-	xor	si,si
-	mov	di,[cs:screenstartcs]
-lineoffset	=	0
-REPT	16
-	mov	cx,[es:di+lineoffset]	;background
-	and	cx,[si]					;mask
-	or	cx,[si+bx]				;masked data
-	inc	si
-	inc	si
-	mov	[es:di+lineoffset],cx
-lineoffset	=	lineoffset + SCREENWIDTH
-ENDM
-	add	bx,32					;the mask is now further away
-	inc	[ss:planenum]
-	shl	[ss:planemask],1		;shift plane mask over for next plane
-	cmp	[ss:planemask],10000b	;done all four planes?
-	je	@@drawn					;drawn all four planes
-	jmp	@@planeloopm
-
-@@drawn:
-ENDIF
-
-;-------------------
-
-	mov	ax,ss
-	mov	ds,ax
-	mov	cx,-1					;definately scan the entire thing
-
-	jmp	@@findtile
-
-ENDP
-
-
-END
-
-*/
