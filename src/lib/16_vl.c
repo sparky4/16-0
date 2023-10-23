@@ -1906,7 +1906,7 @@ page_t VL_InitPage(void)
 	/* default page values */
 	//page.data = VGA;
 	//page.data = (byte far *)(vga_state.vga_graphics_ram);
-	page.data = (byte far *)MK_FP(SCREENSEG,bufferofs);
+	page.data = (byte far *)MK_FP(SCREENSEG,displayofs);
 	page.dx = 0;
 	page.dy = 0;
 	page.sw = 320;

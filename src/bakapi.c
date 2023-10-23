@@ -40,7 +40,7 @@ main(int argc, char *argvar[])
 	char *a;
 	int i,c;
 	word panq=1, pand=0,showding=0;
-	boolean panswitch=0,bptest=1,runding=1;
+	boolean panswitch=0,bptest=0,runding=1;
 
 //	ggvv=&gvar;
 
@@ -85,6 +85,8 @@ main(int argc, char *argvar[])
 	page[0] = VL_InitPage();
 	page[1] = VL_NextPage(&page[0]);
 	page[2] = VL_NextPage(&page[1]);
+	displayofs = PAGE1START;
+	bufferofs = displayofs;//PAGE2START;
 	//&page[1] = VL_NextPage(&page[0]);
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
@@ -415,7 +417,8 @@ pee:
 	printf("bakapi ");
 #endif
 	printf("ver. 1.04.16.04\nis made by sparky4ÅiÅÜÉ÷ÅÖÅj feel free to use it ^^\nLicence: GPL v3\n");
-	printf("compiled on 2016/04/04\n");
+//	printf("compiled on 2016/04/04\n");	// old --sparky4
+	printf("compiled on %s\n", VERSION);
 //	printf("[%u]%dx%d	[%dx%d]	%u %u %u\n[%u	%u	%u]", key, bakapee.bakax, bakapee.bakay, bakapee.xx, bakapee.yy,
 //bakapee.coor, bakapee.tile, bakapee.gq, bakapee.bonk, bakapee.lgq, bakapee.hgq);
 }
