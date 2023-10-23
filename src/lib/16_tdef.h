@@ -195,7 +195,7 @@ typedef struct {
 } map_t;
 
 //===================================//
-
+#if 0
 typedef struct{
 	word tw;				/* screen width in tiles */
 	word th;				/* screen height in tiles */
@@ -228,7 +228,7 @@ typedef struct {
 	sword delta;			// How much should we shift the page for smooth scrolling
 } page_t;
 #endif
-
+#endif
 //from 16_in
 //==========================================================================
 #if 0
@@ -455,7 +455,7 @@ typedef struct
 	char old_mode;		//old video mode before game!
 	sword curr_mode;		//modex curent mode
 //	byte palette[PALSIZE], dpal[PALSIZE];	//palette array
-	page_t page[MAXPAGE];	//can be used as a pointer to root page[0]
+//	page_t page[MAXPAGE];	//can be used as a pointer to root page[0]
 	word vmem_remain;	//remaining video memory
 	byte num_of_pages;	//number of actual pages
 	vga_state_t	vga_state;
@@ -487,7 +487,7 @@ typedef struct
 typedef struct
 {
 	map_t *map;
-	page_t *page;
+//	page_t *page;
 	int tx,ty; //appears to be the top left tile position on the viewable screen map
 	word dxThresh,dyThresh; //Threshold for physical tile switch
 	video_t *video;	//pointer to game variables of the video

@@ -55,6 +55,8 @@ byte		far	palette1[256][3],far palette2[256][3];
 
 unsigned	timecount;
 
+page_t		page[4];	//can be used as a pointer to root page[0]
+
 //===========================================================================
 
 // asm
@@ -1650,36 +1652,37 @@ void	VL_ScreenToScreen (word source, word dest, word wide, word height)
 //from: https://dhw.wolfenstein3d.com/viewtopic.php?printertopic=1&t=5577&start=0&postdays=0&postorder=asc&vote=viewresult
 int VL_VideoID (void)
 {
+	word result;
 	__asm {
-   ; Get display combination code.
-   ; See RBIL INTERRUP.A - V-101A00.
+	// Get display combination code.
+	//See RBIL INTERRUP.A - V-101A00.
 
-   mov   ax,1A00h
-   int   10h
+	mov	ax,1A00h
+	int	10h
 
-   cmp   al,1Ah   ; AL = 1Ah if function is supported.
-   jne   @@novga
+	cmp	al,1Ah		// AL = 1Ah if function is supported.
+	jne	@@novga
 
-   ; BL = Active display code.
-   ; BH = Alternate display code.
+	// BL = Active display code.
+	// BH = Alternate display code.
 
-   cmp   bl,8      ; Is color analog VGA active?
-   jne   @@novga
+	cmp	bl,8		// Is color analog VGA active?
+	jne	@@novga
 
-   ; Make sure an ATI EGA Wonder isnt lying to us.
-   ; See RBIL INTERRUP.A - V-101A00 and V-101C.
+	// Make sure an ATI EGA Wonder isnt lying to us.
+	// See RBIL INTERRUP.A - V-101A00 and V-101C.
 
-   mov   ax,1C00h   ; Video save/restore state function.
-   mov   cx,2       ; Only video hardware (CX=0) is supported on EGA Wonder.
-   int   10h        ; So lets check for color registers and DAC state. (CX=2)
+	mov	ax,1C00h	// Video save/restore state function.
+	mov	cx,2		// Only video hardware (CX=0) is supported on EGA Wonder.
+	int	10h			// So lets check for color registers and DAC state. (CX=2)
 
-   cmp   al,1Ch     ; AL = 1Ch if function is supported.
-   jne   @@novga
+	cmp	al,1Ch		// AL = 1Ch if function is supported.
+	jne	@@novga
 
-   ; Yes, we have an active color analog VGA!
+	// Yes, we have an active color analog VGA!
 
-   mov   ax,5    ; Original Wolf sources expect (5) to indicate VGA support.
-   jmp   @@done
+	mov	ax,5	 // Original Wolf sources expect (5) to indicate VGA support.
+	jmp	@@done
 
 #ifdef __BORLANDC__
 	}
@@ -1688,7 +1691,7 @@ int VL_VideoID (void)
 #ifdef __BORLANDC__
 	__asm {
 #endif
-   xor   ax,ax   ; Indicate failure, no VGA was detected!
+	xor	ax,ax	; Indicate failure, no VGA was detected!
 
 #ifdef __BORLANDC__
 	}
@@ -1697,9 +1700,9 @@ int VL_VideoID (void)
 #ifdef __BORLANDC__
 	__asm {
 #endif
-   ret
+	mov	result,ax
 	}
-	return _AX;
+	return result;
 }
 
 /*//=================
@@ -1894,6 +1897,95 @@ void VL_ShowPage(page_t *page, boolean vsync, boolean sr)
 	outp(AC_INDEX, 0x33);
 	outp(AC_INDEX, (page->dx & 0x03) << 1);
 
+}
+
+page_t VL_InitPage(void)
+{
+	page_t page;
+
+	/* default page values */
+	//page.data = VGA;
+	//page.data = (byte far *)(vga_state.vga_graphics_ram);
+	page.data = (byte far *)MK_FP(SCREENSEG,bufferofs);
+	page.dx = 0;
+	page.dy = 0;
+	page.sw = 320;
+	page.sh = 240;
+	page.width = page.sw;
+	page.height = page.sh;
+	page.width += TILEWHD;
+	page.height += TILEWHD;
+	page.ti.tw = page.sw/TILEWH;
+	page.ti.th = page.sh/TILEWH;
+	page.ti.tilesw=page.width/TILEWH;
+	page.ti.tilesh=page.height/TILEWH;
+	page.ti.tilemidposscreenx = page.ti.tw/2;
+	page.ti.tilemidposscreeny = (page.ti.th/2)+1;
+	page.stridew=page.width/4;
+	page.pagesize = (word)(page.stridew)*page.height;
+	page.pi=page.width*4;
+	page.id = 0;
+
+	return page;
+}
+
+/* returns the next page in contiguous memory
+ * the next page will be the same size as p, by default
+ */
+page_t	VL_NextPage(page_t *p)
+{
+	page_t result;
+
+	result.data = p->data + (p->pagesize);
+	result.dx = p->dx;	// not used anymore we use page[0].dx
+	result.dy = p->dy;	// not used anymore we use page[0].dy
+	result.sw = p->sw;
+	result.sh = p->sh;
+	result.width = p->width;
+	result.height = p->height;
+	result.ti.tw = p->ti.tw;
+	result.ti.th = p->ti.th;
+	result.ti.tilesw = p->ti.tilesw;
+	result.ti.tilesh = p->ti.tilesh;
+	result.stridew=p->stridew;
+	result.pagesize = p->pagesize;
+	result.pi=result.width*4;
+	result.id = p->id+1;
+
+	return result;
+}
+
+//next page with defined dimentions~
+page_t	VL_NextPageFlexibleSize(page_t *p, word x, word y)
+{
+	page_t result;
+
+	result.data = p->data + (p->pagesize);  /* compute the offset */
+	result.dx = 0;	// not used anymore we use page[0].dx
+	result.dy = 0;	// not used anymore we use page[0].dy
+	result.sw = x;
+	result.sh = y;
+	result.width = x;
+	result.height = y;
+	result.ti.tw = result.sw/TILEWH;
+	result.ti.th = result.sh/TILEWH;
+	result.ti.tilesw=result.width/TILEWH;
+	result.ti.tilesh=result.height/TILEWH;
+	result.id = p->id+1;
+	result.stridew=result.width/4;//p->sw/4;
+	result.pagesize = (word)(result.stridew)*result.height;
+/*	switch(result.id)
+	{
+		case 2:
+			result.pi=p->width*4;
+		break;
+		case 3:
+			result.pi=p->pi;
+		break;
+	}*/
+	result.pi=result.width*4;
+
+	return result;
 }
 
 

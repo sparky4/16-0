@@ -32,8 +32,12 @@
 #include "src/lib/16_sd.h"
 #include "src/lib/16_dbg.h"
 #include "src/lib/16_vl.h"
+#include "src/lib/16_vh.h"
 
 extern byte	*updateptr;
+extern unsigned	uwidthtable[UPDATEHIGH];
+extern unsigned	blockstarts[UPDATEWIDE*UPDATEHIGH];
+
 
 void	Shutdown16(void),
 	Startup16(void),
@@ -42,6 +46,5 @@ void	Shutdown16(void),
 
 void DebugMemory_(boolean q);
 void MU_IntroScreen(global_game_variables_t *gvar);
-boolean FizzleFade (unsigned source, unsigned dest, unsigned width, unsigned height, unsigned frames, boolean abortable, global_game_variables_t *gvar);
 
 #endif /* __HP_TAIL__ */

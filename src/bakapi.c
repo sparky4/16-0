@@ -35,14 +35,14 @@ void TL_VidInit(global_game_variables_t *gvar){}
 void
 main(int argc, char *argvar[])
 {
-	static global_game_variables_t gvar;
-	struct glob_game_vars	*ggvv;
+//	static global_game_variables_t gvar;
+//	struct glob_game_vars	*ggvv;
 	char *a;
 	int i,c;
 	word panq=1, pand=0,showding=0;
 	boolean panswitch=0,bptest=1,runding=1;
 
-	ggvv=&gvar;
+//	ggvv=&gvar;
 
 	// allow changing default mode from command line
 	for (i=1;i < argc;) {
@@ -77,14 +77,18 @@ main(int argc, char *argvar[])
 	// main variables values
 	d=4; // switch variable
 	key=2; // default screensaver number
-	xpos=32; ypos=32; xdir=1; ydir=1;
+	xpos=TILEWHD; ypos=TILEWHD; xdir=1; ydir=1;
 
 	//VGAmodeX(vgamodex_mode, 0, &gvar); // TODO: Suggestion: Instead of magic numbers for the first param, might I suggest defining an enum or some #define constants that are easier to remember? --J.C.
 	VL_Startup ();
 	VL_SetVGAPlaneMode ();
+	page[0] = VL_InitPage();
+	page[1] = VL_NextPage(&page[0]);
+	page[2] = VL_NextPage(&page[1]);
+	//&page[1] = VL_NextPage(&page[0]);
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
-	bakapee.xx = rand()&0%gvar.video.page[0].width; bakapee.yy = rand()&0%gvar.video.page[0].height;
+	bakapee.xx = rand()&0%page[0].width; bakapee.yy = rand()&0%page[0].height;
 	bakapee.gq = 0; bakapee.sx=bakapee.sy=0; bakapee.bakax=bakapee.bakay=0; bakapee.coor=0;
 	//once where #defines
 	bakapee.tile=0; bakapee.bonk=400; bakapee.lgq=32; bakapee.hgq=55;
@@ -102,7 +106,7 @@ main(int argc, char *argvar[])
 	// setup camera and screen~ //
 	//SETUPPAGEBAKAPI
 
-	VL_ShowPage(&gvar.video.page[0], 1, 0);
+	VL_ShowPage(&page[0], 1, 0);
 	//BAKAPIINITFIZZTEST
 
 	while (bptest)
@@ -111,8 +115,8 @@ main(int argc, char *argvar[])
 		{*/
 		while (!kbhit() && runding)
 			{
-				//{ word w; for(w=0;w<(gvar.video.page[0].width*gvar.video.page[0].height);w++) {}}
-				ding(&gvar.video.page[showding], &bakapee, 4);
+				//{ word w; for(w=0;w<(page[0].width*page[0].height);w++) {}}
+				ding(&page[showding], &bakapee, 4);
 			}
 		if (kbhit())
 //			{
@@ -165,7 +169,7 @@ main(int argc, char *argvar[])
 	//			case '6':
 	//			case '9':
 					key = c - '0' - 1;
-					VL_ShowPage(&gvar.video.page[key], 1, 0);
+					VL_ShowPage(&page[key], 1, 0);
 				break;
 			}
 		}
@@ -191,11 +195,11 @@ main(int argc, char *argvar[])
 			if(!panswitch){
 				if(key==9)
 				{
-					ding(&gvar.video.page[1], &bakapee, 4);
-					ding(&gvar.video.page[0], &bakapee, 4);
+					ding(&page[1], &bakapee, 4);
+					ding(&page[0], &bakapee, 4);
 //					FIZZFADEFUN
-				}else ding(&gvar.video.page[0], &bakapee, key); }
-			else			ding(&gvar.video.page[0], &bakapee, 2);
+				}else ding(&page[0], &bakapee, key); }
+			else			ding(&page[0], &bakapee, 2);
 			if(panswitch!=0)
 			{
 				//right movement
@@ -204,8 +208,8 @@ main(int argc, char *argvar[])
 					if(pand == 0){ pand = 2; }
 					if(panq<=(TILEWH/(4)))
 					{
-						gvar.video.page[0].dx++;
-						VL_ShowPage(&gvar.video.page[0], 0, 0);
+						page[0].dx++;
+						VL_ShowPage(&page[0], 0, 0);
 						panq++;
 					} else { panq = 1; pand = 0; }
 				}
@@ -215,8 +219,8 @@ main(int argc, char *argvar[])
 					if(pand == 0){ pand = 4; }
 					if(panq<=(TILEWH/(4)))
 					{
-						gvar.video.page[0].dx--;
-						VL_ShowPage(&gvar.video.page[0], 0, 0);
+						page[0].dx--;
+						VL_ShowPage(&page[0], 0, 0);
 						panq++;
 					} else { panq = 1; pand = 0; }
 				}
@@ -226,8 +230,8 @@ main(int argc, char *argvar[])
 					if(pand == 0){ pand = 3; }
 					if(panq<=(TILEWH/(4)))
 					{
-						gvar.video.page[0].dy++;
-						VL_ShowPage(&gvar.video.page[0], 0, 0);
+						page[0].dy++;
+						VL_ShowPage(&page[0], 0, 0);
 						panq++;
 					} else { panq = 1; pand = 0; }
 				}
@@ -237,8 +241,8 @@ main(int argc, char *argvar[])
 					if(pand == 0){ pand = 1; }
 					if(panq<=(TILEWH/(4)))
 					{
-						gvar.video.page[0].dy--;
-						VL_ShowPage(&gvar.video.page[0], 0, 0);
+						page[0].dy--;
+						VL_ShowPage(&page[0], 0, 0);
 						panq++;
 					} else { panq = 1; pand = 0; }
 				}
@@ -247,18 +251,18 @@ main(int argc, char *argvar[])
 					if(pand == 0){ pand = 2; }
 					if(panq<=(TILEWH/(4)))
 					{
-						gvar.video.page[0].dx++;
-						VL_ShowPage(&gvar.video.page[0], 0, 0);
+						page[0].dx++;
+						VL_ShowPage(&page[0], 0, 0);
 						panq++;
 					} else { panq = 1; pand = 0; }
 				}
 				if(c==0x01+1)
 				{
-					VL_ShowPage(&gvar.video.page[0], 0, 0);
+					VL_ShowPage(&page[0], 0, 0);
 				}
 				if(c==0x02+1)
 				{
-					VL_ShowPage(&gvar.video.page[1], 0, 0);
+					VL_ShowPage(&page[1], 0, 0);
 				}
 				if(c==27 || c==0x71 || c==0xb1 || c=='p')
 				{
@@ -278,7 +282,7 @@ main(int argc, char *argvar[])
 			clrscr();	//added to clear screen wwww
 			// user imput switch
 			//fprintf(stderr, "xx=%d	yy=%d	tile=%d\n", bakapee.xx, bakapee.yy, bakapee.tile);
-			//fprintf(stderr, "dx=%d	dy=%d	", gvar.video.page[0].dx, gvar.video.page[0].dy);
+			//fprintf(stderr, "dx=%d	dy=%d	", page[0].dx, page[0].dy);
 			printf("Tiled mode is ");
 			switch (bakapee.tile)
 			{
@@ -348,9 +352,10 @@ pee:
 					VL_Shutdown ();
 //					VGAmodeX(vgamodex_mode, 0, &gvar);
 //					SETUPPAGEBAKAPI
+					VL_SetVGAPlaneMode ();
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
-					VL_ShowPage(&gvar.video.page[0], 0, 0);
+					VL_ShowPage(&page[0], 0, 0);
 				break;
 				case '-':
 					if(bakapee.bonk>0)
@@ -376,33 +381,33 @@ pee:
 	{ // conditions of screen saver
 // 		while(!kbhit())
 // 		{
-// 			ding(&gvar.video.page[0], &bakapee, key);
+// 			ding(&page[0], &bakapee, key);
 // 		}
 		//end of screen savers
-		//pdump(&gvar.video.page[0]);
+		//pdump(&page[0]);
 
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-48, "========================================");
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-40, "|    |Chikyuu:$line1");
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-32, "|    |$line2");
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-24, "|    |$line3");
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-16, "|    |$line4");
-// 		mxOutText(xpos+1, ypos+gvar.video.page[0].height-8,  "========================================");
+// 		mxOutText(xpos+1, ypos+page[0].height-48, "========================================");
+// 		mxOutText(xpos+1, ypos+page[0].height-40, "|    |Chikyuu:$line1");
+// 		mxOutText(xpos+1, ypos+page[0].height-32, "|    |$line2");
+// 		mxOutText(xpos+1, ypos+page[0].height-24, "|    |$line3");
+// 		mxOutText(xpos+1, ypos+page[0].height-16, "|    |$line4");
+// 		mxOutText(xpos+1, ypos+page[0].height-8,  "========================================");
 
-	ding(&gvar.video.page[0], &bakapee, key);
-	modexPanPage(&gvar.video.page[0], xpos, ypos);
+	ding(&page[0], &bakapee, key);
+	modexPanPage(&page[0], xpos, ypos);
 	c = getch();
 
 // 	xpos+=xdir;
 // 	ypos+=ydir;
-// 	if( (xpos>(gvar.video.page[0].sw-gvar.video.page[0].width-1))  || (xpos<1)){xdir=-xdir;}
-// 	if( (ypos>(gvar.video.page[0].sh-gvar.video.page[0].height-1)) || (ypos<1)){ydir=-ydir;}
+// 	if( (xpos>(page[0].sw-page[0].width-1))  || (xpos<1)){xdir=-xdir;}
+// 	if( (ypos>(page[0].sh-page[0].height-1)) || (ypos<1)){ydir=-ydir;}
 //	ch=getch();
 	if(ch==0x71)break; // 'q'
 	if(ch==0x1b)break; // 'ESC'
 	}
 	VGAmodeX(0, 1, &gvar);
 #endif // defined(BOINK)
-//	printf("page.width=%u	", gvar.video.page[0].width); printf("page.height=%u\n", gvar.video.page[0].height);
+//	printf("page.width=%u	", page[0].width); printf("page.height=%u\n", page[0].height);
 	printf("bakapi ver. 1.04.16.04\nis made by sparky4i†ƒÖ…j feel free to use it ^^\nLicence: GPL v3\n");
 	printf("compiled on 2016/04/04\n");
 //	printf("[%u]%dx%d	[%dx%d]	%u %u %u\n[%u	%u	%u]", key, bakapee.bakax, bakapee.bakay, bakapee.xx, bakapee.yy,

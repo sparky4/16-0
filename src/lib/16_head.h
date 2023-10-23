@@ -53,7 +53,6 @@
 #ifdef __BORLANDC__
 #include <values.h>
 #include <dir.h>
-#define TILEWH	16
 #endif
 #include "src/lib/16_t.h"
 #include "src/lib/16_tdef.h"

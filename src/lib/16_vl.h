@@ -107,10 +107,12 @@ void Quit (char *error);
 #define SCREENSEG		0xa000
 
 #define SCREENWIDTH		88			// default screen width in bytes
-#define MAXSCANLINES	240			// size of ylookup table
+#define MAXSCANLINES	272			// size of ylookup table	240+32
 
 #define CHARWIDTH		2
 #define TILEWIDTH		4
+#define TILEWH			16
+#define TILEWHD			TILEWIDTH*8
 
 typedef enum {CGAgr,EGAgr,VGAgr} grtype;
 
@@ -144,6 +146,39 @@ extern	unsigned	ylookup[MAXSCANLINES];
 extern	boolean		screenfaded;
 extern	unsigned	bordercolor;
 extern	longword	TimeCount;
+
+typedef struct{
+	word tw;				/* screen width in tiles */
+	word th;				/* screen height in tiles */
+	word tilesw;				/* virtual screen width in tiles */
+	word tilesh;				/* virtual screen height in tiles */
+	sword tilemidposscreenx;	/* middle tile x position */	/* needed for scroll system to work accordingly */
+	sword tilemidposscreeny;	/* middle tile y position */	/* needed for scroll system to work accordingly */
+	sword tileplayerposscreenx;	/* player position on screen */	/* needed for scroll and map system to work accordingly */
+	sword tileplayerposscreeny;	/* player position on screen */	/* needed for scroll and map system to work accordingly */
+} pagetileinfo_t;
+
+typedef struct {
+	nibble/*word*/ id;	/* the Identification number of the page~ For layering~ */
+	byte far* data;	/* the data for the page */
+	pagetileinfo_t ti;	// the tile information of the page
+	word dx;		/* col we are viewing on virtual screen (on page[0]) */	/* off screen buffer on the left size */
+	word dy;		/* row we are viewing on virtual screen (on page[0]) */	/* off screen buffer on the top size */
+	word sw;		/* screen width */	/* resolution */
+	word sh;		/* screen heigth */	/* resolution */
+	word width;		/* virtual width of the page */
+	word height;	/* virtual height of the page */
+	word stridew;	/* width/4 */	/* VGA */
+	word pagesize;	/* page size */
+	word pi;		/* increment page by this much to preserve location */
+	int tlx,tly;
+//newer vars
+//TODO: find where they are used
+	sword delta;			// How much should we shift the page for smooth scrolling
+} page_t;
+
+
+extern	page_t		page[4];
 
 //===========================================================================
 
@@ -222,4 +257,7 @@ void	VW_SetScreen (word crtc, word pel);
 
 //page prototyes
 void VL_ShowPage(page_t *page, boolean vsync, boolean sr);
+page_t VL_InitPage(void);
+page_t	VL_NextPage(page_t *p);
+page_t	VL_NextPageFlexibleSize(page_t *p, word x, word y);
 #endif
