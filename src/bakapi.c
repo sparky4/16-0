@@ -77,9 +77,11 @@ main(int argc, char *argvar[])
 	// main variables values
 	d=4; // switch variable
 	key=2; // default screensaver number
-	xpos=TILEWHD; ypos=TILEWHD; xdir=1; ydir=1;
+	xpos=32; ypos=32; xdir=1; ydir=1;
 
-	VGAmodeX(vgamodex_mode, 0, &gvar); // TODO: Suggestion: Instead of magic numbers for the first param, might I suggest defining an enum or some #define constants that are easier to remember? --J.C.
+	//VGAmodeX(vgamodex_mode, 0, &gvar); // TODO: Suggestion: Instead of magic numbers for the first param, might I suggest defining an enum or some #define constants that are easier to remember? --J.C.
+	VL_Startup ();
+	VL_SetVGAPlaneMode ();
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 	bakapee.xx = rand()&0%gvar.video.page[0].width; bakapee.yy = rand()&0%gvar.video.page[0].height;
@@ -98,7 +100,7 @@ main(int argc, char *argvar[])
 	}
 
 	// setup camera and screen~ //
-	SETUPPAGEBAKAPI
+	//SETUPPAGEBAKAPI
 
 	VL_ShowPage(&gvar.video.page[0], 1, 0);
 	BAKAPIINITFIZZTEST

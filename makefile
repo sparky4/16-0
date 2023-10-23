@@ -251,6 +251,7 @@ SPRIUTILEXEC = &
 !endif
 
 EXEC = &
+	bakapi.exe &
 	exmmtest.exe &
 	inputest.exe
 

@@ -584,6 +584,7 @@ noxor:
 
 			if (x>width || y>height)
 				continue;
+			//drawofs = source+(y*gvar->video.page[0].stridew) + (x>>2);
 			drawofs = source+ylookup[y] + (x>>2);
 
 			//
