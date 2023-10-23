@@ -93,7 +93,14 @@ void Quit (char *error);
 #define PEL_READ_ADR		0x3c7
 #define PEL_DATA			0x3c9
 
+#define AC_INDEX		0x03c0
+#define SC_DATA			0x03c5
+#define CRTC_DATA		0x03d5
 #define MISC_OUTPUT		0x03c2
+#define HIGH_ADDRESS 		0x0C
+#define LOW_ADDRESS		0x0D
+#define VRETRACE		0x08
+#define DISPLAY_ENABLE		0x01
 
 //===========================================================================
 
@@ -106,6 +113,18 @@ void Quit (char *error);
 #define TILEWIDTH		4
 
 typedef enum {CGAgr,EGAgr,VGAgr} grtype;
+
+#define PAGE_OFFSET(x,y) (((y)<<6)+((y)<<4)+((x)>>2))
+#define PLANE(x) (1 << ((x) & 3))
+#define SELECT_ALL_PLANES() outpw(0x03c4, 0xff02)
+
+// clips for rectangles not on 4s
+#define LRCLIPDEF \
+	static byte lclip[4] = {0x0f, 0x0e, 0x0c, 0x08}; \
+	static byte rclip[4] = {0x00, 0x01, 0x03, 0x07};
+
+#define VCLIPDEF \
+	static byte pclip[4] = {1,2,4,8};
 
 //===========================================================================
 
@@ -200,4 +219,7 @@ void VL_TestPaletteSet (void);
 void VL_LatchToScreen (unsigned source, int width, int height, int x, int y);
 
 void	VW_SetScreen (word crtc, word pel);
+
+//page prototyes
+void VL_ShowPage(page_t *page, boolean vsync, boolean sr);
 #endif

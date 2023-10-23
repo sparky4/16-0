@@ -698,10 +698,10 @@ void VH_UpdateScreen (void)
 	mov	ds,ax
 
 //REPT	16
-	}
-	for(i=0;i<16;i++)
-	{
-	__asm {
+//	}
+//	for(i=0;i<16;i++)
+//	{
+//	__asm {
 	mov	al,[si]
 	mov	[di],al
 	mov	al,[si+1]
@@ -712,20 +712,14 @@ void VH_UpdateScreen (void)
 	mov	[di+3],al
 	add	si,dx
 	add	di,dx
-	}
-	}
+//	}
+//	}
 //ENDM
 
-__asm {
+//__asm {
 	mov	ax,ss
 	mov	ds,ax
 	jmp	@@next
 
 	}
 }
-
-//
-// page systems?
-//
-//TODO reimplement pages as we need them where we are going
-//make the pages work with id engine code.

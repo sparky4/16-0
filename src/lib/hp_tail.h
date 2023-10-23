@@ -33,6 +33,7 @@
 #include "src/lib/16_dbg.h"
 #include "src/lib/16_vl.h"
 
+extern byte	*updateptr;
 
 void	Shutdown16(void),
 	Startup16(void),

@@ -84,6 +84,10 @@ extern	byte	fontcolor;
 extern	int	fontnumber;
 extern	int	px,py;
 
+extern byte	*updateptr;
+extern unsigned	uwidthtable[UPDATEHIGH];
+extern unsigned	blockstarts[UPDATEWIDE*UPDATEHIGH];
+
 //
 // Double buffer management routines
 //

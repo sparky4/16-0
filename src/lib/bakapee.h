@@ -25,6 +25,7 @@
 
 #include "src/lib/16_head.h"
 #include "src/lib/16_vl.h"
+#include "src/lib/16_vh.h"
 #include <hw/cpu/cpu.h>
 #include <hw/dos/dos.h>
 #include <hw/vga/vga.h>
@@ -41,12 +42,10 @@ typedef struct {
 	word bonk,lgq,hgq;
 } bakapee_t;
 
-#define BAKAFIZZUNSIGNED
-#ifdef BAKAFIZZUNSIGNED
-boolean baka_FizzleFade (unsigned source, unsigned dest, unsigned width, unsigned height, unsigned frames, boolean abortable, global_game_variables_t *gvar);
-#else
-boolean baka_FizzleFade (page_t *sourcepage, page_t *destpage, unsigned width, unsigned height, unsigned frames, boolean abortable, global_game_variables_t *gvar);
-#endif
+//==========================================================================
+
+boolean FizzleFade (unsigned source, unsigned dest, unsigned width,unsigned height, unsigned frames, boolean abortable);
+
 void clrstdin();
 void TL_DosLibStartup(global_game_variables_t *gvar);
 void colortest(page_t *page, bakapee_t *pee);
@@ -60,5 +59,6 @@ void dingu(bakapee_t *pee);
 void dingq(bakapee_t *pee);
 void dingqo(bakapee_t *pee);
 void ding(page_t *page, bakapee_t *pee, word q);
+void Quit (char *error);
 
 #endif /*__BAKAPEE_H_*/

@@ -28,6 +28,10 @@
 #include "src/lib/hp_tail.h"
 
 
+byte	*updateptr;
+unsigned	uwidthtable[UPDATEHIGH];
+unsigned	blockstarts[UPDATEWIDE*UPDATEHIGH];
+
 //===========================================================================
 
 /*

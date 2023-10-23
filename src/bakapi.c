@@ -72,7 +72,7 @@ main(int argc, char *argvar[])
 	}
 
 	// initiate doslib //
-	TL_DosLibStartup(&gvar);
+//	TL_DosLibStartup(&gvar);
 
 	// main variables values
 	d=4; // switch variable
@@ -103,7 +103,7 @@ main(int argc, char *argvar[])
 	//SETUPPAGEBAKAPI
 
 	VL_ShowPage(&gvar.video.page[0], 1, 0);
-	BAKAPIINITFIZZTEST
+	//BAKAPIINITFIZZTEST
 
 	while (bptest)
 	{
@@ -144,14 +144,14 @@ main(int argc, char *argvar[])
 				break;
 				case 'r':
 					runding = false;
-					BAKAPIINITFIZZTEST
+//					BAKAPIINITFIZZTEST
 				break;
 				case 'e':
 					runding = 1;
 				break;
 				case 'z':
 					runding = false;
-					FIZZFADEFUN
+//					FIZZFADEFUN
 //					runding = true;
 				break;
 				case '3':
@@ -193,7 +193,7 @@ main(int argc, char *argvar[])
 				{
 					ding(&gvar.video.page[1], &bakapee, 4);
 					ding(&gvar.video.page[0], &bakapee, 4);
-					FIZZFADEFUN
+//					FIZZFADEFUN
 				}else ding(&gvar.video.page[0], &bakapee, key); }
 			else			ding(&gvar.video.page[0], &bakapee, 2);
 			if(panswitch!=0)
@@ -273,7 +273,8 @@ main(int argc, char *argvar[])
 
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
-			VGAmodeX(0, 0, &gvar);
+			//VGAmodeX(0, 0, &gvar);
+			VL_SetTextMode ();
 			clrscr();	//added to clear screen wwww
 			// user imput switch
 			//fprintf(stderr, "xx=%d	yy=%d	tile=%d\n", bakapee.xx, bakapee.yy, bakapee.tile);
@@ -343,8 +344,10 @@ pee:
 				case '6':
 				case '9':
 					key = c - '0';
-					VGAmodeX(vgamodex_mode, 0, &gvar);
-					SETUPPAGEBAKAPI
+					VL_SetTextMode ();
+					VL_Shutdown ();
+//					VGAmodeX(vgamodex_mode, 0, &gvar);
+//					SETUPPAGEBAKAPI
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 					VL_ShowPage(&gvar.video.page[0], 0, 0);

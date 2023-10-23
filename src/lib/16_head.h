@@ -265,4 +265,11 @@ void regidump();
 
 #define GRMODE	VGAGR
 
+#define	PORTTILESWIDE		20      // all drawing takes place inside a
+#define	PORTTILESHIGH		13		// non displayed port of this size
+
+#define UPDATEWIDE			PORTTILESWIDE
+#define UPDATEHIGH			PORTTILESHIGH
+
+
 #endif/*__16_HEAD_H__*/
