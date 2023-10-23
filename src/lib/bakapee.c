@@ -35,117 +35,7 @@
    while( ( ch = getchar() ) != '\n' && ch != EOF );
 }*/
 
-void
-modexClearRegion(page_t *page, int x, int y, int w, int h, byte color)
-{
-	word pageOff = (word) page->data;
-	word xoff=(x>>2);							// xoffset that begins each row
-	word poffset = pageOff + y*(page->stridew) + xoff;	// starting offset
-	word scanCount=w>>2;						// number of iterations per row (excluding right clip)
-	word nextRow = page->stridew-scanCount-1;		// loc of next row
-	LRCLIPDEF
-	byte left = lclip[x&0x03];
-	byte right = rclip[(x+w)&0x03];
-
-	// handle the case which requires an extra group
-	if((x & 0x03) && !((x+w) & 0x03)) {
-		right=0x0f;
-	}
-
-	//printf("modexClearRegion(x=%u, y=%u, w=%u, h=%u, left=%u, right=%u)\n", x, y, w, h, left, right);
-
-	__asm {
-		PUSHF
-		PUSH ES
-		PUSH AX
-		PUSH BX
-		PUSH CX
-		PUSH DX
-		PUSH SI
-		PUSH DI
-		MOV AX, screenseg	  ; go to the VGA memory
-		MOV ES, AX
-		MOV DI, poffset	 ; go to the first pixel
-		MOV DX, SC_INDEX	; point to the map mask
-		MOV AL, SC_MAPMASK
-		OUT DX, AL
-		INC DX
-		MOV AL, color	   ; get ready to write colors
-	SCAN_START:
-		MOV CX, scanCount	   ; count the line
-		MOV BL, AL		  ; remember color
-		MOV AL, left		; do the left clip
-		OUT DX, AL		  ; set the left clip
-		MOV AL, BL		  ; restore color
-		STOSB		   ; write the color
-		DEC CX
-		JZ SCAN_DONE		; handle 1 group stuff
-
-		;-- write the main body of the scanline
-		MOV BL, AL		  ; remember color
-		MOV AL, 0x0f		; write to all pixels
-		OUT DX, AL
-		MOV AL, BL		  ; restore color
-		REP STOSB		   ; write the color
-	SCAN_DONE:
-		MOV BL, AL		  ; remeber color
-		MOV AL, right
-		OUT DX, AL		  ; do the right clip
-		MOV AL, BL		  ; restore color
-		STOSB		   ; write pixel
-		ADD DI, nextRow	 ; go to the next row
-		DEC h
-		JNZ SCAN_START
-		POP DI
-		POP SI
-		POP DX
-		POP CX
-		POP BX
-		POP AX
-		POP ES
-		POPF
-	}
-}
-
 //===========================================================================
-
-/*
-====================
-=
-= TL_DosLibStartup
-=
-====================
-*/
-
-void TL_DosLibStartup(global_game_variables_t *gvar)
-{
-	if(gvar->DLStarted)
-		return;
-
-	// DOSLIB: check our environment
-	probe_dos();
-
-	// DOSLIB: what CPU are we using?
-	// NTS: I can see from the makefile Sparky4 intends this to run on 8088 by the -0 switch in CFLAGS.
-	//	  So this code by itself shouldn't care too much what CPU it's running on. Except that other
-	//	  parts of this project (DOSLIB itself) rely on CPU detection to know what is appropriate for
-	//	  the CPU to carry out tasks. --J.C.
-	cpu_probe();
-
-	// DOSLIB: check for VGA
-	if (!probe_vga()) {
-		printf("VGA probe failed\n");
-		return;
-	}
-	// hardware must be VGA or higher!
-	if (!(vga_state.vga_flags & VGA_IS_VGA)) {
-		printf("This program requires VGA or higher graphics hardware\n");
-		return;
-	}
-
-	//textInit();
-	gvar->DLStarted = true;
-}
 
 //color ‚Ä‚·‚Æ
 void colortest(page_t *page, bakapee_t *pee)
@@ -195,7 +85,7 @@ void dingpp(page_t *page, bakapee_t *pee)
 {
 	if(pee->tile)
 	{
-		modexClearRegion(page, pee->xx, pee->yy, TILEWH, TILEWH, pee->coor);
+		VL_ClearRegion(page, pee->xx, pee->yy, TILEWH, TILEWH, pee->coor);
 	}
 	else
 		VL_Plot (pee->xx, pee->yy, pee->coor);
@@ -341,7 +231,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			dingo(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 			if(pee->tile)
-			modexClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
+			VL_ClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
 			else
 				VL_Plot (rand()%page->width, rand()%page->height, 0);
 			//modexputPixel(page, rand()%page->width, rand()%page->height, 0);
@@ -352,7 +242,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			dingo(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 			if(pee->tile)
-			modexClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
+			VL_ClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
 			else
 				VL_Plot (rand()%page->width, rand()%page->height, 0);
 			//modexputPixel(page, rand()%page->width, rand()%page->height, 0);
@@ -420,7 +310,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 //			modexprint(page, page->sw/2, page->sh/2, 1, 0, 47, 0, 1, "bakapi");
 		break;
 /*		case 9:
-			modexClearRegion(&(ggvv->video.page[0]), 0, 0, ggvv->video.page[0].width/2, ggvv->video.page[0].height/2, 15);
+			VL_ClearRegion(&(ggvv->video.page[0]), 0, 0, ggvv->video.page[0].width/2, ggvv->video.page[0].height/2, 15);
 #ifdef BAKAFIZZUNSIGNED
 //			baka_FizzleFade (ggvv->video.ofs.bufferofs, ggvv->video.ofs.displayofs, vga_state.vga_width, vga_state.vga_height, 70, true, ggvv);
 			baka_FizzleFade (ggvv->video.ofs.bufferofs, ggvv->video.ofs.displayofs, ggvv->video.page[0].width, ggvv->video.page[0].height, 70, true, ggvv);
@@ -444,9 +334,9 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			dingas(pee);
 			tx+=pee->xx+TILEWH+4;
 			ty+=pee->yy+TILEWH+4;
-			modexClearRegion(page, tx, ty, 4, 4, pee->coor);
+			VL_ClearRegion(page, tx, ty, 4, 4, pee->coor);
 			if(pee->tile)
-			modexClearRegion(page, (rand()*4)%page->width, (rand()*4)%(page->height), 4, 4, 0);
+			VL_ClearRegion(page, (rand()*4)%page->width, (rand()*4)%(page->height), 4, 4, 0);
 			else
 				VL_Plot (rand()%page->width, rand()%page->height, 0);
 			//modexputPixel(page, rand()%page->width, rand()%(page->height), 0);

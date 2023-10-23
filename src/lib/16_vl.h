@@ -260,4 +260,5 @@ void VL_ShowPage(page_t *page, boolean vsync, boolean sr);
 page_t VL_InitPage(void);
 page_t	VL_NextPage(page_t *p);
 page_t	VL_NextPageFlexibleSize(page_t *p, word x, word y);
+void VL_ClearRegion (page_t *page, int x, int y, int w, int h, byte color);
 #endif

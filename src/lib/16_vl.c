@@ -1299,7 +1299,7 @@ void VL_WaitVBL (word num)
 #ifdef __WATCOMC__
 	__asm {
 #endif
-@@wait:
+wait:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1313,25 +1313,25 @@ void VL_WaitVBL (word num)
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitnosync:
+waitnosync:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	in	al,dx
 	test	al,8
-	jnz	@@waitnosync
+	jnz	waitnosync
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitsync:
+waitsync:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	in	al,dx
 	test	al,8
-	jz	@@waitsync
+	jz	waitsync
 
-	loop	@@waitnosync
+	loop	waitnosync
 	}
 }
 
@@ -1357,13 +1357,13 @@ void	VL_SetCRTC (word crtc)
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitdisplay:
+waitdisplay:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	in	al,dx
 	test	al,1	//1 = display is disabled (HBL / VBL)
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 
 
 //
@@ -1420,18 +1420,18 @@ void	VL_SetScreen (word crtc, word pel)
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitdisplay:
+waitdisplay:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	in	al,dx
 	test	al,1	//1 = display is disabled (HBL / VBL)
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@loop:
+loopa:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1447,7 +1447,7 @@ comparetimecount:
 	__asm {
 #endif
 	cmp	[timecount],cx		// will only happen if an interrupt is
-	jae	@@setcrtc			// straddling the entire retrace period
+	jae	setcrtc			// straddling the entire retrace period
 
 //
 // when several succesive display not enableds occur,
@@ -1456,38 +1456,38 @@ comparetimecount:
 
 	in	al,dx
 	test	al,8
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 	test	al,1
-	jz	@@loop
+	jz	loopa
 
 	in	al,dx
 	test	al,8
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 	test	al,1
-	jz	@@loop
+	jz	loopa
 
 	in	al,dx
 	test	al,8
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 	test	al,1
-	jz	@@loop
+	jz	loopa
 
 	in	al,dx
 	test	al,8
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 	test	al,1
-	jz	@@loop
+	jz	loopa
 
 	in	al,dx
 	test	al,8
-	jnz	@@waitdisplay
+	jnz	waitdisplay
 	test	al,1
-	jz	@@loop
+	jz	loopa
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@setcrtc:
+setcrtc:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1587,7 +1587,7 @@ void	VL_ScreenToScreen (word source, word dest, word wide, word height)
 #ifdef __BORLANDC__
 	}
 #endif
-@@lineloop:
+lineloop:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1597,7 +1597,7 @@ void	VL_ScreenToScreen (word source, word dest, word wide, word height)
 	add	di,bx
 
 	dec	dx
-	jnz	@@lineloop
+	jnz	lineloop
 
 	mov	dx,GC_INDEX+1
 	in	al,dx
@@ -1661,13 +1661,13 @@ int VL_VideoID (void)
 	int	10h
 
 	cmp	al,1Ah		// AL = 1Ah if function is supported.
-	jne	@@novga
+	jne	novga
 
 	// BL = Active display code.
 	// BH = Alternate display code.
 
 	cmp	bl,8		// Is color analog VGA active?
-	jne	@@novga
+	jne	novga
 
 	// Make sure an ATI EGA Wonder isnt lying to us.
 	// See RBIL INTERRUP.A - V-101A00 and V-101C.
@@ -1677,26 +1677,26 @@ int VL_VideoID (void)
 	int	10h			// So lets check for color registers and DAC state. (CX=2)
 
 	cmp	al,1Ch		// AL = 1Ch if function is supported.
-	jne	@@novga
+	jne	novga
 
 	// Yes, we have an active color analog VGA!
 
 	mov	ax,5	 // Original Wolf sources expect (5) to indicate VGA support.
-	jmp	@@done
+	jmp	done
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@novga:
+novga:
 #ifdef __BORLANDC__
 	__asm {
 #endif
-	xor	ax,ax	; Indicate failure, no VGA was detected!
+	xor	ax,ax	// Indicate failure, no VGA was detected!
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@done:
+done:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1727,7 +1727,7 @@ void SyncVBL ()
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitloop:
+waitloop:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1735,27 +1735,27 @@ void SyncVBL ()
 	jmp	$+2
 	cli
 	cmp	[WORD ptr TimeCount],bx
-	je	@@done
+	je	done
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitnovert:
+waitnovert:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	in	al,dx
 	test	al,1
-	jnz	@@waitnovert
+	jnz	waitnovert
 #ifdef __BORLANDC__
 	}
 #endif
-@@waitvert:
+waitvert:
 #ifdef __BORLANDC__
 __asm {
 #endif
 	in	al,dx
 	test	al,1
-	jz	@@waitvert
+	jz	waitvert
 	}
 
 	for(i=0;i<5;i++)
@@ -1763,15 +1763,15 @@ __asm {
 		__asm {
 	in	al,dx
 	test	al,8
-	jnz	@@waitloop
+	jnz	waitloop
 	test	al,1
-	jz	@@waitloop
+	jz	waitloop
 		}
 	}
 
 	__asm {
 	test	[jerk],1
-	jz	@@done
+	jz	done
 	}
 
 	for(i=0;i<5;i++)
@@ -1779,16 +1779,16 @@ __asm {
 		__asm {
 	in	al,dx
 	test	al,8
-	jnz	@@waitloop
+	jnz	waitloop
 	test	al,1
-	jz	@@waitloop
+	jz	waitloop
 		}
 	}
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@done:
+done:
 #ifdef __BORLANDC__
 	__asm {
 #endif
@@ -1815,20 +1815,20 @@ void	VW_SetScreen (word crtc, word pel)
 //
 	mov	cx,[crtc]
 	mov	dx,CRTC_INDEX
-	mov	al,0ch		;start address high register
+	mov	al,0ch		//start address high register
 	out	dx,al
 	inc	dx
 	mov	al,ch
 	out	dx,al
 	dec	dx
-	mov	al,0dh		;start address low register
+	mov	al,0dh		//start address low register
 	out	dx,al
 	mov	al,cl
 	inc	dx
 	out	dx,al
 
 	test	[nopan],1
-	jnz	@@done
+	jnz	done
 //
 // set horizontal panning
 //
@@ -1836,14 +1836,14 @@ void	VW_SetScreen (word crtc, word pel)
 	mov	dx,ATR_INDEX
 	mov	al,ATR_PELPAN or 20h
 	out	dx,al
-	jmp	@@done
+	jmp	done
 	mov	al,[BYTE ptr pel]		//pel pan value
 	out	dx,al
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@done:
+done:
 #ifdef __BORLANDC__
 __asm {
 #endif
@@ -1988,5 +1988,86 @@ page_t	VL_NextPageFlexibleSize(page_t *p, word x, word y)
 	return result;
 }
 
+void VL_ClearRegion (page_t *page, int x, int y, int w, int h, byte color)
+{
+	word pageOff = (word) page->data;
+	word xoff=(x>>2);							// xoffset that begins each row
+	word poffset = pageOff + (ylookup[y] + xoff);	// starting offset
+	word scanCount=w>>2;						// number of iterations per row (excluding right clip)
+	word nextRow = page->stridew-scanCount-1;		// loc of next row
+	LRCLIPDEF
+	byte left = lclip[x&0x03];
+	byte right = rclip[(x+w)&0x03];
 
+	// handle the case which requires an extra group
+	if((x & 0x03) && !((x+w) & 0x03)) {
+		right=0x0f;
+	}
+
+	//printf("modexClearRegion(x=%u, y=%u, w=%u, h=%u, left=%u, right=%u)\n", x, y, w, h, left, right);
+
+	__asm {
+		PUSHF
+		PUSH ES
+		PUSH AX
+		PUSH BX
+		PUSH CX
+		PUSH DX
+		PUSH SI
+		PUSH DI
+		MOV AX, screenseg	  // go to the VGA memory
+		MOV ES, AX
+		MOV DI, poffset	 // go to the first pixel
+		MOV DX, SC_INDEX	// point to the map mask
+		MOV AL, SC_MAPMASK
+		OUT DX, AL
+		INC DX
+		MOV AL, color	   // get ready to write colors
+#ifdef __BORLANDC__
+	}
+#endif
+	SCAN_START:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		MOV CX, scanCount	   // count the line
+		MOV BL, AL		  // remember color
+		MOV AL, left		// do the left clip
+		OUT DX, AL		  // set the left clip
+		MOV AL, BL		  // restore color
+		STOSB		   // write the color
+		DEC CX
+		JZ SCAN_DONE		// handle 1 group stuff
+
+		//-- write the main body of the scanline
+		MOV BL, AL		  // remember color
+		MOV AL, 0x0f		// write to all pixels
+		OUT DX, AL
+		MOV AL, BL		  // restore color
+		REP STOSB		   // write the color
+#ifdef __BORLANDC__
+	}
+#endif
+	SCAN_DONE:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		MOV BL, AL		  // remeber color
+		MOV AL, right
+		OUT DX, AL		  // do the right clip
+		MOV AL, BL		  // restore color
+		STOSB		   // write pixel
+		ADD DI, nextRow	 // go to the next row
+		DEC h
+		JNZ SCAN_START
+		POP DI
+		POP SI
+		POP DX
+		POP CX
+		POP BX
+		POP AX
+		POP ES
+		POPF
+	}
+}
 

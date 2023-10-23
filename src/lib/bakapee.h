@@ -26,9 +26,6 @@
 #include "src/lib/16_head.h"
 #include "src/lib/16_vl.h"
 #include "src/lib/16_vh.h"
-#include <hw/cpu/cpu.h>
-#include <hw/dos/dos.h>
-#include <hw/vga/vga.h>
 
 #define TILEWH	16
 #define QUADWH	TILEWH/2
@@ -44,10 +41,7 @@ typedef struct {
 
 //==========================================================================
 
-boolean FizzleFade (unsigned source, unsigned dest, unsigned width,unsigned height, unsigned frames, boolean abortable);
-
 void clrstdin();
-void TL_DosLibStartup(global_game_variables_t *gvar);
 void colortest(page_t *page, bakapee_t *pee);
 void colorz(page_t *page, bakapee_t *pee);
 void ssd(page_t *page, bakapee_t *pee, word svq);

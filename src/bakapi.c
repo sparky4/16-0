@@ -264,7 +264,7 @@ main(int argc, char *argvar[])
 				{
 					VL_ShowPage(&page[1], 0, 0);
 				}
-				if(c==27 || c==0x71 || c==0xb1 || c=='p')
+				if(c==27 || c==0x71 || c==0xb1)
 				{
 					//getch(); // eat keyboard input
 					panswitch=0;
@@ -408,7 +408,13 @@ pee:
 	VGAmodeX(0, 1, &gvar);
 #endif // defined(BOINK)
 //	printf("page.width=%u	", page[0].width); printf("page.height=%u\n", page[0].height);
-	printf("bakapi ver. 1.04.16.04\nis made by sparky4（≧ω≦） feel free to use it ^^\nLicence: GPL v3\n");
+#ifdef __BORLANDC__
+	printf("bcbakapi ");
+#endif
+#ifdef __WATCOMC__
+	printf("bakapi ");
+#endif
+	printf("ver. 1.04.16.04\nis made by sparky4（≧ω≦） feel free to use it ^^\nLicence: GPL v3\n");
 	printf("compiled on 2016/04/04\n");
 //	printf("[%u]%dx%d	[%dx%d]	%u %u %u\n[%u	%u	%u]", key, bakapee.bakax, bakapee.bakay, bakapee.xx, bakapee.yy,
 //bakapee.coor, bakapee.tile, bakapee.gq, bakapee.bonk, bakapee.lgq, bakapee.hgq);

@@ -23,62 +23,87 @@
 
 #include "src/lib/wcpu/16_wcpu.h"
 
-//#define USECPUPROBE
-
 byte WCPU_detectfpu()
 {
 	byte fputype=0;
 	word funk=0;
 	boolean errflag=0;
 	__asm {
-		PUSHF						; we gonna modify flags, so back them up
-.8087		fninit							; Initialize FPU
-//		mov	[WORD PTR funk], 55AAh		; Set junk value
-//		fnstsw	funk					; Store status word
-//		cmp	[BYTE PTR funk], 0			; If it's not 0, no FPU
-		mov	funk, 55AAh				; Set junk value
-		fnstsw	funk					; Store status word
-		cmp	funk, 0					; If it's not 0, no FPU
+		PUSHF						// we gonna modify flags, so back them up
+		fninit							// Initialize FPU
+//		mov	[WORD PTR funk], 55AAh		// Set junk value
+//		fnstsw	funk					// Store status word
+//		cmp	[BYTE PTR funk], 0			// If it's not 0, no FPU
+		mov	funk, 55AAh				// Set junk value
+		fnstsw	funk					// Store status word
+		cmp	funk, 0					// If it's not 0, no FPU
 //		jne	short	_done
 		jne	short	_err
 		jmp	_fpu
+#ifdef __BORLANDC__
+	}
+#endif
 		_err:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 		mov	errflag, 1
+#ifdef __BORLANDC__
+	}
+#endif
 		_fpu:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 /*	}
 	if(!errflag){
 	printf(".");
 	__asm {*/
-		fnstcw	funk					; Store control word
-		mov	ax, funk					; If the bits are not the way
-		and	ax, 103Fh					; they should be, no FPU
+		fnstcw	funk					// Store control word
+		mov	ax, funk					// If the bits are not the way
+		and	ax, 103Fh					// they should be, no FPU
 		cmp	ax, 3Fh
 //		jne	short _done
 		je	short	__err
 		jmp	__fpu
+#ifdef __BORLANDC__
+	}
+#endif
 		__err:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 		mov	errflag, 1
+#ifdef __BORLANDC__
+	}
+#endif
 		__fpu:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 	/*}}
 	if(!errflag){
 	printf(".");
 	__asm {*/
-//		and	[WORD PTR funk], 0FF7Fh		; Clear interrupt bit
-		and	funk, 0FF7Fh				; Clear interrupt bit
-		fldcw	funk						; Load control word
-		fdisi							; Disable interrupts
-		fstcw	funk						; Store control word
-//		test	[BYTE PTR funk], 80h			; If it changed, it's an 8087
-		test	funk, 80h					; If it changed, it's an 8087
+//		and	[WORD PTR funk], 0FF7Fh		// Clear interrupt bit
+		and	funk, 0FF7Fh				// Clear interrupt bit
+		fldcw	funk						// Load control word
+		fdisi							// Disable interrupts
+		fstcw	funk						// Store control word
+//		test	[BYTE PTR funk], 80h			// If it changed, it's an 8087
+		test	funk, 80h					// If it changed, it's an 8087
 		mov	fputype, 1
 
+#ifdef __BORLANDC__
+	}
+#endif
 		_done:
-		POPF						; restore flags we backed up earlier
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		POPF						// restore flags we backed up earlier
 	}//}
 	//printf("WCPU_detectfpu():\n	fputype=%u\n	funk=%u	errflag=%u\n", fputype, funk, errflag);
-#ifdef USECPUPROBE
-	if (cpu_flags & CPU_FLAG_FPU) printf(" - With FPU\n");
-#endif
 	return fputype;
 }
 
@@ -86,39 +111,57 @@ byte WCPU_detectcpu()
 {
 	byte cputype=0;
 	__asm {
-		PUSHF			; we gonna modify flags, so back them up
-		; first check if its 8086/8088 or 80186/80188
-		PUSHF			; FLAGS -> STACK
-		POP	AX		; STACK -> AX
-		AND	AX, 00FFFh	; clear 12-15 bits (they are always 1 on 8086/8088 and 80186/80188)
-		PUSH	AX		; AX -> STACK
-		POPF			; STACK -> FLAGS
-		; this is where magic happen
-		PUSHF			; FLAGS -> STACK
-		POP	AX		; STACK -> AX
-		AND	AX, 0F000h	; 0-11 bits aren't important to us
-		CMP	AX, 0F000h	; check if all 12-15 bits are set (simple comparision)
-		JNE	_286p		; if no, 286+ CPU
-		MOV	cputype, 0	; if yes, we are done, set cputype to 0 and end this
+		PUSHF			// we gonna modify flags, so back them up
+		// first check if its 8086/8088 or 80186/80188
+		PUSHF			// FLAGS -> STACK
+		POP	AX		// STACK -> AX
+		AND	AX, 00FFFh	// clear 12-15 bits (they are always 1 on 8086/8088 and 80186/80188)
+		PUSH	AX		// AX -> STACK
+		POPF			// STACK -> FLAGS
+		// this is where magic happen
+		PUSHF			// FLAGS -> STACK
+		POP	AX		// STACK -> AX
+		AND	AX, 0F000h	// 0-11 bits aren't important to us
+		CMP	AX, 0F000h	// check if all 12-15 bits are set (simple comparision)
+		JNE	_286p		// if no, 286+ CPU
+		MOV	cputype, 0	// if yes, we are done, set cputype to 0 and end this
 		JMP	_done
+#ifdef __BORLANDC__
+	}
+#endif
 	_286p:
-		; now check if its 286 or newer
-		PUSHF			; FLAGS -> STACK
-		POP	AX		; STACK -> AX
-		OR	AX, 07000h	; set 12-14 bits (they are always cleared by 286 if its real mode)
-		PUSH	AX		; AX -> STACK
-		POPF			; STACK -> FLAGS
-		; this is where magic happen
-		PUSHF			; FLAGS -> STACK
-		POP	AX		; STACK -> AX
-		TEST	AX, 07000h	; check if at least 1 bit in 12-14 bits range is set (15th won't be set anyway)
-		JNZ	_386p		; not all bits clear, its 386+
-		MOV	cputype, 1	; all bits clear, its 286, we are done
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		// now check if its 286 or newer
+		PUSHF			// FLAGS -> STACK
+		POP	AX		// STACK -> AX
+		OR	AX, 07000h	// set 12-14 bits (they are always cleared by 286 if its real mode)
+		PUSH	AX		// AX -> STACK
+		POPF			// STACK -> FLAGS
+		// this is where magic happen
+		PUSHF			// FLAGS -> STACK
+		POP	AX		// STACK -> AX
+		TEST	AX, 07000h	// check if at least 1 bit in 12-14 bits range is set (15th won't be set anyway)
+		JNZ	_386p		// not all bits clear, its 386+
+		MOV	cputype, 1	// all bits clear, its 286, we are done
 		JMP	_done
+#ifdef __BORLANDC__
+	}
+#endif
 	_386p:
-		MOV	cputype, 2	; its 386 or newer, but we don't care if its newer at this point
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		MOV	cputype, 2	// its 386 or newer, but we don't care if its newer at this point
+#ifdef __BORLANDC__
+	}
+#endif
 	_done:
-		POPF			; restore flags we backed up earlier
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		POPF			// restore flags we backed up earlier
 	}
 	return cputype;
 }
@@ -165,9 +208,6 @@ const char *WCPU_fpudetectmesg()
 
 void WCPU_cpufpumesg()
 {
-#ifdef USECPUPROBE
-	cpu_probe();
-#endif
 	printf("detected CPU type: %s\n",	WCPU_cpudetectmesg());
 	printf("detected FPU type: %s\n",	WCPU_fpudetectmesg());
 }
