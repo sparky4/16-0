@@ -268,4 +268,8 @@ page_t VL_InitPage(void);
 page_t	VL_NextPage(page_t *p);
 page_t	VL_NextPageFlexibleSize(page_t *p, word x, word y);
 void VL_ClearRegion (page_t *page, int x, int y, int w, int h, byte color);
+void	VL_CopyPageRegion(page_t *dest, page_t *src,
+			word sx, word sy,
+			word dx, word dy,
+			word width, word height);
 #endif

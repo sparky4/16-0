@@ -1907,8 +1907,8 @@ page_t VL_InitPage(void)
 	//page.data = VGA;
 	//page.data = (byte far *)(vga_state.vga_graphics_ram);
 	page.data = (byte far *)MK_FP(SCREENSEG,displayofs);
-	page.dx = 0;
-	page.dy = 0;
+	page.dx = 16;
+	page.dy = 16;
 	page.sw = 320;
 	page.sh = 240;
 	page.width = page.sw;
@@ -2071,3 +2071,103 @@ void VL_ClearRegion (page_t *page, int x, int y, int w, int h, byte color)
 	}
 }
 
+/* copy a region of video memory from one page to another.
+ * It assumes that the left edge of the tile is the same on both
+ * regions and the memory areas do not overlap.
+ */
+void	VL_CopyPageRegion(page_t *dest, page_t *src,
+			word sx, word sy,
+			word dx, word dy,
+			word width, word height)
+{
+	word doffset = (word)dest->data + dy*ylookup[dy] + (dx>>2);
+	word soffset = (word)src->data + sy*ylookup[sy] + (sx>>2);
+	word scans	= ylookup[8];
+	word nextSrcRow = src->stridew - scans - 1;
+	word nextDestRow = dest->stridew - scans - 1;
+	LRCLIPDEF
+	byte left = lclip[sx&0x03];
+	byte right = rclip[(sx+width)&0x03];
+
+	// handle the case which requires an extra group
+	if((sx & 0x03) && !((sx+width) & 0x03)) {
+		right=0x0f;
+	}
+
+//	printf("modexCopyPageRegion(src->stridew=%u, dest->stridew=%u, sx=%u, sy=%u, dx=%u, dy=%u, width=%u, height=%u, left=%u, right=%u)\n", src->stridew, dest->stridew, sx, sy, dx, dy, width, height, left, right);
+
+	__asm {
+		PUSHF
+		PUSH ES
+		PUSH AX
+		PUSH BX
+		PUSH CX
+		PUSH DX
+		PUSH SI
+		PUSH DI
+
+		MOV AX, SCREENSEG	  // work in the vga space
+		MOV ES, AX		  //
+		MOV DI, doffset	 //
+		MOV SI, soffset	 //
+
+		MOV DX, GC_INDEX	// turn off cpu bits
+		MOV AX, 0008h	   //
+		OUT DX, AX
+
+		MOV AX, SC_INDEX	// point to the mask register
+		MOV DX, AX		  //
+		MOV AL, SC_MAPMASK	//
+		OUT DX, AL		  //
+		INC DX		  //
+#ifdef __BORLANDC__
+	}
+#endif
+
+	ROW_START:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		PUSH DS
+		MOV AX, ES
+		MOV DS, AX
+		MOV CX, scans	   // the number of latches
+
+		MOV AL, left		// do the left column
+		OUT DX, AL		  //
+		MOVSB		   //
+		DEC CX		  //
+
+		MOV AL, 0fh		 // do the inner columns
+		OUT DX, AL
+		REP MOVSB		   // copy the pixels
+
+		MOV AL, right	   // do the right column
+		OUT DX, AL
+		MOVSB
+		POP DS
+
+		MOV AX, SI		  // go the start of the next row
+		ADD AX, nextSrcRow	  //
+		MOV SI, AX		  //
+		MOV AX, DI		  //
+		ADD AX, nextDestRow	 //
+		MOV DI, AX		  //
+
+		DEC height		  // do the rest of the actions
+		JNZ ROW_START	   //
+
+		MOV DX, GC_INDEX+1	  // go back to CPU data
+		MOV AL, 0ffh		// none from latches
+		OUT DX, AL		  //
+
+		POP DI
+		POP SI
+		POP DX
+		POP CX
+		POP BX
+		POP AX
+		POP ES
+		POPF
+	}
+}

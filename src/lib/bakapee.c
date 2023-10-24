@@ -92,21 +92,23 @@ void dingpp(page_t *page, bakapee_t *pee)
 		//modexputPixel(page, pee->xx, pee->yy, pee->coor);
 }
 
-void dingo(page_t *page, bakapee_t *pee)
+// appears to be the limitator
+// jumps pixel to other side of screen
+void keeppixelonscreen(page_t *page, bakapee_t *pee)
 {
 	if(pee->tile)
 	{
-		if(pee->xx<0) pee->xx=(page->sw-TILEWH);
-		if(pee->yy<0) pee->yy=(page->sh-TILEWH);
-		if(pee->xx>(page->sw-TILEWH)) pee->xx=0;
-		if(pee->yy>(page->sh-TILEWH)/*+(TILEWH*BUFFMX)*/) pee->yy=0;
+		if(pee->xx<TILEWH) pee->xx=(page->sw);
+		if(pee->yy<TILEWH) pee->yy=(page->sh);
+		if(pee->xx>(page->sw)) pee->xx=TILEWH;
+		if(pee->yy>(page->sh)/*+(TILEWH*BUFFMX)*/) pee->yy=TILEWH;
 	}
 		else
 	{
-		if(pee->xx<0) pee->xx=page->sw;
-		if(pee->yy<0) pee->yy=page->sh;
-		if(pee->xx>page->sw) pee->xx=0;
-		if(pee->yy>page->sh) pee->yy=0;
+		if(pee->xx<TILEWH) pee->xx=page->sw+TILEWH;
+		if(pee->yy<TILEWH) pee->yy=page->sh+TILEWH;
+		if(pee->xx>page->sw+TILEWH) pee->xx=TILEWH;
+		if(pee->yy>page->sh+TILEWH) pee->yy=TILEWH;
 	}
 }
 
@@ -228,7 +230,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			if(pee->yy==0){pee->bakay=1;}*/
 			dingqo(pee);
 			dingaso(pee);
-			dingo(page, pee);
+			keeppixelonscreen(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 			if(pee->tile)
 			VL_ClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
@@ -239,7 +241,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 		case 2:
 			dingq(pee);
 			dingas(pee);
-			dingo(page, pee);
+			keeppixelonscreen(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 			if(pee->tile)
 			VL_ClearRegion(page, (rand()*TILEWH)%page->width, (rand()*TILEWH)%(page->height), TILEWH, TILEWH, 0);
@@ -280,13 +282,13 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			dingpp(page, pee);	//plot the pixel/tile*/
 			dingqo(pee);
 			dingaso(pee);
-			dingo(page, pee);
+			keeppixelonscreen(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 		break;
 		case 4:
 			dingq(pee);
 			dingas(pee);
-			dingo(page, pee);
+			keeppixelonscreen(page, pee);
 			dingpp(page, pee);	//plot the pixel/tile
 		break;
 		case 5:

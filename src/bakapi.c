@@ -31,6 +31,19 @@ sword vgamodex_mode = 1; //	1 = 320x240 with buffer
 void TL_VidInit(global_game_variables_t *gvar){}
 //int ch=0x0;
 
+void drawboxesmodex(page_t *pg)
+{
+	VL_ClearRegion(pg, 0, 0, pg->width, pg->height, 1);
+	VL_ClearRegion(pg, 16, 16, pg->sw, pg->sh, 2);
+	VL_ClearRegion(pg, 32, 32, pg->sw-32, pg->sh-32, 3);
+	VL_ClearRegion(pg, 48, 48, pg->sw-64, pg->sh-64, 2);
+}
+
+void copyboxesmodex(page_t *page, boolean pn)
+{
+	VL_CopyPageRegion(&page[pn], &page[!pn], 0, 0, 0, 0, page[pn].width, page[pn].height);
+}
+
 
 void
 main(int argc, char *argvar[])
@@ -84,10 +97,17 @@ main(int argc, char *argvar[])
 	VL_SetVGAPlaneMode ();
 	page[0] = VL_InitPage();
 	page[1] = VL_NextPage(&page[0]);
-	page[2] = VL_NextPage(&page[1]);
-	displayofs = PAGE1START;
+	page[2] = VL_NextPageFlexibleSize(&page[1], page[1].sw, 88);
+	page[3] = VL_NextPageFlexibleSize(&page[2], page[2].sw, 88);
+	displayofs = PAGE1START;//+ylookup[16];
 	bufferofs = displayofs;//PAGE2START;
-	//&page[1] = VL_NextPage(&page[0]);
+//draw vidtest junk on screen for testin purposes
+/*
+	drawboxesmodex(&page[0]);
+	copyboxesmodex(&page, 1);
+	VL_ClearRegion(&page[2], 0, 0, page[2].sw, page[2].sh, 4);
+	VL_ClearRegion(&page[3], 0, 0, page[3].sw, page[3].sh, 6);
+*/
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 	bakapee.xx = rand()&0%page[0].width; bakapee.yy = rand()&0%page[0].height;
@@ -410,6 +430,7 @@ pee:
 	VGAmodeX(0, 1, &gvar);
 #endif // defined(BOINK)
 //	printf("page.width=%u	", page[0].width); printf("page.height=%u\n", page[0].height);
+//	for(i=0;i<8;i++)	{		printf("[%d]	", ylookup[i]);	}	//test code
 #ifdef __BORLANDC__
 	printf("bcbakapi ");
 #endif
