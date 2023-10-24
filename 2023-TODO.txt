@@ -2,10 +2,10 @@
     fix up the header files 16_head 16_tail 16_t 16_tdef (remove tdef eventally) //sort of done
     TEST MEMORY SYSTEM      EXMMTEST.EXE will be reused //working and tested
 
-fix up 16_in
-fix/make up 16_us
+    fix up 16_in //mostly done
+fix/make up 16_us //working mostly depends on too much upper level stuff
 
-last fix up 16_v* (fix it up mate)
+last fix up 16_v* (fix it up mate)  //WORKING ON THIS
 implement VRL stuff from doslib
 
 import id_rf.c into p16
