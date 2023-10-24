@@ -111,9 +111,9 @@ main(int argc, char *argvar[])
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 	bakapee.xx = rand()&0%page[0].width; bakapee.yy = rand()&0%page[0].height;
-	bakapee.gq = 0; bakapee.sx=bakapee.sy=0; bakapee.bakax=bakapee.bakay=0; bakapee.coor=0;
+	bakapee.gq = 0; bakapee.sx=bakapee.sy=0; bakapee.bakax=bakapee.bakay=0; bakapee.color=0;
 	//once where #defines
-	bakapee.tile=0; bakapee.bonk=400; bakapee.lgq=32; bakapee.hgq=55;
+	bakapee.tile=0; bakapee.keepcurrentcolor=400; bakapee.lgq=32; bakapee.hgq=55;
 
 	switch(WCPU_detectcpu())
 	{
@@ -326,7 +326,7 @@ main(int argc, char *argvar[])
 				break;
 			}
 			printf("\n");
-			printf("Incrementation of color happens at every %uth plot.\n", bakapee.bonk);
+			printf("Incrementation of color happens at every %uth plot.\n", bakapee.keepcurrentcolor);
 			printf("Enter 1, 2, 3, 4, 5, 6, 8, or 9 to run a screensaver, or enter 0 to quit.\n");
 pee:
 			c = getch();
@@ -375,18 +375,19 @@ pee:
 //					VGAmodeX(vgamodex_mode, 0, &gvar);
 //					SETUPPAGEBAKAPI
 					VL_SetVGAPlaneMode ();
+					VL_ClearVideo(0);
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 					VL_ShowPage(&page[0], 0, 0);
 				break;
 				case '-':
-					if(bakapee.bonk>0)
-						bakapee.bonk-=100;
+					if(bakapee.keepcurrentcolor>0)
+						bakapee.keepcurrentcolor-=100;
 				break;
 				case '=':
 				case '+':
-					if(bakapee.bonk<1000)
-						bakapee.bonk+=100;
+					if(bakapee.keepcurrentcolor<1000)
+						bakapee.keepcurrentcolor+=100;
 				break;
 				default:
 					key=0;
@@ -441,6 +442,6 @@ pee:
 //	printf("compiled on 2016/04/04\n");	// old --sparky4
 	printf("compiled on %s\n", VERSION);
 //	printf("[%u]%dx%d	[%dx%d]	%u %u %u\n[%u	%u	%u]", key, bakapee.bakax, bakapee.bakay, bakapee.xx, bakapee.yy,
-//bakapee.coor, bakapee.tile, bakapee.gq, bakapee.bonk, bakapee.lgq, bakapee.hgq);
+//bakapee.coor, bakapee.tile, bakapee.gq, bakapee.keepcurrentcolor, bakapee.lgq, bakapee.hgq);
 }
 //pee!

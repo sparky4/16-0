@@ -1907,10 +1907,10 @@ page_t VL_InitPage(void)
 	//page.data = VGA;
 	//page.data = (byte far *)(vga_state.vga_graphics_ram);
 	page.data = (byte far *)MK_FP(SCREENSEG,displayofs);
-	page.dx = 16;
-	page.dy = 16;
-	page.sw = 320;
-	page.sh = 240;
+	page.dx = 16;	//move a tile down
+	page.dy = 16;	//move a tile right
+	page.sw = 320;	//screen x resolution
+	page.sh = 240;	//screen y resolution
 	page.width = page.sw;
 	page.height = page.sh;
 	page.width += TILEWHD;

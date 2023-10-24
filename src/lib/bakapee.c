@@ -40,23 +40,23 @@
 //color ‚Ä‚·‚Æ
 void colortest(page_t *page, bakapee_t *pee)
 {
-	//if(pee->coor < 256)
+	//if(pee->color < 256)
 	//{
-//		modexcls(page, pee->coor, VGA);
-		VL_ClearVideo (pee->coor);
-		pee->coor++;
-	//}else pee->coor = 0;
+//		modexcls(page, pee->color, VGA);
+		VL_ClearVideo (pee->color);
+		pee->color++;
+	//}else pee->color = 0;
 }
 
 //color ‚Ä‚·‚Æ
 void colorz(page_t *page, bakapee_t *pee)
 {
-	if(pee->coor <= pee->hgq)
+	if(pee->color <= pee->hgq)
 	{
-//		modexcls(page, pee->coor, VGA);
-		VL_ClearVideo (pee->coor);
-		pee->coor++;
-	}else pee->coor = pee->lgq;
+//		modexcls(page, pee->color, VGA);
+		VL_ClearVideo (pee->color);
+		pee->color++;
+	}else pee->color = pee->lgq;
 }
 
 //slow spectrum down
@@ -66,16 +66,16 @@ void ssd(page_t *page, bakapee_t *pee, word svq)
 	{
 		if(pee->sx < page->sw+1)
 		{
-			//mxPutPixel(sx, sy, coor);
-			//printf("%d %d %d %d\n", pee->sx, pee->sy, svq, pee->coor);
+			//mxPutPixel(sx, sy, color);
+			//printf("%d %d %d %d\n", pee->sx, pee->sy, svq, pee->color);
 			dingpp(page, pee);
 			pee->sx++;
 		}else pee->sx = 0;
 		if(pee->sx == page->sw)
 		{
 			pee->sy++;
-			if(svq == 7) pee->coor++;
-			if(pee->sy == page->sh && svq == 8) pee->coor = rand()%256;
+			if(svq == 7) pee->color++;
+			if(pee->sy == page->sh && svq == 8) pee->color = rand()%256;
 		}
 	}else pee->sy = 0;
 }
@@ -85,11 +85,11 @@ void dingpp(page_t *page, bakapee_t *pee)
 {
 	if(pee->tile)
 	{
-		VL_ClearRegion(page, pee->xx, pee->yy, TILEWH, TILEWH, pee->coor);
+		VL_ClearRegion(page, pee->xx, pee->yy, TILEWH, TILEWH, pee->color);
 	}
 	else
-		VL_Plot (pee->xx, pee->yy, pee->coor);
-		//modexputPixel(page, pee->xx, pee->yy, pee->coor);
+		VL_Plot (pee->xx, pee->yy, pee->color);
+		//modexputPixel(page, pee->xx, pee->yy, pee->color);
 }
 
 // appears to be the limitator
@@ -115,7 +115,7 @@ void keeppixelonscreen(page_t *page, bakapee_t *pee)
 //assigning values from randomizer
 void dingas(bakapee_t *pee)
 {
-	if(pee->gq == pee->bonk) dingu(pee);
+	if(pee->gq == pee->keepcurrentcolor) dingu(pee);
 	if(!pee->bakax)
 	{
 		if(pee->tile)
@@ -144,7 +144,7 @@ void dingas(bakapee_t *pee)
 
 void dingaso(bakapee_t *pee)
 {
-	if(pee->gq == pee->bonk) dingu(pee);
+	if(pee->gq == pee->keepcurrentcolor) dingu(pee);
 	if(!pee->bakax)
 	{
 		if(pee->tile)
@@ -173,19 +173,19 @@ void dingaso(bakapee_t *pee)
 
 void dingu(bakapee_t *pee)
 {
-	if(pee->coor < pee->hgq && pee->coor < pee->lgq) pee->coor = pee->lgq;
-	if(pee->coor < pee->hgq)
+	if(pee->color < pee->hgq && pee->color < pee->lgq) pee->color = pee->lgq;
+	if(pee->color < pee->hgq)
 	{
-		pee->coor++;
+		pee->color++;
 	}else{
-		pee->coor = pee->lgq;
+		pee->color = pee->lgq;
 	}
 }
 
 //randomizer
 void dingq(bakapee_t *pee)
 {
-	if(pee->gq<pee->bonk)
+	if(pee->gq<pee->keepcurrentcolor)
 	{
 		pee->gq++;
 	}
@@ -199,7 +199,7 @@ void dingq(bakapee_t *pee)
 
 void dingqo(bakapee_t *pee)
 {
-	if(pee->gq<pee->bonk)
+	if(pee->gq<pee->keepcurrentcolor)
 	{
 		pee->gq++;
 		pee->bakax = rand()%3; pee->bakay = rand()%3;
@@ -219,7 +219,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 {
 	word tx=0,ty=0;//d3y,
 
-//++++  if(q <= 4 && q!=2 && gq == pee->bonk-1) coor = rand()%pee->hgq;
+//++++  if(q <= 4 && q!=2 && gq == pee->keepcurrentcolor-1) color = rand()%pee->hgq;
 	switch(q)
 	{
 		case 1:/*
@@ -295,17 +295,17 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			colortest(page, pee);
 		break;
 		case 6:
-// 			pee->coor = rand()%256;
-// 			modexcls(page, pee->coor, VGA);
+// 			pee->color = rand()%256;
+// 			modexcls(page, pee->color, VGA);
 			colorz(page, pee);
 //			modexprint(page, page->sw/2, page->sh/2, 1, 0, 47, 0, 1, "bakapi");
 		break;
 		case 7:
-			if(pee->coor <= pee->hgq)
+			if(pee->color <= pee->hgq)
 			{
 				ssd(page, pee, q);
-				pee->coor++;
-			}else pee->coor = pee->lgq;
+				pee->color++;
+			}else pee->color = pee->lgq;
 		break;
 		case 8:
 			colorz(page, pee);
@@ -321,7 +321,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 #endif
 		break;*/
 		case 10:
-			ssd(page, pee, q); /*printf("%d\n", pee->coor);*/
+			ssd(page, pee, q); /*printf("%d\n", pee->color);*/
 		break;
 		case 11:
 			colorz(page, pee); delay(100);
@@ -336,7 +336,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 			dingas(pee);
 			tx+=pee->xx+TILEWH+4;
 			ty+=pee->yy+TILEWH+4;
-			VL_ClearRegion(page, tx, ty, 4, 4, pee->coor);
+			VL_ClearRegion(page, tx, ty, 4, 4, pee->color);
 			if(pee->tile)
 			VL_ClearRegion(page, (rand()*4)%page->width, (rand()*4)%(page->height), 4, 4, 0);
 			else
@@ -348,7 +348,7 @@ void ding(page_t *page, bakapee_t *pee, word q)
 		break;
 	}
 	//printf("	%dx%d	%dx%d\n", pee->xx, pee->yy, tx, ty);
-	//pee->coor++;
+	//pee->color++;
 }
 
 

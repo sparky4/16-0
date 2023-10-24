@@ -31,12 +31,13 @@
 #define QUADWH	TILEWH/2
 
 typedef struct {
-	word gq;
+	word gq;			//current color variable when it is greater than keepcurrentcolor reset to 0
 	sword bakax, bakay;
 	sword xx, yy, sx, sy;
-	byte coor;
-	boolean tile;
-	word bonk,lgq,hgq;
+	byte color;			//current color in palette
+	boolean tile;		//switch to change tile mode
+	word keepcurrentcolor,	//keep current color until next increment
+	lgq,hgq;			//color limits in palette	higher and lower
 } bakapee_t;
 
 //==========================================================================
