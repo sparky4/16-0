@@ -88,6 +88,8 @@ static	boolean		US_Started;
 
 extern byte	fontcolor,backcolor;
 
+boolean	compatability;
+
 //	Internal routines
 
 //	Public routines
@@ -106,7 +108,7 @@ USL_HardError(word errval,int ax,int bp,int si)
 #define IGNORE  0
 #define RETRY   1
 #define	ABORT   2
-extern	void	ShutdownId(void);
+extern	void	Shutdown16(void);
 
 static	char		buf[32];
 static	WindowRec	wr;
@@ -169,7 +171,7 @@ asm	sti	// Let the keyboard interrupts come through
 
 oh_kill_me:
 	abortprogram = s;
-	ShutdownId();
+	Shutdown16();
 	fprintf(stderr,"Terminal Error: %s\n",s);
 	if (tedlevel)
 		fprintf(stderr,"You launched from TED. I suggest that you reboot...\n");
@@ -811,26 +813,26 @@ void US_InitRndT(word randomize)
 
 	mov	ax,[randomize]
 	or	ax,ax
-	jne	@@timeit		;if randomize is true, really random
+	jne	timeit		//if randomize is true, really random
 
-	mov	dx,0			;set to a definite value
-	jmp	@@setit
+	mov	dx,0			//set to a definite value
+	jmp	setit
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@timeit:
+timeit:
 #ifdef __BORLANDC__
 	__asm {
 #endif
 	mov	ah,2ch
-	int	21h			;GetSystemTime
+	int	21h			//GetSystemTime
 	and	dx,0ffh
 
 #ifdef __BORLANDC__
 	}
 #endif
-@@setit:
+setit:
 #ifdef __BORLANDC__
 	__asm {
 #endif

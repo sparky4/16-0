@@ -177,7 +177,6 @@ void Quit (char *error)
 
 //===========================================================================
 
-#ifdef __WATCOMC__
 //
 // for mary4 (XT)
 // this is from my XT's BIOS
@@ -195,10 +194,16 @@ void turboXT(byte bakapee)
 
 		mov	bx, 0F89h			//; low pitch blip
 		and	al, 4				//; Is turbo mode set?
-		jz	@@do_beep
+		jz	do_beep
 		mov	bx, 52Eh			//; high pitch blip
 
-	@@do_beep:
+#ifdef __BORLANDC__
+	}
+#endif
+	do_beep:
+#ifdef __BORLANDC__
+	__asm {
+#endif
 		mov	al, 10110110b		//; Timer IC 8253 square waves
 		out	43h, al 			//;   channel 2, speaker
 		mov	ax, bx
@@ -210,8 +215,14 @@ void turboXT(byte bakapee)
 		or	al, 00000011b
 		out	61h, al 			//; Turn speaker on
 		mov	cx, 2000h
-	@@delay:
-		loop	@@delay
+#ifdef __BORLANDC__
+	}
+#endif
+	do_delay:
+#ifdef __BORLANDC__
+	__asm {
+#endif
+		loop	do_delay
 		pop	ax
 		out	61h, al 			//; Turn speaker off
 		pop	cx
@@ -219,4 +230,3 @@ void turboXT(byte bakapee)
 		pop	ax
 	}
 }
-#endif

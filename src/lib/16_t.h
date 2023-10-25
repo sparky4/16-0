@@ -42,7 +42,7 @@ typedef unsigned long int diword;
 typedef signed long int sdiword;
 
 typedef	enum	{false,true}	boolean;
-typedef	enum	{ichi,ni,san,yon,go,roku,shichi,hachi,kyu,ju,juichi,juni,jusan,juyon,jugo,juroku}	nibble;
+typedef	enum	{ichi,ni,san,yon,go,roku,nana,hachi,kyu,ju,juichi,juni,jusan,juyon,jugo,juroku}	nibble;
 //typedef 	unsigned nibb:4 nibble;
 
 #define HI_NIBBLE(b) (((b) >> 4) & 0x0F)

@@ -34,14 +34,6 @@
 //#include "src/lib/16_vl.h"
 //#include "src/lib/testpatt.h"
 
-#ifdef __WATCOMC__
-#include <hw/cpu/cpu.h>
-#include <hw/dos/dos.h>
-#include <hw/vga/vga.h>
-#include <hw/vga/vrl.h>
-#include <hw/vga/vrs.h>
-#endif
-
 //gvar.video.ofs.bufferofs,gvar.video.ofs.displayofs,
 #define FIZZLEFADEFUNCTION \
 	if(gvar.in.inst->Keyboard[sc_F]){ FizzleFade(\
@@ -157,18 +149,6 @@
 	if(gvar.in.inst->Keyboard[sc_PgUp]){ \
 		rotateL(gvar.video.palette, sizeof(gvar.video.palette)/sizeof(gvar.video.palette[0])); \
 		VL_UpdatePaletteWrite(&gvar.video.palette, 0, 255, &gvar);		IN_UserInput(1, &gvar); }
-#ifdef __BORLANDC__
-#define PAL_WRITE_REG		   0x03C8   /* Color register, write address */
-#define PAL_DATA_REG			0x03C9   /* Color register, data port */
-#endif
-
-extern char global_temp_status_text[512];
-
-void TL_DosLibStartup(global_game_variables_t *gvar);
-void TL_VidInit(global_game_variables_t *gvar);
-
-void PL_StartMusic(global_game_variables_t *gvar);
-void PL_StopMusic(global_game_variables_t *gvar);
 
 void DebugMemory_(boolean q);
 void ClearMemory (void);

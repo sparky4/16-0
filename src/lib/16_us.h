@@ -26,8 +26,8 @@
 //	By Jason Blochowiak
 //
 
-#ifndef	__ID_US__
-#define	__ID_US__
+#ifndef	__16_US__
+#define	__16_US__
 
 #include "src/lib/16_head.h"
 #include "src/lib/16_hc.h"
@@ -108,6 +108,8 @@ extern	boolean		(*USL_SaveGame)(int),(*USL_LoadGame)(int);
 extern	void		(*USL_ResetGame)(void);
 extern	SaveGame	Games[MaxSaveGames];
 extern	HighScore	Scores[];
+
+extern	boolean	compatability;
 
 #define	US_HomeWindow()	{PrintX = WindowX; PrintY = WindowY;}
 

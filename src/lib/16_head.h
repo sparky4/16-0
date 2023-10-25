@@ -184,6 +184,9 @@ extern union REGS CPURegs;
 
 #define geninterrupt(n) int86(n,&CPURegs,&CPURegs);
 
+typedef union REGPACK	regs_t;
+#endif
+
 typedef	struct
 		{
 			int	x,y;
@@ -192,9 +195,6 @@ typedef	struct
 		{
 			Point	ul,lr;
 		} Rect;
-
-typedef union REGPACK	regs_t;
-#endif
 
 // local function //
 long int filesize(FILE *fp);

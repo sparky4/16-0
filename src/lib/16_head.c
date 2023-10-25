@@ -27,10 +27,6 @@
 union regs CPURegs;
 #endif
 
-// big global status text buffer
-char global_temp_status_text[512];
-char global_temp_status_text2[512];
-
 long int
 filesize(FILE *fp)
 {
@@ -128,6 +124,7 @@ void printmeminfoline(byte *strc, const byte *pee, size_t h_total, size_t h_used
 	strcat(strc,"\n");
 }
 
+#ifndef __16_US__
 ///////////////////////////////////////////////////////////////////////////
 //
 //      US_CheckParm() - checks to see if a string matches one of a set of
@@ -162,6 +159,7 @@ US_CheckParm(char *parm,char **strings)
 	}
 	return(-1);
 }
+#endif
 
 // for input test //
 byte dirchar(byte in)
