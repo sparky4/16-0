@@ -558,7 +558,7 @@ boolean MML_CheckForXMS(void)
 }
 
 #ifndef __16_PM__
-#if 0
+//#if 0
 /*
 ======================
 =
@@ -584,7 +584,7 @@ getmemory:
 	__asm {
 		mov	ah,XMS_ALLOCUMB
 		mov	dx,0xffff					// try for largest block possible
-		//mov     ax,dx						// Set available Kbytes.
+		mov     ax,dx						// Set available Kbytes.
 		call	[DWORD PTR XMSaddr]
 		or	ax,ax
 		jnz	gotone
@@ -646,7 +646,7 @@ void MML_ShutdownXMS(void)
 	}
 }
 #endif
-#endif
+//#endif
 //==========================================================================
 
 /*

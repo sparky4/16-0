@@ -126,6 +126,7 @@ PRINTBB; KEYP
 	MM_Report_();
 	KEYP
 
+	if (access(bakapee1, F_OK) == 0 && access(bakapee2, F_OK) == 0 )
 	{
 	byte w;	word baka;
 	w=0;
@@ -185,8 +186,9 @@ PRINTBB; KEYP
 	MM_Report_();
 //	printf("bakapee1=%s\n", bakapee1);
 //	printf("bakapee2=%s\n", bakapee2);
+	if (access(bakapee1, F_OK) == 0 && access(bakapee2, F_OK) == 0 )
 								#ifdef FILEREADLOAD
-	MM_FreePtr(BBUFPTR);
+		MM_FreePtr(BBUFPTR);
 								#endif
 #ifdef __16_PM__
 	PM_Shutdown();
