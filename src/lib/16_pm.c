@@ -315,12 +315,12 @@ PML_StartupXMS(void)
 {
 //TODO:		translate the _REG into working assembly
 //FIXME:	FIX THE XMS STUFF WITH BORLANDC
-//#define STARTUPXMSASM
+#define STARTUPXMSASM
 	byte err;
 	boolean errorflag=false;
 	word e=0;
 	XMSPresent = false;					// Assume failure
-	XMSAvail = 0;//mminfo.XMSmem = 0;
+	XMSAvail = mminfo.XMSmem = 0;
 
 	__asm {
 		mov	ax,0x4300
@@ -443,7 +443,7 @@ error:
 		//printf("XMSHandle\n");
 		//printf("	1=%u	2=%u	3=%u	4=%u\n", XMSHandle1, XMSHandle2, XMSHandle3, XMSHandle4);
 		//printf("	2=%u	", XMSHandle);
-		//printf("	%u", XMSHandle);
+		printf("	%u\n", XMSHandle);
 		printf("XMSDriver:	%Fp\n", XMSDriver);
 		printf("XMSDriver:	%lu\n", XMSDriver);
 		printf("	err=%02X	e=%u\n", err, e);
@@ -523,11 +523,13 @@ PML_CopyFromXMS(byte far *target,int sourcepage,word length)
 void
 PML_ShutdownXMS(void)
 {
+	byte err;
 	boolean errorflag=false;
 	if (XMSPresent)
 	{
+#ifdef STARTUPXMSASM
 		__asm {
-			mov	dx,[XMSHandle]
+			mov	dx,XMSHandle
 			//XMS_CALL(XMS_FREE);
 			mov	ah,XMS_FREE
 			call	[DWORD PTR XMSDriver]
@@ -541,7 +543,7 @@ PML_ShutdownXMS(void)
 #ifdef __BORLANDC__
 		__asm {
 #endif
-			//mov	err,ah
+			mov	err,ah
 			mov	errorflag,1
 			jmp	Endxs
 #ifdef __BORLANDC__
@@ -551,6 +553,15 @@ PML_ShutdownXMS(void)
 #ifdef __WATCOMC__
 		}
 #endif
+#else	// STARTUPXMSASM
+		_DX = XMSHandle;
+		XMS_CALL(XMS_FREE);
+		if (_BL)
+		{
+			err = _AL;
+			errorflag=true;
+		}
+#endif	// STARTUPXMSASM
 		if(errorflag==true)
 			Quit ("PML_ShutdownXMS: Error freeing XMS");
 	}
