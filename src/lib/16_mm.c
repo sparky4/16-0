@@ -2078,7 +2078,7 @@ void xms_call(byte v)
 {
 	__asm {
 		mov	ah,[v]
-		call [DWORD PTR XMSDriver]
+		call [DWORD PTR XMSaddr]
 	}
 }
 

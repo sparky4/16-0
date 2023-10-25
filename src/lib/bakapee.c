@@ -171,6 +171,7 @@ void dingaso(bakapee_t *pee)
 	}
 }
 
+//incremention of the color
 void dingu(bakapee_t *pee)
 {
 	if(pee->color < pee->hgq && pee->color < pee->lgq) pee->color = pee->lgq;

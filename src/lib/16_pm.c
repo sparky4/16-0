@@ -316,8 +316,8 @@ PML_StartupXMS(void)
 //TODO:		translate the _REG into working assembly
 //FIXME:	FIX THE XMS STUFF WITH BORLANDC
 //INFO:		XMS strrangely works on my 286 named cherry4 and no where else...
-#define STARTUPXMSASM
-	byte err;
+//#define STARTUPXMSASM
+	byte err = 0;
 	boolean errorflag=false;
 	word e=0;
 	XMSPresent = false;					// Assume failure
@@ -343,7 +343,7 @@ PML_StartupXMS(void)
 #ifdef STARTUPXMSASM
 		mov	ah,XMS_QUERYFREE			// Find out how much XMS is available
 		call	[DWORD PTR XMSDriver]
-		mov	XMSAvail,ax
+		mov	[XMSAvail],ax
 		or	ax,ax				// AJR: bugfix 10/8/92
 		jz	error1
 		mov	e,3
@@ -524,7 +524,7 @@ PML_CopyFromXMS(byte far *target,int sourcepage,word length)
 void
 PML_ShutdownXMS(void)
 {
-	byte err;
+	byte err = 0;
 	boolean errorflag=false;
 	if (XMSPresent)
 	{

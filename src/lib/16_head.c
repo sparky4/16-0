@@ -63,7 +63,7 @@ char *remove_ext (char* mystr, char dot, char sep) {
 	// Error checks and allocate string.
 	if (mystr == NULL)
 		return NULL;
-	if ((retstr = malloc(strlen (mystr) + 1)) == NULL)
+	if ((retstr = malloc(strlen (mystr) + 1)) == NULL)	//NOT ALLOWED!!
 		return NULL;
 
 	// Make a copy and find the relevant characters.
