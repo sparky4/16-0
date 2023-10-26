@@ -44,7 +44,7 @@
 
 #ifndef	__16_SD__
 static word far* clockw= (word far*) 0x046C; /* 18.2hz clock */
-dword	TimeCount;
+longword	TimeCount;
 #endif
 
 #define	KeyInt		9	// The keyboard ISR number

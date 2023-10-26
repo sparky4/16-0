@@ -20,7 +20,7 @@
  *
  */
 
-#include "src/lib/16_dbg.h"
+#include "src/lib/hp_dbg.h"
 
 #ifdef __DEBUG__
 #ifdef __DEBUG_MM__

@@ -33,7 +33,8 @@
 #include <string.h>
 #include "src/lib/16_head.h"
 #include "src/lib/16_timer.h"
-#include "src/lib/16_dbg.h"
+#include "src/lib/hp_dbg.h"
+#include "src/lib/16_sd.h"
 /*#ifdef __WATCOMC__	//borland C BCEXMM.EXE
 #include "src/lib/16_spri.h"
 #include "src/lib/16_enti.h"

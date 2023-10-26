@@ -29,6 +29,5 @@
 #include "src/lib/wcpu/16_wcpu.h"
 #include "src/lib/scroll16.h"
 #include "src/lib/16_timer.h"
-#include "src/lib/16_dbg.h"
 
 #endif /*__16_H_*/

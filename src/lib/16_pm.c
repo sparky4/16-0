@@ -316,7 +316,7 @@ PML_StartupXMS(void)
 //TODO:		translate the _REG into working assembly
 //FIXME:	FIX THE XMS STUFF WITH BORLANDC
 //INFO:		XMS strrangely works on my 286 named cherry4 and no where else...
-//#define STARTUPXMSASM
+#define STARTUPXMSASM
 	byte err = 0;
 	boolean errorflag=false;
 	word e=0;

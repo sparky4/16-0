@@ -31,7 +31,7 @@
 #include "src/lib/16_ca.h"
 #include "src/lib/16_mm.h"
 #include "src/lib/16_hc.h"
-#include "src/lib/16_dbg.h"
+#include "src/lib/hp_dbg.h"
 
 #pragma hdrstop
 

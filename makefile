@@ -147,7 +147,7 @@ LIBFLAGS=$(WLIBQ) -b -n
 VGMSNDOBJ = vgmSnd.$(OBJ)
 OLDLIBOBJS=bitmap.$(OBJ) 16render.$(OBJ)
 GFXLIBOBJS = 16_vl.$(OBJ) 16_vl_1.$(OBJ) 16_vl_2.$(OBJ) 16_vlpal.$(OBJ) 16text.$(OBJ) scroll16.$(OBJ) 16_spri.$(OBJ) gamepal.$(OBJ)
-16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) 16_dbg.$(OBJ) 16_in.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) 16_dbg_1.$(OBJ)
+16LIBOBJS = 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_enti.$(OBJ) hp_dbg.$(OBJ) 16_in.$(OBJ) 16_hc.$(OBJ) 16_wcpu.$(OBJ) 16_timer.$(OBJ)  16_map.$(OBJ) 16_sd.$(OBJ) 16_snd.$(OBJ) 16_tail_.$(OBJ) hp_dbg_1.$(OBJ)
 #kitten.$(OBJ)
 DOSLIBOBJ = adlib.$(OBJ) 8254.$(OBJ) 8259.$(OBJ) dos.$(OBJ) cpu.$(OBJ)
 !ifeq DEBUGSERIAL 1
@@ -274,7 +274,7 @@ testexec: $(EXEC) $(TESTEXEC2)
 #
 # game and bakapi executables
 #
-16.exe:		16.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) 16_dbg.$(OBJ)
+16.exe:		16.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) hp_dbg.$(OBJ)
 bakapi.exe:		bakapi.$(OBJ) 16_vl.$(OBJ) 16text.$(OBJ) bakapee.$(OBJ) $(DOSLIB) 16_wcpu.$(OBJ) gamepal.$(OBJ) 16_head.$(OBJ)# 16_tail.$(OBJ) # gfx.lib
 sp2.exe:		sp2.$(OBJ)
 
@@ -298,7 +298,7 @@ test0.exe:		test0.$(OBJ)
 fonttest.exe:	 fonttest.$(OBJ) gfx.lib
 #fonttes0.exe:	fonttes0.$(OBJ) $(16LIB)
 fontgfx.exe:	fontgfx.$(OBJ) gfx.lib $(DOSLIB)
-inputest.exe:	 inputest.$(OBJ) 16_in.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_dbg.$(OBJ) 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_hc.$(OBJ)#$(16LIB) $(DOSLIB) gfx.lib
+inputest.exe:	 inputest.$(OBJ) 16_in.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) hp_dbg.$(OBJ) 16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_hc.$(OBJ) 16_sd.$(OBJ)#$(16LIB) $(DOSLIB) gfx.lib
 sountest.exe:	sountest.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
 imfplay.exe:		imfplay.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
 sdtest.exe:	sdtest.$(OBJ) $(16LIB) $(DOSLIB) gfx.lib
@@ -313,10 +313,10 @@ pcxtest2.exe:	pcxtest2.$(OBJ) gfx.lib $(DOSLIB) $(16LIB)
 #planrpcx.exe:	planrpcx.$(OBJ) gfx.lib
 maptest.exe:	maptest.$(OBJ) 16_map.$(OBJ) 16_head.$(OBJ) gfx.lib $(DOSLIB) $(16LIB)
 fmemtest.exe:	fmemtest.$(OBJ)
-exmmtest.exe:	exmmtest.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) 16_dbg.$(OBJ)
+exmmtest.exe:	exmmtest.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) hp_dbg.$(OBJ)
 xmstest.exe:	xmstest.$(OBJ)
 mmtest.exe:	mmtest.$(OBJ)	$(16LIB) gfx.lib $(DOSLIB)
-	#16_pm.$(OBJ) 16_head.$(OBJ) 16_ca.$(OBJ) 16_mm.$(OBJ) 16_hc.$(OBJ) kitten.$(OBJ) 16_vl_1.$(OBJ) 16_tail.$(OBJ) 16_in.$(OBJ) 16_dbg.$(OBJ)
+	#16_pm.$(OBJ) 16_head.$(OBJ) 16_ca.$(OBJ) 16_mm.$(OBJ) 16_hc.$(OBJ) kitten.$(OBJ) 16_vl_1.$(OBJ) 16_tail.$(OBJ) 16_in.$(OBJ) hp_dbg.$(OBJ)
 
 vgmtest.exe:	vgmtest.$(OBJ) vgmsnd.lib $(16LIB) $(DOSLIB) gfx.lib
 db.exe:		db.$(OBJ)
@@ -453,8 +453,8 @@ mapread.$(OBJ):	$(SRCLIB)/mapread.c	$(SRCLIB)/mapread.h
 16_ca.$(OBJ):	$(SRCLIB)/16_ca.c	$(SRCLIB)/16_ca.h
 #16_rf.$(OBJ):	$(SRCLIB)/16_rf.c
 16_us.$(OBJ):	$(SRCLIB)/16_us.c
-16_dbg.$(OBJ):	$(SRCLIB)/16_dbg.c	$(SRCLIB)/16_dbg.h
-16_dbg_1.$(OBJ):	$(SRCLIB)/16_dbg_1.c	$(SRCLIB)/16_dbg.h
+hp_dbg.$(OBJ):	$(SRCLIB)/hp_dbg.c	$(SRCLIB)/hp_dbg.h
+hp_dbg_1.$(OBJ):	$(SRCLIB)/hp_dbg_1.c	$(SRCLIB)/hp_dbg.h
 16_head.$(OBJ):	$(SRCLIB)/16_head.c	$(SRCLIB)/16_head.h
 16_tail.$(OBJ):	$(SRCLIB)/16_tail.c	$(SRCLIB)/16_tail.h
 hp_tail.$(OBJ):	$(SRCLIB)/hp_tail.c	$(SRCLIB)/hp_tail.h

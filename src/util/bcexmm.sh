@@ -13,3 +13,13 @@ fi
 		mv BCBAKAPI.EXE bcbakapi.ex0
 		mv bcbakapi.ex0 bcbakapi.exe
 	fi
+
+if [ -f "BCXMS.EXE" ]; then
+    mv BCXMS.EXE bcxms.ex0
+    mv bcxms.ex0 bcxms.exe
+fi
+
+if [ -f "BCINPU.EXE" ]; then
+    mv BCINPU.EXE bcinpu.ex0
+    mv bcinpu.ex0 bcinpu.exe
+fi
