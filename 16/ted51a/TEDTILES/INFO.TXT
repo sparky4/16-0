@@ -1,0 +1,47 @@
+-------------------------------------------------------------------------
+IGRAB Header format v1.00
+-------------------------------------------------------------------------
+
+Value type	Label		What it is
+-------------------------------------------------------------------------
+int		headersize	size of entire header, huffman dictionary,
+				PIC & SPRITE structure lists
+
+long		dictionary	file offset of Huffman Dictionary
+long		dataoffsets	offset list of all elements in file. Offset
+				is from start of file
+
+
+#define's created:
+-------------------------------------------------------------------------
+#define NUMFONTS	// how many fonts in file, etc.
+#define NUMFONTM
+#define NUMTILE8	// this is really good to use for array allocation!
+#define NUMTILE8M
+#define NUMTILE16
+#define NUMTILE16M
+#define NUMTILE32
+#define NUMTILE32M
+#define NUMPICS
+#define NUMPICM
+#define NUMSPRITES
+
+#define STARTFONT	// index into offset list which holds file
+#define STARTFONTM
+#define STARTTILE8	// offset of data
+#define STARTTILE8M
+#define STARTTILE16
+#define STARTTILE16M
+#define STARTTILE32
+#define STARTTILE32M
+#define STARTPICS
+#define STARTPICM
+#define STARTSPRITES
+
+Grabbing values:
+		 Horizontal	 Vertical
+Type		GRIDx	ALTx	GRIDx	ALTx
+-------------------------------------------------------------------------
+TILE8/m		19	36	12	21
+TILE16/m	12	18	8	12
+TILE32/m	7	9	4	6
