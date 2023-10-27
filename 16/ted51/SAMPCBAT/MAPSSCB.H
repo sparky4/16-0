@@ -1,0 +1,13 @@
+///////////////////////////////////////
+//
+// TED5 Map Header for SCB
+//
+///////////////////////////////////////
+
+//
+// Map Names
+//
+typedef enum {
+		TWELVE_PLACES_MAP,       // 0
+		LASTMAP
+	     } mapnames;
