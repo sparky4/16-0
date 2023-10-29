@@ -2041,6 +2041,141 @@ void MM_EMSerr(byte *stri, byte err)
 /*
 =====================
 =
+= MM_XMSerr
+=
+=====================
+*/
+
+void MM_XMSerr(byte *stri, byte err)
+{
+	/*
+	If AX=0000h when a function returns and the high bit of BL is set,
+
+	BL =80h if the function is not implemented
+		81h if a VDISK device is detected
+		82h if an A20 error occurs
+		8Eh if a general driver error occurs
+		8Fh if an unrecoverable driver error occurs
+		90h if the HMA does not exist
+		91h if the HMA is already in use
+		92h if DX is less than the /HMAMIN= parameter
+		93h if the HMA is not allocated
+		94h if the A20 line is still enabled
+		A0h if all extended memory is allocated
+		A1h if all available extended memory handles are in use
+		A2h if the handle is invalid
+		A3h if the SourceHandle is invalid
+		A4h if the SourceOffset is invalid
+		A5h if the DestHandle is invalid
+		A6h if the DestOffset is invalid
+		A7h if the Length is invalid
+		A8h if the move has an invalid overlap
+		A9h if a parity error occurs
+		AAh if the block is not locked
+		ABh if the block is locked
+		ACh if the block's lock count overflows
+		ADh if the lock fails
+		B0h if a smaller UMB is available
+		B1h if no UMBs are available
+		B2h if the UMB segment number is invalid
+	*/
+	//Returns a text string describing the error code in XMS.Error.
+	switch(err)
+	{
+		case 0x00:
+			strcat(stri, "successful");
+		break;
+		case 0x80:
+			strcat(stri, "the function is not implemented");
+		break;
+		case 0x81:
+			strcat(stri, "a VDISK device is detected");
+		break;
+		case 0x82:
+			strcat(stri, "an A20 error occurs");
+		break;
+		case 0x8E:
+			strcat(stri, "a general driver error occurs");
+		break;
+		case 0x8F:
+			strcat(stri, "an unrecoverable driver error occurs");
+		break;
+		case 0x90:
+			strcat(stri, "the HMA does not exist");
+		break;
+		case 0x91:
+			strcat(stri, "the HMA is already in use");
+		break;
+		case 0x92:
+			strcat(stri, "DX is less than the /HMAMIN= parameter");
+		break;
+		case 0x93:
+			strcat(stri, "the HMA is not allocated");
+		break;
+		case 0x94:
+			strcat(stri, "the A20 line is still enabled");
+		break;
+		case 0xA0:
+			strcat(stri, "all extended memory is allocated");
+		break;
+		case 0xA1:
+			strcat(stri, "all available extended memory handles are in use");
+		break;
+		case 0xA2:
+			strcat(stri, "the handle is invalid");
+		break;
+		case 0xA3:
+			strcat(stri, "the SourceHandle is invalid");
+		break;
+		case 0xA4:
+			strcat(stri, "the SourceOffset is invalid");
+		break;
+		case 0xA5:
+			strcat(stri, "the DestHandle is invalid");
+		break;
+		case 0xA6:
+			strcat(stri, "the DestOffset is invalid");
+		break;
+		case 0xA7:
+			strcat(stri, "the Length is invalid");
+		break;
+		case 0xA8:
+			strcat(stri, "the move has an invalid overlap");
+		break;
+		case 0xA9:
+			strcat(stri, "a parity error occurs");
+		break;
+		case 0xAA:
+			strcat(stri, "the block is not locked");
+		break;
+		case 0xAB:
+			strcat(stri, "the block is locked");
+		break;
+		case 0xAC:
+			strcat(stri, "the block's lock count overflows");
+		break;
+		case 0xAD:
+			strcat(stri, "the lock fails");
+		break;
+		case 0xB0:
+			strcat(stri, "a smaller UMB is available");
+		break;
+		case 0xB1:
+			strcat(stri, "no UMBs are available");
+		break;
+		case 0xB2:
+			strcat(stri, "the UMB segment number is invalid");
+		break;
+		default:
+			strcat(stri, "undefined error");
+	}
+}
+
+//==========================================================================
+
+/*
+=====================
+=
 = MM_BombOnError
 =
 =====================

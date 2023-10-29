@@ -114,6 +114,7 @@ void rotateL(byte *arr, byte n)
 	arr[0] = x;
 }
 
+// this is for dumping stuff into heap dump file
 void printmeminfoline(byte *strc, const byte *pee, size_t h_total, size_t h_used, size_t h_free)
 {
 	byte str[64];

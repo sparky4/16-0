@@ -320,6 +320,7 @@ PML_StartupXMS(void)
 	byte err = 0;
 	boolean errorflag=false;
 	word e=0;
+	byte str[64];						// for xmserror
 	XMSPresent = false;					// Assume failure
 	XMSAvail = mminfo.XMSmem = 0;
 
@@ -337,13 +338,13 @@ PML_StartupXMS(void)
 
 		mov	ah,XMS_VERSION
 		call	[DWORD PTR XMSDriver]						//; Get XMS Version Number
-		mov	[XMSVer],ax
+		mov	XMSVer,ax
 		mov	e,2
 
 #ifdef STARTUPXMSASM
 		mov	ah,XMS_QUERYFREE			// Find out how much XMS is available
 		call	[DWORD PTR XMSDriver]
-		mov	[XMSAvail],ax
+		mov	XMSAvail,ax
 		or	ax,ax				// AJR: bugfix 10/8/92
 		jz	error1
 		mov	e,3
@@ -440,6 +441,9 @@ error:
 	}
 	else
 	{
+		strcpy(str,"PML_StartupXMS: XMS error ");
+		MM_XMSerr(str, err);
+		printf("%s\n",str);
 #ifdef __DEBUG_PM__
 		//printf("XMSHandle\n");
 		//printf("	1=%u	2=%u	3=%u	4=%u\n", XMSHandle1, XMSHandle2, XMSHandle3, XMSHandle4);
@@ -526,6 +530,7 @@ PML_ShutdownXMS(void)
 {
 	byte err = 0;
 	boolean errorflag=false;
+	byte str[64];				// for error
 	if (XMSPresent)
 	{
 #ifdef STARTUPXMSASM
@@ -535,7 +540,7 @@ PML_ShutdownXMS(void)
 			mov	ah,XMS_FREE
 			call	[DWORD PTR XMSDriver]
 			or	bl,bl
-			jz	errorxs
+			jnz	errorxs	//added jnz instead of jz	bug fix by sparky4: 10/29/2023
 			jmp	Endxs
 #ifdef __BORLANDC__
 		}
@@ -564,7 +569,12 @@ PML_ShutdownXMS(void)
 		}
 #endif	// STARTUPXMSASM
 		if(errorflag==true)
+		{
+			strcpy(str,"PML_ShutdownXMS: XMS error ");
+			MM_XMSerr(str, err);
+			printf("%s\n",str);
 			Quit ("PML_ShutdownXMS: Error freeing XMS");
+		}
 	}
 }
 
@@ -750,6 +760,7 @@ PML_ReadFromFile(byte far *buf,long offset,word length)
 //
 //	PML_OpenPageFile() - Opens the page file and sets up the page info
 //
+//DISABLED
 #if 0
 void
 PML_OpenPageFile(void)

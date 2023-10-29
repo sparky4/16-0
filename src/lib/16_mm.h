@@ -132,6 +132,7 @@ dword MM_UnusedMemory (void);
 dword MM_TotalFree (void);
 void MM_Report_ (void);
 void MM_EMSerr (byte *stri, byte err);
+void MM_XMSerr(byte *stri, byte err);
 void MM_BombOnError (boolean bomb);
 //void MM_GetNewBlock(mminfo_t *mm);
 //void MM_FreeBlock(mmblocktype *x, mminfo_t *mm);
