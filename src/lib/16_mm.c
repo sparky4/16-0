@@ -2082,9 +2082,9 @@ void MM_XMSerr(byte *stri, byte err)
 	//Returns a text string describing the error code in XMS.Error.
 	switch(err)
 	{
-		case 0x00:
-			strcat(stri, "successful");
-		break;
+//		case 0x00:
+//			strcat(stri, "successful");
+//		break;
 		case 0x80:
 			strcat(stri, "the function is not implemented");
 		break;

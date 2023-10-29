@@ -1,34 +1,36 @@
 
 	== near ==
 
-  USED block at 3378:34e6 of size 12
-  USED block at 3378:34f2 of size 20
-  USED block at 3378:3506 of size 20
-  USED block at 3378:351a of size 20
-  USED block at 3378:352e of size 20
-  USED block at 3378:3542 of size 20
-  FREE block at 3378:3556 of size 51878
-  FREE block at 3378:3556 of size 51878
+  USED block at 1ada:34e6 of size 12
+  USED block at 1ada:34f2 of size 20
+  USED block at 1ada:3506 of size 20
+  USED block at 1ada:351a of size 20
+  USED block at 1ada:352e of size 20
+  USED block at 1ada:3542 of size 20
+  FREE block at 1ada:3556 of size 51878
+  FREE block at 1ada:3556 of size 51878
 
 	== far ==
 
-  USED block at 4379:0016 of size 136
-  USED block at 4379:009e of size 35236
-  USED block at 4379:8a42 of size 20
-  FREE block at 4379:8a56 of size 30118
-  FREE block at 537a:0016 of size 65510
-  FREE block at 637b:0016 of size 65510
-  FREE block at 737c:0016 of size 65510
-  FREE block at 837d:0016 of size 65510
-  FREE block at 937e:0016 of size 49174
-  FREE block at 937e:0016 of size 49174
+  USED block at 2adb:0016 of size 136
+  USED block at 2adb:009e of size 2398
+  USED block at 2adb:09fc of size 20
+  FREE block at 2adb:0a10 of size 62956
+  FREE block at 3adc:0016 of size 65510
+  FREE block at 4add:0016 of size 65510
+  FREE block at 5ade:0016 of size 65510
+  FREE block at 6adf:0016 of size 65510
+  FREE block at 7ae0:0016 of size 65510
+  FREE block at 8ae1:0016 of size 65510
+  FREE block at 9ae2:0016 of size 16390
+  FREE block at 9ae2:0016 of size 16390
 Memory Type         Total      Used       Free
 ----------------  --------   --------   --------
 Near		   51990	112	  51878
-Far		   49044	35392	  13652
+Far		   16208	2554	  13654
 ----------------  --------   --------   --------
 HC_coreleft = 51876
-HC_farcoreleft = 393196
+HC_farcoreleft = 524266
 coreleft = 51878
-farcoreleft = 393196
-stackavail = 2796
+farcoreleft = 524266
+stackavail = 2795
