@@ -68,6 +68,8 @@
 	PageListStruct	far *PMPages,
 					_seg *PMSegPages;
 
+static word exmsrecursion_detect = 0;
+
 static	char		*ParmStrings[] = {"nomain","noems","noxms",nil};
 
 /////////////////////////////////////////////////////////////////////////////
@@ -293,6 +295,8 @@ PML_ShutdownEMS(void)
 			strcpy(str,"PML_ShutdownEMS: Error freeing EMS ");
 			MM_EMSerr(str, err);
 			printf("%s\n",str);
+			exmsrecursion_detect++;
+			if(exmsrecursion_detect < 16)
 			Quit ("PML_ShutdownEMS: Error freeing EMS");
 		}
 	}
@@ -488,8 +492,16 @@ PML_XMSCopy(boolean toxms,byte far *addr,word xmspage,word length)
 	__asm {
 		push si
 	}
+#ifndef STARTUPXMSASM
 	_SI = (word)&copy;
 	XMS_CALL(XMS_MOVE);
+#else
+	__asm {
+		mov		si,[word ptr copy]
+		mov		ah,XMS_MOVE
+		call	[DWORD PTR XMSDriver]
+	}
+#endif
 	__asm {
 		pop	si
 	}
@@ -573,6 +585,8 @@ PML_ShutdownXMS(void)
 			strcpy(str,"PML_ShutdownXMS: XMS error ");
 			MM_XMSerr(str, err);
 			printf("%s\n",str);
+			exmsrecursion_detect++;
+			if(exmsrecursion_detect < 16)
 			Quit ("PML_ShutdownXMS: Error freeing XMS");
 		}
 	}
