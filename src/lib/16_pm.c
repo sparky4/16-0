@@ -574,7 +574,7 @@ PML_ShutdownXMS(void)
 #else	// STARTUPXMSASM
 		_DX = XMSHandle;
 		XMS_CALL(XMS_FREE);
-		if (_BL)
+		if (!_AX)
 		{
 			err = _AL;
 			errorflag=true;
