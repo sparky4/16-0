@@ -551,8 +551,8 @@ PML_ShutdownXMS(void)
 			//XMS_CALL(XMS_FREE);
 			mov	ah,XMS_FREE
 			call	[DWORD PTR XMSDriver]
-			or	bl,bl
-			jnz	errorxs	//added jnz instead of jz	bug fix by sparky4: 10/29/2023
+			or	ax,ax
+			jz	errorxs	//added jnz instead of jz	bug fix by sparky4: 10/29/2023	//UPDATE: ax is the return register and comparing bl is not working correctly so we gotta set it up for ax
 			jmp	Endxs
 #ifdef __BORLANDC__
 		}
