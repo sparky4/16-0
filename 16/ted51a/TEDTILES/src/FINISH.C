@@ -348,7 +348,7 @@ void LoadKeyword(char *string,int grabbed)
       }
     break;
   case 'V':
-    if (CurrentLBM.planes!=4)
+    if (CurrentLBM.planes!=4 || CurrentLBM.planes!=8)
       {
        char erstr[200]="The screen '";
        strcat(erstr,picname);
