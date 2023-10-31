@@ -1,7 +1,7 @@
 //////////////////////////////////////
 //
 // Graphics .H file for .HP1
-// IGRAB-ed on Tue Oct 31 12:42:49 2023
+// IGRAB-ed on Tue Oct 31 14:23:00 2023
 //
 //////////////////////////////////////
 
@@ -19,7 +19,7 @@ typedef enum {
 //
 // Amount of each data item
 //
-#define NUMCHUNKS    432
+#define NUMCHUNKS    738
 #define NUMFONT      0
 #define NUMFONTM     0
 #define NUMPICS      0
@@ -27,8 +27,8 @@ typedef enum {
 #define NUMSPRITES   0
 #define NUMTILE8     0
 #define NUMTILE8M    0
-#define NUMTILE16    216
-#define NUMTILE16M   216
+#define NUMTILE16    270
+#define NUMTILE16M   468
 #define NUMTILE32    0
 #define NUMTILE32M   0
 #define NUMEXTERNS   0
@@ -43,10 +43,10 @@ typedef enum {
 #define STARTTILE8   0
 #define STARTTILE8M  0
 #define STARTTILE16  0
-#define STARTTILE16M 216
-#define STARTTILE32  432
-#define STARTTILE32M 432
-#define STARTEXTERNS 432
+#define STARTTILE16M 270
+#define STARTTILE32  738
+#define STARTTILE32M 738
+#define STARTEXTERNS 738
 
 //
 // Thank you for using IGRAB!
