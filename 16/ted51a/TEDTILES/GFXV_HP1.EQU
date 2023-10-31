@@ -1,0 +1,47 @@
+;=====================================
+;
+; Graphics .EQU file for .HP1
+; IGRAB-ed on Tue Oct 31 12:42:49 2023
+;
+;=====================================
+
+
+
+
+
+
+;
+; Amount of each data item
+;
+NUMCHUNKS	=	432
+NUMFONT  	=	0
+NUMFONTM  	=	0
+NUMPICS  	=	0
+NUMPICM  	=	0
+NUMSPRITES  	=	0
+NUMTILE8  	=	0
+NUMTILE8M  	=	0
+NUMTILE16  	=	216
+NUMTILE16M  	=	216
+NUMTILE32  	=	0
+NUMTILE32M  	=	0
+NUMEXTERN  	=	0
+;
+; File offsets for data items
+;
+STARTFONT  	=	0
+STARTFONTM  	=	0
+STARTPICS  	=	0
+STARTPICM  	=	0
+STARTSPRITES  	=	0
+STARTTILE8  	=	0
+STARTTILE8M  	=	0
+STARTTILE16  	=	0
+STARTTILE16M  	=	216
+STARTTILE32  	=	432
+STARTTILE32M  	=	432
+STARTEXTERN  	=	432
+
+;
+; Thank you for using IGRAB!
+;

@@ -160,6 +160,7 @@ void huge *SetupLBM(char *filename)
  buffer = startbuff = (char huge *)farmalloc(filesize);
  if (buffer==NULL)
  {
+   printf("%s\n", filename);
    strcpy(errst,"Not enough memory to load ILBM file! Size=");
    ltoa(filesize,tempstr,10);
    strcat(errst,tempstr);

@@ -348,13 +348,14 @@ void LoadKeyword(char *string,int grabbed)
       }
     break;
   case 'V':
-    if (CurrentLBM.planes!=8)
+    if (CurrentLBM.planes!=4)
       {
        char erstr[200]="The screen '";
        strcat(erstr,picname);
        strcat(erstr,"' isn't a VGA screen!");
        errout(erstr);
       }
+    break;
  }
 
 
