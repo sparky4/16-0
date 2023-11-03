@@ -40,7 +40,7 @@ DELLOGFILE=1
 
 #192x144
 #wwww will add these
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 #!ifdef UNIX
 to_os_path=\=/
 REMOVECOMMAND=rm -f
@@ -233,7 +233,7 @@ UTILEXEC = &
 	palettec.exe &
 	ps.exe
 #	fd-dbg.exe
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 DOSLIBTESTEXEC = &
 	joytest.exe &
 	opltest.exe
@@ -256,7 +256,7 @@ EXEC = &
 	exmmtest.exe &
 	inputest.exe
 
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 #++?EXEC += $(SPRIUTILEXEC)
 #EXEC += $(DOSLIBTESTEXEC)
 !endif
@@ -503,7 +503,7 @@ clean: .symbolic
 	@if not exist $(DOSLIBDIR)/buildall.sh wmake -s -h initlibs
 	@wmake -s -h initscript
 	@for %f in ($(ALLEXEC)) do @if exist %f $(REMOVECOMMAND) %f
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 	@if exist *.LIB $(REMOVECOMMAND) *.LIB
 	@. src/util/bcexmm.sh
 	@if exist *.EXE $(REMOVECOMMAND) *.EXE
@@ -567,7 +567,7 @@ backupscript: .symbolic
 	@if exist *.bat $(MOVECOMMAND) *.bat $(SCRIPTBATDIR)/
 	@$(MOVECOMMAND) WBUILD.B WBUILD.BAT
 
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 	@$(COPYCOMMAND) wbuild.sh wbuild.s
 	@if exist *.sh $(MOVECOMMAND) *.sh $(SCRIPTBATDIR)/
 	@$(MOVECOMMAND) wbuild.s wbuild.sh
@@ -580,7 +580,7 @@ backupscript: .symbolic
 
 initscript: .symbolic
 	@$(COPYCOMMAND) $(SCRIPTBATDIR)$(DIRSEP)*.bat .
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 	@$(COPYCOMMAND) $(SCRIPTBATDIR)$(DIRSEP)*.sh .
 	@$(COPYCOMMAND) $(SCRIPTBATDIR)/*.BAT .
 !endif
@@ -598,7 +598,7 @@ comq: .symbolic
 
 exe2e: .symbolic
 	@for %f in ($(ALLEXEC)) do @if exist %f $(MOVECOMMAND) %f $(SRCLIB)
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 	@if exist *.EXE ./make-lowercase *.EXE
 !endif
 	@if exist *.exe $(MOVECOMMAND) *.exe $(SRC)
@@ -739,7 +739,7 @@ mx_: .symbolic
 	@wmake -s -h -f makefile all
 	@cd $(BUILD_ROOT)
 
-!ifdef __LINUX__
+!ifdef __LINUX__ || __BSD__
 drotoimf: .symbolic
 	@cd 16/dro2imf
 	@make
