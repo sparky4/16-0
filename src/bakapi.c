@@ -130,6 +130,7 @@ main(int argc, char *argvar[])
 
 	VL_ShowPage(&page[0], 1, 0);
 	//BAKAPIINITFIZZTEST
+	VL_ClearVideo(0);
 
 	while (bptest)
 	{
@@ -373,8 +374,9 @@ pee:
 //					VL_Shutdown ();
 //					VGAmodeX(vgamodex_mode, 0, &gvar);
 //					SETUPPAGEBAKAPI
+					VL_Startup ();
 					VL_SetVGAPlaneMode ();
-//					VL_ClearVideo(0);
+					VL_ClearVideo(0);
 		// this code is written around modex16 which so far is a better fit than using DOSLIB vga directly, so leave MXLIB code in.
 		// we'll integrate DOSLIB vga into that part of the code instead for less disruption. -- J.C.
 					VL_ShowPage(&page[0], 0, 0);
