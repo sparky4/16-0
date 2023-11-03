@@ -15,3 +15,13 @@ why? i fucked up. it's fine. i can redo the render code later.
 alot of the xcroll code is spagetti and the 16_map and 16_scroll and various files are not organized. i will redo this. with id_rf.c
 
 next build the normal game engine ontop of the id_* managers like how it is supposed to be done (here will be the stuff for everything thats not low level including xcroll code)
+
+
+
+
+
+NEW TASKS for whole team
+    !! work on extending TED5 to TED6 or TED VGA   using TED51a folder
+    get some dummy forest graphics and import it to the files .lbm in the ted51a
+    make fuckin sample/beta maps
+    etc
