@@ -275,7 +275,7 @@ testexec: $(EXEC) $(TESTEXEC2)
 # game and bakapi executables
 #
 16.exe:		16.$(OBJ)	16_mm.$(OBJ) 16_pm.$(OBJ) 16_ca.$(OBJ) 16_tail.$(OBJ) 16_head.$(OBJ) 16_hc.$(OBJ) hp_dbg.$(OBJ)
-bakapi.exe:		bakapi.$(OBJ) 16_vl.$(OBJ) 16text.$(OBJ) bakapee.$(OBJ) $(DOSLIB) 16_wcpu.$(OBJ) gamepal.$(OBJ) 16_head.$(OBJ)# 16_tail.$(OBJ) # gfx.lib
+bakapi.exe:		bakapi.$(OBJ) 16_vl.$(OBJ) 16text.$(OBJ) bakapee.$(OBJ) 16_wcpu.$(OBJ) gamepal.$(OBJ) 16_head.$(OBJ)# 16_tail.$(OBJ) # gfx.lib
 sp2.exe:		sp2.$(OBJ)
 
 #
