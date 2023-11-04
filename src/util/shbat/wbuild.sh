@@ -1,4 +1,3 @@
-#! /bin/bash
 pee="-h"
 # -s"
 wmake -h -s clean
