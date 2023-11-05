@@ -15,15 +15,15 @@ typedef enum {
 //
 // TILEINFO offsets
 //
-#define A		402
-#define B		(A+NUMTILE16)
-#define C		(B+NUMTILE16)
-#define D		(C+NUMTILE16)
+#define 1		402
+#define 2		(1+NUMTILE16)
+#define 3		(2+NUMTILE16)
+#define 4		(3+NUMTILE16)
 
 //
 // TILEINFOM offsets
 //
-#define A		(D+NUMTILE16)
-#define B		(A+NUMTILE16M)
-#define C		(B+NUMTILE16M)
-#define D		(C+NUMTILE16M)
+#define 1		(4+NUMTILE16)
+#define 2		(1+NUMTILE16M)
+#define 3		(2+NUMTILE16M)
+#define 4		(3+NUMTILE16M)

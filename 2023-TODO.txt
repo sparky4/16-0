@@ -24,4 +24,4 @@ NEW TASKS for whole team
     !! work on extending TED5 to TED6 or TED VGA   using TED51a folder
     get some dummy forest graphics and import it to the files .lbm in the ted51a
     make fuckin sample/beta maps
-    etc
+    we need vga pallete in ted5 

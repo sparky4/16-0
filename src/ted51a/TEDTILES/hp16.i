@@ -6,12 +6,12 @@ begin hp1
 frac 1
 
 start alt16
-load 1dark
+load 2gnd
 grab 216
 
 
 start alt16m
-load 1light
+load 2forst
 grab 216
 
 end
