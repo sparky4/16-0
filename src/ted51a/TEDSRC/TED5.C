@@ -241,8 +241,8 @@ void main(void)
  ParseCmdline();
  SetupKBD();
  MMStartup();
- setvideo(EGA1);
- lastvideo=EGA1;
+ setvideo(VGA);
+ lastvideo=VGA;
  InitTed5();
  harderr(ignore);
  tics=biostime(0,0);
@@ -709,12 +709,14 @@ void ScreenBlank ( void )
 void Continuous(void)
 {
  static int oldx, oldy;
+ char str[2];
  if (biostime(0,0)-tics>tictime)
 	 {
 	 MouseHide();
 	 ScreenBlank();
 	 clearkeys();
 	 videomode=lastvideo;
+//Quit(itoa(videomode,str,10));
 	 Item_ModeSwitch();
 	 RedrawDesktop();
 	 DrawMap();

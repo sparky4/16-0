@@ -691,6 +691,7 @@ void RedrawDesktop(void)
     for (i=0;i<160;i++)
       *(VGAmem+i)=0;
     }
+    break;
  }
 }
 

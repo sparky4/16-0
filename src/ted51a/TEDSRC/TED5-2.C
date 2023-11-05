@@ -728,11 +728,12 @@ void Item_ModeSwitch(void)
       VMS1b[i].border=2;
    }
 
-// which=DoDialog(&VMS1d);
+//
+which=DoDialog(&VMS1d);
  //
  // Keep track of last video mode!
  //
- if (videomode==EGA1)
+/* if (videomode==EGA1)
 	 {
 	 which=3;
 	 lastvideo=videomode;
@@ -741,7 +742,7 @@ void Item_ModeSwitch(void)
 	 {
 	 which=2;
 	 lastvideo=videomode;
-	 }
+	 }*/
 
  MouseHide();
  switch(which)
@@ -836,6 +837,7 @@ void Item_ModeSwitch(void)
        XMSlookup=VgaXMSlookup;
       }
     setvideo(VGA);
+    break;
  }
 
  InitDesktop(TED5MenuBar,0);
@@ -1411,10 +1413,10 @@ void Item_LastVideo(void)
 
  videomode=lastvideo;
  lastvideo=temp;
- if (temp==EGA1)
+/* if (temp==EGA1)
 	 videomode=EGA2;
  else
-	 videomode=EGA1;
+	 videomode=EGA1;*/
 
  switch(videomode)
  {
