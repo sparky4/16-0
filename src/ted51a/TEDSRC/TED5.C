@@ -1732,7 +1732,7 @@ int LoadGraphStuff(int rtn,video newvid)
    {
 	case 'C': pickedvid=CGA; break;
 	case 'E': pickedvid=EGA1; break;
-	case 'V': pickedvid=VGA;
+	case 'V': pickedvid=VGA; break;
    }
  else
    pickedvid=TEDInfo->lastvid;

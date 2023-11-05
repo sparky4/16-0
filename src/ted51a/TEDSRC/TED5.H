@@ -1,5 +1,5 @@
 #define IDSTRING	"TED5v1.0"
-#define TITLESTR	"TED5 vD.IP"
+#define TITLESTR	"TED5 v6.00"
 #define IDSTSTR		"         "TITLESTR
 
 #include <stdio.h>
