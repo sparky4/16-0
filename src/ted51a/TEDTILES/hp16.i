@@ -11,7 +11,7 @@ grab 216
 
 
 start alt16m
-load 1dark
+load 1light
 grab 216
 
 end
