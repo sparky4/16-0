@@ -716,7 +716,6 @@ void Continuous(void)
 	 ScreenBlank();
 	 clearkeys();
 	 videomode=lastvideo;
-//Quit(itoa(videomode,str,10));
 	 Item_ModeSwitch();
 	 RedrawDesktop();
 	 DrawMap();
