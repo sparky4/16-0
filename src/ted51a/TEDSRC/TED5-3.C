@@ -1539,8 +1539,8 @@ void PrintMem(int x,int y)
 
  sx=x+10;
  sy=y+1;
- itoa(XMSTotalFree(),memstring,10);
- strcat(memstring,"K");
+ itoa(XMSTotalFree()/1024UL,memstring,10);
+ strcat(memstring,"M");
  print(memstring);
 
  sx=x+10;
@@ -2015,14 +2015,14 @@ void Item_ChangeBkgndColor(void)
    case 1:
      sound(1700);
      if (--BkgndColor<0)
-       BkgndColor=15;
+       BkgndColor=63;
      TEDInfo->BackgndColor=BkgndColor;
      DrawMap();
      DrawInfoBar();
      break;
    case 2:
      sound(1700);
-     if (++BkgndColor>15)
+     if (++BkgndColor>63)
        BkgndColor=0;
      TEDInfo->BackgndColor=BkgndColor;
      DrawMap();

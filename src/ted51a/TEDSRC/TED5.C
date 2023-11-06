@@ -2520,7 +2520,7 @@ void LoadInfoFile(void)
  // SET BACKGROUND COLOR
  //
  BkgndColor=TEDInfo->BackgndColor;
- if (BkgndColor>16)
+ if (BkgndColor>63)
    TEDInfo->BackgndColor=BkgndColor=O_FGNDBACK;
 }
 
@@ -2717,7 +2717,8 @@ MenuDef AboutMenu[]=
    {"--------------------",NULL,0,0},
 //   {"Display Unused Tiles",Item_CountTiles,0,0},
    {"Project Re-Select",Item_ProjectReSelect,0,0},
-   {"Visit DOS",Item_VisitDOS,0,0}
+   {"Visit DOS",Item_VisitDOS,0,0},
+   {"Pal",Item_Pal,0,0x58}
   };
 
 MenuDef FileMenu[]=

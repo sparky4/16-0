@@ -8,7 +8,7 @@
 
 
 long TTLxms;
-unsigned XMSavail;
+unsigned long XMSavail;
 void far *XMSdriver;
 
 ////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ void XMSFreeMem(int handle)
 // Return XMS memory available
 //
 ////////////////////////////////////////////////////
-unsigned XMSTotalFree(void)
+unsigned long XMSTotalFree(void)
 {
  CallXMS(8);
  XMSerror();

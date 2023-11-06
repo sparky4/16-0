@@ -1,9 +1,5 @@
 typedef enum {CGA,EGA1,EGA2,VGA,TEXT} video;
 #define ESCOUT 0xdeaf
-//#define PAL_READ_REG			0x03C7	/* Color register, read address */
-//#define PAL_WRITE_REG			0x03C8	/* Color register, write address */
-//#define PAL_DATA_REG			0x03C9	/* Color register, data port */
-//#define PAL_SIZE				(256 * 3)
 
 void Quit(char *string);
 void WaitVBL(int times);

@@ -354,3 +354,4 @@ int  MakeOBJ(char *filename,char *destfilename,char *public,segtype whichseg,cha
 void DrawTinfoScreen(int thescreen,int deltax,int deltay);
 void EnterTinfoValue(int whichtinfo,int mx,int my,int H_or_V);
 void UseTinfoValue(int whichtinfo,int mx,int my,int PickupOrDrop);
+void Item_Pal(void);

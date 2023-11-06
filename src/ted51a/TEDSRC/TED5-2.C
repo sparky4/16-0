@@ -704,11 +704,13 @@ void Item_About(void)
  strcat(dstr,"\n    (C)1991 Id Software\n\n"
 	     " DeluxePaint for Tile Maps! ");
 
-/*
+ if(videomode==VGA)
+ {
  itoa (videomode,str,10);
- strcat(dstr,"\na");
+ strcat(dstr,"\n");
  strcat(dstr,str);
-*/
+ }
+
 
  ErrDialog(dstr," OK ");
 }
