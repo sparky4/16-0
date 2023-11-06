@@ -524,6 +524,8 @@ void drawchar(int x,int y,int chr)
 ////////////////////////////////////////////////////////////////////
 void setvideo(video vid)
 {
+  //int i;
+  //char * pal = &VGAPAL;
  //
  // create CGA font (if not already created)
  //
@@ -650,6 +652,12 @@ void setvideo(video vid)
     _ES=FP_SEG(&VGAPAL);
     _AX=0x1012;
     geninterrupt(0x10);
+
+    /*outport(PAL_WRITE_REG, 0);  // start at the beginning of palette
+    for(i=0; i<PAL_SIZE; i++)
+	{
+      outport(PAL_DATA_REG, pal[i]);
+	}*/
    }
 }
 

@@ -25,3 +25,4 @@ NEW TASKS for whole team
     get some dummy forest graphics and import it to the files .lbm in the ted51a
     make fuckin sample/beta maps
     we need vga pallete in ted5 
+        INVESTIGATE IGRAB

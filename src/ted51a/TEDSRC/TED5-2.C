@@ -696,12 +696,19 @@ void errsound(void)
 void Item_About(void)
 {
  char dstr[200]=IDSTSTR;
+ char str[2];
 
  strcat(dstr,"\n\n   IdWare by John Romero\n");
  strcat(dstr,"        ");
  strcat(dstr,__DATE__);
  strcat(dstr,"\n    (C)1991 Id Software\n\n"
 	     " DeluxePaint for Tile Maps! ");
+
+/*
+ itoa (videomode,str,10);
+ strcat(dstr,"\na");
+ strcat(dstr,str);
+*/
 
  ErrDialog(dstr," OK ");
 }
