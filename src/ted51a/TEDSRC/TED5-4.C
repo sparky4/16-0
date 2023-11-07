@@ -2640,5 +2640,22 @@ void Item_POtog(void)
 ////////////////////////////////////////////////////
 void Item_Pal(void)
 {
-  // palette show
+  int i,j,k;
+  i=j=k=0;
+  for(;j<16;j++)
+  {
+    for(i=0;i<16*4;i+=4)
+    {
+      VL_Plot (i, j, k);
+      k++;
+    }
+    //getch();
+  }
+}
+
+unsigned vgalookup[200];
+
+void VL_Plot (int x, int y, int color)
+{
+	*(unsigned char far *)MK_FP(0xa0000000,((y*320)+(x>>2))) = color;
 }

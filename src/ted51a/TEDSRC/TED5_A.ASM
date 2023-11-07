@@ -845,7 +845,7 @@ label	DrawTVGA proc
 
 	mov	ax,0a000h
 	mov	es,ax
-	mov	si,OFFSET tdata
+	mov	si,OFFSET tdata		;tile data here
 	mov	di,[x]
 	shl	di,3
 	add	di,[VGAlookup+bx]

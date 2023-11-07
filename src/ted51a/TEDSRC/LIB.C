@@ -599,7 +599,6 @@ void setvideo(video vid)
     screencentery=11;
     scrnbot=199;
     scrnrgt=319;
-    break;
  }
  geninterrupt(0x10);
  videomode=vid;

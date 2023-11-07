@@ -274,7 +274,7 @@ void ParseCmdline(void)
 	 printf("<filename>      : set the Launch filename\n");
 	 printf("/PARMS=<string> : set parms to Launch with\n");
 	 printf("/NOXMSMAPS      : don't cache maps in XMS\n");
-    printf("/GFX=???        : set gfx to use - E,C,V\n");
+     printf("/GFX=???        : set gfx to use - E,C,V\n");
 	 printf("/TIME=???       : half-minutes until screenblanker (default 2 minutes)\n");
     exit(0);
 	}
@@ -709,7 +709,6 @@ void ScreenBlank ( void )
 void Continuous(void)
 {
  static int oldx, oldy;
- char str[2];
  if (biostime(0,0)-tics>tictime)
 	 {
 	 MouseHide();
@@ -1733,7 +1732,7 @@ int LoadGraphStuff(int rtn,video newvid)
    {
 	case 'C': pickedvid=CGA; break;
 	case 'E': pickedvid=EGA1; break;
-	case 'V': pickedvid=VGA; break;
+	case 'V': pickedvid=VGA;
    }
  else
    pickedvid=TEDInfo->lastvid;

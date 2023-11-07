@@ -707,7 +707,7 @@ void Item_About(void)
  if(videomode==VGA)
  {
  itoa (videomode,str,10);
- strcat(dstr,"\n");
+ strcat(dstr,"\nvideomode=");
  strcat(dstr,str);
  }
 
