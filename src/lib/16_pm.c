@@ -1475,7 +1475,7 @@ PM_Startup(void)
 		PML_StartupEMS();
 	if (!noxms && MML_CheckForXMS())
 		PML_StartupXMS();
-	if(!nomain)
+	if (!nomain)
 		PML_StartupMainMem();
 
 	if (!MainPresent && !EMSPresent && !XMSPresent)
