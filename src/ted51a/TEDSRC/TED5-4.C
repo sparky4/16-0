@@ -297,7 +297,7 @@ void Item_GraphicDump(void)
  switch(videomode)
  {
   case CGA:
-  case VGA:
+  //case VGA:
     ErrDialog("Sorry, but this function is only\n"
 	      "available for EGA mode.  If you\n"
 	      "have a REAL NEED for this to work\n"
