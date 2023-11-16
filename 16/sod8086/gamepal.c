@@ -1,4 +1,4 @@
-//#define SODPAL
+#define SODPAL
 
 unsigned char __far gamepal[768]={
   0,  0,  0,  0,  0, 42,  0, 42,  0,  0, 42, 42, 42,  0,  0, 42,
