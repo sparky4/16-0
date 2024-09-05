@@ -4,7 +4,7 @@
 ;
 ;====================================================
 	IDEAL
-	P8086
+	P386N
 	MODEL	medium,C
 
 extrn	XMSdriver:DWORD
