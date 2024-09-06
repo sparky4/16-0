@@ -4,7 +4,8 @@
 ;
 ;====================================================
 	IDEAL
-	P386N
+;	P386N
+	P8086
 	MODEL	medium,C
 
 extrn	XMSdriver:DWORD
@@ -885,8 +886,12 @@ PUBLIC	CopyCGA
 
 	mov	ax,[srcy]
 	cmp	ax,[desty]
-	jb	@@1
-	ja	@@2
+	jnb	CCGA1jmp
+	jmp	@@1
+CCGA1jmp:
+	jna	CCGA2jmp
+	jmp	@@2
+CCGA2jmp:
 	mov	ax,[srcx]
 	cmp	ax,[destx]
 	jb	@@0
@@ -908,7 +913,7 @@ PUBLIC	CopyCGA
 	add	bx,2
 	dec	dx
 	jnz	@@aa
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 ;
 ; Copy from end of sourcex to end of destx, left
 ;
@@ -1012,8 +1017,12 @@ PUBLIC	CopyEGA
 
 	mov	ax,[srcy]
 	cmp	ax,[desty]
-	jb	@@1
-	ja	@@2
+	jnb	CEGA1jmp
+	jmp	@@1
+CEGA1jmp:
+	ja	CEGA2jmp
+	jmp	@@2
+CEGA2jmp:
 	mov	ax,[srcx]
 	cmp	ax,[destx]
 	jb	@@0
@@ -1037,7 +1046,7 @@ PUBLIC	CopyEGA
 	add	bx,2
 	dec	dx
 	jnz	@@aa
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 @@a:
 	mov	si,[ss:EGA1lookup+bx]
 	mov	di,si
@@ -1048,7 +1057,7 @@ PUBLIC	CopyEGA
 	add	bx,2
 	dec	dx
 	jnz	@@a
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 ;
 ; Copy from end of sourcex to end of destx, left
 ;
@@ -1075,7 +1084,7 @@ PUBLIC	CopyEGA
 	add	bx,2
 	dec	dx
 	jnz	@@0a0
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 @@0a:
 	mov	si,[ss:EGA1lookup+bx]
 	mov	di,si
@@ -1092,7 +1101,7 @@ PUBLIC	CopyEGA
 	add	bx,2
 	dec	dx
 	jnz	@@0a
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 ;
 ; Copy from end of sourcey to end of desty, up
 ;
@@ -1125,7 +1134,7 @@ PUBLIC	CopyEGA
 	rep movsb
 	dec	[height]
 	jnz	@@1a0
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 @@1a:
 	mov	bl,dl
 	xor	bh,bh
@@ -1209,7 +1218,9 @@ PUBLIC	CopyVGA
 	mov	ax,[srcy]
 	cmp	ax,[desty]
 	jb	@@1
-	ja	@@2
+	jna	CVGA2jmp
+	jmp	@@2
+CVGA2jmp:
 	mov	ax,[srcx]
 	cmp	ax,[destx]
 	jb	@@0
@@ -1231,7 +1242,7 @@ PUBLIC	CopyVGA
 	add	bx,2
 	dec	dx
 	jnz	@@aa
-	jz	@@exit
+	jmp	@@exit	; conditional jump too long gotta make it jmp	was jz
 ;
 ; Copy from end of sourcex to end of destx, left
 ;
