@@ -1539,8 +1539,8 @@ void PrintMem(int x,int y)
 
  sx=x+10;
  sy=y+1;
- itoa(XMSTotalFree()/1024UL,memstring,10);
- strcat(memstring,"M");
+ itoa(XMSTotalFree(),memstring,10);
+ strcat(memstring,"K");
  print(memstring);
 
  sx=x+10;

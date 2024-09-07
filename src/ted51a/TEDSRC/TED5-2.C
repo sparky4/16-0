@@ -703,14 +703,14 @@ void Item_About(void)
  strcat(dstr,__DATE__);
  strcat(dstr,"\n    (C)1991 Id Software\n\n"
 	     " DeluxePaint for Tile Maps! ");
-
+/*0000
  if(videomode==VGA)
  {
  itoa (videomode,str,10);
  strcat(dstr,"\nvideomode=");
  strcat(dstr,str);
  }
-
+*/
 
  ErrDialog(dstr," OK ");
 }
@@ -738,7 +738,7 @@ void Item_ModeSwitch(void)
    }
 
 //
-which=DoDialog(&VMS1d);
+ which=DoDialog(&VMS1d);
  //
  // Keep track of last video mode!
  //
@@ -749,7 +749,7 @@ which=DoDialog(&VMS1d);
 	 }
  else
 	 {
-	 which=2;
+	 which=videomode+1;
 	 lastvideo=videomode;
 	 }*/
 
@@ -846,7 +846,6 @@ which=DoDialog(&VMS1d);
        XMSlookup=VgaXMSlookup;
       }
     setvideo(VGA);
-    break;
  }
 
  InitDesktop(TED5MenuBar,0);
