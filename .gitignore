@@ -5,8 +5,6 @@
 !proj16.bfproject
 *.obj
 *.OBJ
-!_*.OBJ
-!_*.obj
 *.[O]
 *.BCO
 *.*~

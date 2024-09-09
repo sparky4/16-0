@@ -2015,14 +2015,14 @@ void Item_ChangeBkgndColor(void)
    case 1:
      sound(1700);
      if (--BkgndColor<0)
-       BkgndColor=63;
+       BkgndColor=255;
      TEDInfo->BackgndColor=BkgndColor;
      DrawMap();
      DrawInfoBar();
      break;
    case 2:
      sound(1700);
-     if (++BkgndColor>63)
+     if (++BkgndColor>255)
        BkgndColor=0;
      TEDInfo->BackgndColor=BkgndColor;
      DrawMap();

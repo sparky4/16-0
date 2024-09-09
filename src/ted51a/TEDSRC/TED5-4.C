@@ -409,7 +409,7 @@ void Item_GraphicDump(void)
      PrefHeader.MasterMode=0;
      PrefHeader.PixelsPerLine=TileCopy.w<<(tsize+2);
      PrefHeader.NumColorTables=1;
-     for (i=0;i<16;i++)
+     for (i=0;i<256;i++)
        PrefHeader.ColorTable[i]=Ctable[i];
      PrefHeader.NumScanLines=TileCopy.h<<(tsize+2);
 
