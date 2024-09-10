@@ -1,7 +1,7 @@
 #include "ted5.h"
 #pragma hdrstop
 
-extern char far TEDCHAR,far VGAPAL;
+extern unsigned char far TEDCHAR,far VGAPAL;
 
 void Quit(char *string);
 void drawchar(int x,int y,int chr);

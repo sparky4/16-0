@@ -184,7 +184,7 @@ extern unsigned _stklen=0x2000;
 // Variables
 //
 ////////////////////////////////////////////////////
-extern char far TEDCHAR,far VGAPAL,tdata;
+extern unsigned char far TEDCHAR,far VGAPAL,tdata;
 extern unsigned doubled[256];
 
 UndoStr UndoRegion;
@@ -2518,7 +2518,7 @@ void LoadInfoFile(void)
  // SET BACKGROUND COLOR
  //
  BkgndColor=TEDInfo->BackgndColor;
- if (BkgndColor>256)
+ if (BkgndColor>255)
    TEDInfo->BackgndColor=BkgndColor=O_FGNDBACK;
 }
 
