@@ -1,7 +1,7 @@
 #include "ted5.h"
 #pragma hdrstop
 
-extern unsigned char far TEDCHAR,far VGAPAL;
+extern char far TEDCHAR,far VGAPAL;
 
 void Quit(char *string);
 void drawchar(int x,int y,int chr);
@@ -524,8 +524,8 @@ void drawchar(int x,int y,int chr)
 ////////////////////////////////////////////////////////////////////
 void setvideo(video vid)
 {
-  //int i;
-  //char * pal = &VGAPAL;
+  int i;
+  char far * pal;
  //
  // create CGA font (if not already created)
  //
@@ -645,18 +645,24 @@ void setvideo(video vid)
  //
  if (vid==VGA)	// set VGA palette
    {
-    _BX=0;
+		pal = &VGAPAL;
+    /*_BX=0;
     _CX=0x100;
     _DX=FP_OFF(&VGAPAL);
     _ES=FP_SEG(&VGAPAL);
     _AX=0x1012;
-    geninterrupt(0x10);
+    geninterrupt(0x10);*/
 
-    /*outport(PAL_WRITE_REG, 0);  // start at the beginning of palette
+
+#define PAL_READ_REG			0x03C7	// Color register, read address
+#define PAL_WRITE_REG			0x03C8	// Color register, write address
+#define PAL_DATA_REG			0x03C9	// Color register, data port
+#define PAL_SIZE				(256 * 3)
+    outport(PAL_WRITE_REG, 0);	// start at the beginning of palette
     for(i=0; i<PAL_SIZE; i++)
 	{
       outport(PAL_DATA_REG, pal[i]);
-	}*/
+	}
    }
 }
 

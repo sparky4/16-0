@@ -56,7 +56,7 @@ typedef struct {
 		char permicon,pflags;
 		int oscrx,oscry;
 		char parmstring[64],launchname[14];
-		char BackgndColor;
+		short BackgndColor;
 		char ImportPath[64];
 	       } InfoStruct;
 
@@ -192,9 +192,9 @@ extern screentype whichscreen;
 extern VMapStr VMapData;
 
 extern char launchname[64],ext[4],format[2],projname[64],mapname[64],planes,
-	infoname[64],mapheadname[64],/*tdata,*/MapNames[100][16],parmstring[64];
-extern char SM_name[64],SM_loadname[64],BkgndColor;
-extern unsigned char tdata;
+	infoname[64],mapheadname[64],tdata,MapNames[100][16],parmstring[64];
+extern char SM_name[64],SM_loadname[64]/*,BkgndColor*/;
+extern short BkgndColor;
 
 extern unsigned temp,whichmap,numtplanes,tilenum,tilemnum,numtmplanes,left,
 	DirtyFlag,tilelen,tilemlen,whicht,whichtm,whichi,
