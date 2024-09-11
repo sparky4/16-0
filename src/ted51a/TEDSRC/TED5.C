@@ -173,6 +173,8 @@
 //                    on automatically after 2 minutes.  Timelimit adjustable
 //                    through TIMELIMIT command line MED
 //
+// Sep 11 2024 - v0.51: Full VGA support in the editor. The code works
+//                      perfectly on a 80286 now! No more 80386 requirements.
 ////////////////////////////////////////////////////
 #include "ted5.h"
 #pragma hdrstop
@@ -184,7 +186,8 @@ extern unsigned _stklen=0x2000;
 // Variables
 //
 ////////////////////////////////////////////////////
-extern char far TEDCHAR,far VGAPAL,tdata;
+extern char far TEDCHAR,/*far VGAPAL,*/tdata;
+extern unsigned char far VGAPAL[768];
 extern unsigned doubled[256];
 
 UndoStr UndoRegion;
@@ -2519,7 +2522,7 @@ void LoadInfoFile(void)
  // SET BACKGROUND COLOR
  //
  BkgndColor=TEDInfo->BackgndColor;
- if (BkgndColor>255)
+ if (BkgndColor>256)
    TEDInfo->BackgndColor=BkgndColor=O_FGNDBACK;
 }
 
@@ -2714,8 +2717,8 @@ MenuDef AboutMenu[]=
    {"Memory Available",Item_PrintMem,0,0x44},
    {"Launch Project",Item_Launch,ALT,0x26},
    {"--------------------",NULL,0,0},
-   {"Display Unused Tiles",Item_CountTiles,0,0},
-   {"Pal",Item_Pal,0,0x58},	// vga pallete test
+//   {"Display Unused Tiles",Item_CountTiles,0,0},	// it crashes the program	--sparky4 2024
+   {"Pal",Item_Pal,0,0x58},	// vga pallete test	it's here if you need it	--sparky4 2024
    {"Project Re-Select",Item_ProjectReSelect,0,0},
    {"Visit DOS",Item_VisitDOS,0,0}
   };
