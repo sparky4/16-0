@@ -645,7 +645,7 @@ void setvideo(video vid)
  //
  if (vid==VGA)	// set VGA palette
    {
-		pal = &VGAPAL;
+	pal = &VGAPAL;
     /*_BX=0;
     _CX=0x100;
     _DX=FP_OFF(&VGAPAL);
