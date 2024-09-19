@@ -1019,7 +1019,7 @@ PUBLIC	CopyEGA
 	jnb	CEGA1jmp
 	jmp	@@1
 CEGA1jmp:
-	ja	CEGA2jmp
+	jna	CEGA2jmp
 	jmp	@@2
 CEGA2jmp:
 	mov	ax,[srcx]

@@ -855,6 +855,144 @@ void Item_ModeSwitch(void)
  MouseShow();
 }
 
+// this is merely for the screensaver --sparky4
+void SCRNSVR_ModeSwitch(void)
+{
+	int i,which,rtn;
+	
+	for(i=0;i<VMS1d.numbuttons;i++)
+	{
+		VMS1b[i].border=1;
+		if (i==lastvideo)
+			VMS1b[i].border=2;
+	}
+	
+	//
+	// Keep track of last video mode!
+	//
+	/*if (videomode==EGA1)
+	{
+		which=3;
+		lastvideo=videomode;
+	}
+		else
+	{*/
+		which=videomode+1;
+		lastvideo=videomode;
+	//}
+	
+	MouseHide();
+	switch(which)
+	{
+		case 0:
+			MouseShow();
+			return;
+		case 1:
+			if (!CgaXMS)
+			{
+				rtn=LoadGraphStuff(1,CGA);
+				if (!rtn)
+				{
+					MouseShow();
+					ErrDialog("There aren't any CGA\n"
+					"graphics files available!"," OK ");
+					return;
+				}
+				if (rtn<0)
+					return;
+				MouseShow();
+			}
+			else
+			{
+				xmshandle=CgaXMS;
+				XMSlookup=CgaXMSlookup;
+			}
+			setvideo(CGA);
+			break;
+		case 2:
+			if (!EgaXMS)
+			{
+				rtn=LoadGraphStuff(1,EGA1);
+				if (!rtn)
+				{
+					MouseShow();
+					ErrDialog("There aren't any EGA\n"
+					"graphics files available!"," OK ");
+					return;
+				}
+				if (rtn<0)
+					return;
+				MouseShow();
+			}
+			else
+			{
+				xmshandle=EgaXMS;
+				XMSlookup=EgaXMSlookup;
+			}
+			setvideo(EGA1);
+			break;
+		case 3:
+			if (!EgaXMS)
+			{
+				rtn=LoadGraphStuff(1,EGA1);
+				if (!rtn)
+				{
+					MouseShow();
+					ErrDialog("There aren't any EGA\n"
+					"graphics files available!"," OK ");
+					return;
+				}
+				if (rtn<0)
+					return;
+				MouseShow();
+			}
+			else
+			{
+				xmshandle=EgaXMS;
+				XMSlookup=EgaXMSlookup;
+			}
+			setvideo(EGA2);
+			break;
+		case 4:
+			if (!VgaXMS)
+			{
+				rtn=LoadGraphStuff(1,VGA);
+				if (!rtn)
+				{
+					MouseShow();
+					ErrDialog("There aren't any VGA\n"
+					"graphics files available!"," OK ");
+					return;
+				}
+				if (rtn<0)
+					return;
+				MouseShow();
+			}
+			else
+			{
+				xmshandle=VgaXMS;
+				XMSlookup=VgaXMSlookup;
+			}
+			setvideo(VGA);
+	}
+	
+	InitDesktop(TED5MenuBar,0);
+	DrawInfoBar();
+	FigureScreenEdges();
+	
+	if (xbase+screenw>mapwidth)
+		xbase=mapwidth-screenw;
+	if (mapwidth<screenw)
+		xbase=0;
+	if (ybase+screenh>mapheight)
+		ybase=mapheight-screenh;
+	if (mapheight<screenh)
+		ybase=0;
+	
+	DrawMap();
+	MouseShow();
+}
+
 ////////////////////////////////////////////////////
 //
 // Item - Map Stats

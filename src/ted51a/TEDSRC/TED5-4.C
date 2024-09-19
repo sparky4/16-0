@@ -2640,20 +2640,34 @@ void Item_POtog(void)
 ////////////////////////////////////////////////////
 void Item_Pal(void)
 {
-  int i,j,k;
+  char dstr[400]="\n\n";
+  int i,j,k;	// x,y,color
   i=j=k=0;
-  for(;j<16;j++)
+  if(videomode==VGA)
   {
-    for(i=0;i<16*4;i+=4)
+    for(;j<16*4;j++)	// each row
     {
-      VL_Plot (i, j, k);
-      k++;
+      for(i=0;i<16*4;i+=4)	// each column
+      {
+        VL_Plot (i/*+640*/, j/*+100*/, k);
+        k++;
+      }
+      //getch();
     }
-    //getch();
+    strcat(dstr,"VGA palette at the top left!\nThis is to simply verify\nthe VGA palette.");
   }
+	else
+  {
+	strcat(dstr,"This function is only\nfor the VGA palette!");
+  }
+  ErrDialog(dstr," OK ");
+  RedrawDesktop();
+  MouseShow();
+  DrawInfoBar();
+  DrawMap();
 }
 
-unsigned vgalookup[200];
+//unsigned vgalookup[200];
 
 void VL_Plot (int x, int y, int color)
 {

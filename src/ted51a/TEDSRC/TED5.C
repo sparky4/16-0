@@ -175,6 +175,9 @@
 //
 // Sep 11 2024 - v0.51: Full VGA support in the editor. The code works
 //                      perfectly on a 80286 now! No more 80386 requirements.
+//
+// Sep 19 2024 - v0.52: Fixed screen saver automated video selection.
+//                      Fixed EGA scroll code!
 ////////////////////////////////////////////////////
 #include "ted5.h"
 #pragma hdrstop
@@ -245,8 +248,8 @@ void main(void)
  ParseCmdline();
  SetupKBD();
  MMStartup();
- setvideo(VGA);
- lastvideo=VGA;
+ setvideo(EGA1);
+ lastvideo=EGA1;
  InitTed5();
  harderr(ignore);
  tics=biostime(0,0);
@@ -718,8 +721,9 @@ void Continuous(void)
 	 MouseHide();
 	 ScreenBlank();
 	 clearkeys();
-	 videomode=lastvideo;
-	 Item_ModeSwitch();
+//	 videomode=lastvideo;		// ?? --sparky4
+ 	 lastvideo=videomode;		// I did this and now video selection works! --sparky4
+	 SCRNSVR_ModeSwitch();
 	 RedrawDesktop();
 	 DrawMap();
 	 DrawInfoBar();
@@ -2549,6 +2553,7 @@ void FindGraphFile(void)
 	LoadFile(tiname,(char huge *)&LaunchInfo,0,0);
 	unlink(tiname);
 	videomode=LaunchInfo.lastmode;
+	lastvideo=LaunchInfo.lastmode;
 	switch(videomode)
 	{
 	 case CGA:
@@ -2718,7 +2723,7 @@ MenuDef AboutMenu[]=
    {"Launch Project",Item_Launch,ALT,0x26},
    {"--------------------",NULL,0,0},
 //   {"Display Unused Tiles",Item_CountTiles,0,0},	// it crashes the program	--sparky4 2024
-   {"Pal",Item_Pal,0,0x58},	// vga pallete test	it's here if you need it	--sparky4 2024
+   {"VGA Palette",Item_Pal,0,0x58},	// vga pallete test	it's here if you need it	--sparky4 2024
    {"Project Re-Select",Item_ProjectReSelect,0,0},
    {"Visit DOS",Item_VisitDOS,0,0}
   };

@@ -1,5 +1,5 @@
 #define IDSTRING	"TED5v1.0"
-#define TITLESTR	"TED5 v0.51"
+#define TITLESTR	"TED5 v0.52"
 #define IDSTSTR		"         "TITLESTR
 
 #include <stdio.h>
@@ -294,6 +294,7 @@ void TIDoneOff(int x,int y);
 //
 void Item_About(void);
 void Item_ModeSwitch(void);
+void SCRNSVR_ModeSwitch(void);
 void Item_DeleteMap(void);
 void Item_EditMap(void);
 void Item_SaveMap(void);
