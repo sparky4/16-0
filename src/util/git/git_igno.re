@@ -7,6 +7,7 @@
 *.OBJ
 !_*.obj
 !_*.OBJ
+!TED5.EXE
 *.[O]
 *.BCO
 *.*~

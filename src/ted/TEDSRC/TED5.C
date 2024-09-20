@@ -248,8 +248,8 @@ void main(void)
  ParseCmdline();
  SetupKBD();
  MMStartup();
- setvideo(EGA1);
- lastvideo=EGA1;
+ setvideo(VGA);
+ lastvideo=VGA;
  InitTed5();
  harderr(ignore);
  tics=biostime(0,0);
@@ -2553,7 +2553,6 @@ void FindGraphFile(void)
 	LoadFile(tiname,(char huge *)&LaunchInfo,0,0);
 	unlink(tiname);
 	videomode=LaunchInfo.lastmode;
-	lastvideo=LaunchInfo.lastmode;
 	switch(videomode)
 	{
 	 case CGA:

@@ -2069,7 +2069,6 @@ void Item_CountTiles(void)
    if (XMSlookup[i+tilenum]>=0 && !tmarray[i])
      numtm++;
 
-
  //
  // INPUT FROM DIALOG
  //
